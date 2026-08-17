@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TRUSTEE
+  STAFF
+  MEMBER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  PENDING
+}
+
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String
+  name               String
+  role               Role       @default(MEMBER)
+  status             Status     @default(ACTIVE)
+  membershipNo       String?    @unique
+  phone              String?
+  address            String?
+  bloodGroup         String?
+  isSeniorCitizen    Boolean    @default(false)
+  familyMembersCount Int        @default(1)
+  donations          Donation[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model Donation {
+  id            String   @id @default(uuid())
+  donorName     String
+  email         String
+  phone         String?
+  amount        Float
+  currency      String   @default("INR")
+  paymentMethod String   @default("UPI")
+  transactionId String?
+  receiptNo     String   @unique
+  purpose       String   @default("General Foundation Fund")
+  status        String   @default("COMPLETED")
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+}
+
+model Project {
+  id                 String   @id @default(uuid())
+  title              String
+  category           String   @default("Community Development")
+  description        String
+  status             String   @default("ONGOING") // PLANNING, ONGOING, COMPLETED
+  budget             Float    @default(0)
+  spent              Float    @default(0)
+  startDate          DateTime
+  endDate            DateTime?
+  location           String
+  beneficiariesCount Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Meeting {
+  id        String   @id @default(uuid())
+  title     String
+  type      String   @default("GENERAL") // GENERAL, EXECUTIVE, TRUSTEE
+  date      DateTime
+  location  String
+  agenda    String
+  minutes   String?
+  status    String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  createdAt DateTime @default(now())
+}
+
+model Grant {
+  id                            String   @id @default(uuid())
+  title                         String
+  schemeName                    String
+  department                    String
+  amountRequested               Float
+  amountSanctioned              Float    @default(0)
+  status                        String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
+  pfmsReference                 String?
+  applicationDate               DateTime @default(now())
+  utilizationCertificateStatus String   @default("PENDING") // PENDING, SUBMITTED, VERIFIED
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+}
+
+model CulturalItem {
+  id          String   @id @default(uuid())
+  title       String
+  category    String   @default("HERITAGE") // HERITAGE, MUSIC, DANCE, RECIPE, FOLKLORE
+  description String
+  mediaUrl    String?
+  archiveType String   @default("DOCUMENT") // DOCUMENT, AUDIO, VIDEO, IMAGE
+  region      String   @default("Manipur")
+  language    String   @default("Manipuri / Meiteilon")
+  createdAt   DateTime @default(now())
+}
+
+model HealthRecord {
+  id             String   @id @default(uuid())
+  campName       String
+  location       String
+  date           DateTime
+  patientsServed Int      @default(0)
+  doctorsCount   Int      @default(1)
+  details        String
+  createdAt      DateTime @default(now())
+}
+
+model Document {
+  id           String   @id @default(uuid())
+  title        String
+  documentType String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, REPORT, NOTIFICATION
+  category     String   @default("GOVERNANCE")
+  fileUrl      String
+  fileSize     String   @default("1.2 MB")
+  description  String
+  isPublic     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+}
