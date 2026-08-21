@@ -103,6 +103,16 @@ h1, h2, h3, h4, h5, h6 {
   color: #1A202C; /* Always dark text for gold/amber buttons for contrast */
 }
 
+/* Ensure nav link buttons always show correct text color */
+.nav-links a.btn-secondary,
+.nav-links a.btn-primary {
+  color: #1A202C !important;
+}
+
+.nav-links a.btn-primary {
+  color: var(--btn-primary-text) !important;
+}
+
 .btn-secondary:hover {
   background-color: #c4a130;
   transform: translateY(-2px);
