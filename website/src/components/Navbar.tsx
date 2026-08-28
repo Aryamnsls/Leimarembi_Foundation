@@ -82,6 +82,7 @@ export default function Navbar() {
               <li><Link href="/" onClick={() => setIsMenuOpen(false)} style={isActive('/') ? activeStyle : {}}>Home</Link></li>
               <li><Link href="/portal" onClick={() => setIsMenuOpen(false)} style={isActive('/portal') ? activeStyle : {}}>Services Portal</Link></li>
               <li><Link href="/about" onClick={() => setIsMenuOpen(false)} style={isActive('/about') ? activeStyle : {}}>About Us</Link></li>
+              <li><Link href="/members" onClick={() => setIsMenuOpen(false)} style={isActive('/members') ? activeStyle : {}}>Members</Link></li>
               <li><Link href="/activities" onClick={() => setIsMenuOpen(false)} style={isActive('/activities') ? activeStyle : {}}>Activities</Link></li>
               <li><Link href="/documents" onClick={() => setIsMenuOpen(false)} style={isActive('/documents') ? activeStyle : {}}>Documents</Link></li>
               <li><Link href="/login" className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', color: '#1A202C !important', fontWeight: 700 }} onClick={() => setIsMenuOpen(false)}>Login</Link></li>
