@@ -1,6 +1,7 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 export default function WelcomeOverlay() {
   const [isVisible, setIsVisible] = useState(false);
@@ -8,34 +9,54 @@ export default function WelcomeOverlay() {
 
   useEffect(() => {
     // Check if we should show the overlay
-    const searchParams = new URLSearchParams(window.location.search);
-    const isQrScan = searchParams.has('qr');
-    const hasSeenWelcome = sessionStorage.getItem('welcomeShown');
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const isQrScan = searchParams.has('qr');
+      const hasSeenWelcome = sessionStorage.getItem('welcomeShown');
 
-    // Show if they scanned the QR code OR if it's their first time this session
-    if (isQrScan || !hasSeenWelcome) {
-      setIsVisible(true);
-      // Lock body scroll while overlay is active
-      document.body.style.overflow = 'hidden';
+      if (isQrScan || !hasSeenWelcome) {
+        const timer = setTimeout(() => {
+          setIsVisible(true);
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.overflow = 'hidden';
+          document.body.style.touchAction = 'none';
+        }, 0);
+        return () => clearTimeout(timer);
+      }
     }
   }, []);
 
-  const handleEnter = () => {
+  const handleEnter = useCallback(() => {
     setIsFadingOut(true);
-    sessionStorage.setItem('welcomeShown', 'true');
-    
-    // Remove query param if it exists so it doesn't trigger on refresh
-    if (window.history.replaceState) {
-      const url = new URL(window.location.href);
-      url.searchParams.delete('qr');
-      window.history.replaceState(null, '', url.toString());
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('welcomeShown', 'true');
+      if (window.history.replaceState) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('qr');
+        window.history.replaceState(null, '', url.toString());
+      }
     }
 
     setTimeout(() => {
       setIsVisible(false);
-      document.body.style.overflow = 'auto'; // Restore scroll
-    }, 800); // Wait for fade out animation
-  };
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }, 500);
+  }, []);
+
+  // Handle Escape key
+  useEffect(() => {
+    if (isVisible) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          handleEnter();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isVisible, handleEnter]);
 
   if (!isVisible) return null;
 
@@ -43,115 +64,66 @@ export default function WelcomeOverlay() {
     <div 
       style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'rgba(10, 25, 47, 0.85)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
+        inset: 0,
         zIndex: 99999,
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        background: 'rgba(15, 23, 42, 0.85)',
+        backdropFilter: 'blur(12px)',
+        padding: '1.5rem',
         opacity: isFadingOut ? 0 : 1,
-        transition: 'opacity 0.8s ease-in-out',
-        padding: '2rem',
-        textAlign: 'center'
+        transition: 'opacity 0.5s ease-in-out'
       }}
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-title"
     >
       <div 
-        className="welcome-content animate-fade-in-up"
+        className="card animate-fade-in"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '2rem',
-          maxWidth: '500px',
-          transform: isFadingOut ? 'translateY(-20px)' : 'translateY(0)',
-          transition: 'transform 0.8s ease-in-out'
+          maxWidth: '520px',
+          width: '100%',
+          textAlign: 'center',
+          padding: '2.5rem 2rem',
+          borderRadius: '24px',
+          background: 'var(--surface-color)',
+          boxShadow: 'var(--shadow-lg)'
         }}
       >
-        <div style={{ position: 'relative' }}>
-          <div style={{
-            position: 'absolute',
-            top: '-10px', left: '-10px', right: '-10px', bottom: '-10px',
-            background: 'linear-gradient(135deg, #ECC94B, #FC8181)',
-            borderRadius: '50%',
-            filter: 'blur(20px)',
-            opacity: 0.6,
-            zIndex: 0,
-            animation: 'pulse 3s infinite alternate'
-          }} />
-          <img 
-            src="/welcome-girl.png" 
-            alt="Khuramjari" 
-            style={{ 
-              width: '240px', 
-              height: '240px', 
-              objectFit: 'cover', 
-              borderRadius: '50%',
-              border: '4px solid #ECC94B',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-              position: 'relative',
-              zIndex: 1
-            }} 
+        <div style={{ marginBottom: '1.25rem' }}>
+          <Image 
+            src="/logo_salai_taret.jpg" 
+            alt="Leimarembee Foundation Logo" 
+            width={72} 
+            height={72} 
+            style={{ margin: '0 auto', borderRadius: '12px' }}
+            priority
           />
         </div>
 
-        <div>
-          <h1 style={{ 
-            color: '#ECC94B', 
-            fontSize: '3rem', 
-            fontWeight: 800, 
-            marginBottom: '0.5rem',
-            textShadow: '0 2px 10px rgba(0,0,0,0.3)',
-            lineHeight: 1.1
-          }}>
-            Khuramjari Mayamda
-          </h1>
-          <p style={{ color: 'white', fontSize: '1.25rem', opacity: 0.9 }}>
-            Welcome to the Leimarembee Foundation.<br/>
-            Access our resources, documents, and community services.
-          </p>
-        </div>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+          Official Foundation Portal
+        </span>
+
+        <h2 id="welcome-title" style={{ fontSize: '1.85rem', fontWeight: 900, marginTop: '0.35rem', marginBottom: '0.75rem', color: 'var(--primary-color)' }}>
+          Welcome to Leimarembee Foundation
+        </h2>
+
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem', marginInline: 'auto' }}>
+          Empowering communities through digital governance, rural health welfare, indigenous culture preservation, and transparent grant tracking in Northeast India.
+        </p>
 
         <button 
           onClick={handleEnter}
-          className="btn"
-          style={{
-            background: 'linear-gradient(135deg, #D69E2E, #DD6B20)',
-            color: 'white',
-            border: 'none',
-            padding: '1rem 2.5rem',
-            fontSize: '1.1rem',
-            fontWeight: 700,
-            borderRadius: '50px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: '0 4px 15px rgba(221, 107, 32, 0.4)',
-            transition: 'all 0.3s ease'
-          }}
-          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          className="btn btn-primary"
+          style={{ width: '100%', justifyContent: 'center', minHeight: '48px', fontSize: '1rem', gap: '8px' }}
         >
-          Enter Website <ChevronRight size={20} />
+          Enter Official Platform <ChevronRight size={18} />
         </button>
       </div>
-      
-      <style>{`
-        @keyframes pulse {
-          0% { transform: scale(1); opacity: 0.5; }
-          100% { transform: scale(1.1); opacity: 0.8; }
-        }
-        .animate-fade-in-up {
-          animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

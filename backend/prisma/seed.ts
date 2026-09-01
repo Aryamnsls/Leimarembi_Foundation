@@ -27,7 +27,7 @@ async function main() {
     },
   });
 
-  const member = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'member@leimarembifoundation.org' },
     update: {},
     create: {
@@ -50,25 +50,37 @@ async function main() {
   await prisma.donation.createMany({
     data: [
       {
+        publicDonationId: 'DON-20260901-SEED0001',
         donorName: 'Dr. Th. Ningthemba Singh',
+        firstName: 'Th. Ningthemba',
+        lastName: 'Singh',
         email: 'admin@leimarembifoundation.org',
-        phone: '+91 9876543210',
+        phone: '9876543210',
         amount: 25000,
         currency: 'INR',
-        paymentMethod: 'UPI',
+        paymentMethod: 'UPI_QR',
+        provider: 'MANUAL_UPI',
         receiptNo: 'LFR-2026-00001',
         purpose: 'Cultural Preservation Corpus Fund',
+        status: 'SUCCESS',
+        paidAt: new Date(),
         userId: admin.id,
       },
       {
+        publicDonationId: 'DON-20260901-SEED0002',
         donorName: 'K. Tomba Meitei',
+        firstName: 'Tomba',
+        lastName: 'Meitei',
         email: 'tomba@example.com',
-        phone: '+91 9123456789',
+        phone: '9123456789',
         amount: 10000,
         currency: 'INR',
         paymentMethod: 'BANK_TRANSFER',
+        provider: 'BANK_TRANSFER',
         receiptNo: 'LFR-2026-00002',
         purpose: 'Free Medical Camp Drive',
+        status: 'SUCCESS',
+        paidAt: new Date(),
       },
     ],
   });

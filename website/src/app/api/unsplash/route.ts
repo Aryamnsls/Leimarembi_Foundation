@@ -1,26 +1,19 @@
-export const runtime = 'edge';
-
 import { NextResponse } from 'next/server';
 
-const UNSPLASH_ACCESS_KEYS = [
-  process.env.UNSPLASH_ACCESS_KEY,
-  'vuk-VrJDMI8qxZ_92YUpjRvggnuwQ-lfWlMOFvylj8c',
-  'wBktuiBB5TkchxLdMLXasfgG15A-FTdUUvlJQn79x6k'
-].filter(Boolean);
-
 export async function GET() {
-  const queryTopics = ['Manipur', 'Loktai Lake', 'Imphal', 'Northeast India nature', 'Manipur landscape'];
+  const apiKey = process.env.UNSPLASH_ACCESS_KEY;
+  const queryTopics = ['Manipur', 'Loktak Lake', 'Imphal', 'Northeast India nature', 'Manipur landscape'];
   const randomTopic = queryTopics[Math.floor(Math.random() * queryTopics.length)];
 
-  for (const key of UNSPLASH_ACCESS_KEYS) {
+  if (apiKey) {
     try {
       const res = await fetch(
         `https://api.unsplash.com/photos/random?query=${encodeURIComponent(randomTopic)}&orientation=landscape&content_filter=high`,
         {
           headers: {
-            Authorization: `Client-ID ${key}`,
+            Authorization: `Client-ID ${apiKey}`,
           },
-          next: { revalidate: 60 } // cache for 60 seconds
+          next: { revalidate: 300 } // cache for 5 minutes
         }
       );
 
@@ -40,11 +33,11 @@ export async function GET() {
         }
       }
     } catch (error) {
-      console.error('Failed fetching Unsplash image with key:', error);
+      console.error('Failed fetching Unsplash image:', error);
     }
   }
 
-  // Fallback to static local background if API fails or rate limit reached
+  // Fallback to static local background if API key is missing, API fails, or rate limit is reached
   const randomBg = Math.floor(Math.random() * 4) + 1;
   return NextResponse.json({
     url: `/bg${randomBg}.jpg`,

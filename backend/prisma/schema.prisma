@@ -39,36 +39,46 @@ model User {
 }
 
 model Donation {
-  id            String   @id @default(uuid())
-  donorName     String
-  email         String
-  phone         String?
-  amount        Float
-  currency      String   @default("INR")
-  paymentMethod String   @default("UPI")
-  transactionId String?
-  receiptNo     String   @unique
-  purpose       String   @default("General Foundation Fund")
-  status        String   @default("COMPLETED")
-  userId        String?
-  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt     DateTime @default(now())
+  id                String    @id @default(uuid())
+  publicDonationId  String    @unique @default(uuid())
+  donorName         String
+  firstName         String?
+  lastName          String?
+  email             String
+  phone             String?
+  amount            Float
+  currency          String    @default("INR")
+  paymentMethod     String    @default("UPI_QR") // UPI_INTENT, UPI_QR, BANK_TRANSFER, CARD
+  provider          String    @default("MANUAL_UPI") // MANUAL_UPI, RAZORPAY, PAYU, BANK_TRANSFER
+  providerOrderId   String?
+  providerPaymentId String?
+  transactionId     String?
+  receiptNo         String    @unique
+  purpose           String    @default("General Foundation Fund")
+  status            String    @default("CREATED") // CREATED, PENDING, PROCESSING, SUCCESS, FAILED, CANCELLED, EXPIRED
+  expiresAt         DateTime?
+  paidAt            DateTime?
+  metadata          String?
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Project {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   title              String
-  category           String   @default("Community Development")
+  category           String    @default("Community Development")
   description        String
-  status             String   @default("ONGOING") // PLANNING, ONGOING, COMPLETED
-  budget             Float    @default(0)
-  spent              Float    @default(0)
+  status             String    @default("ONGOING") // PLANNING, ONGOING, COMPLETED
+  budget             Float     @default(0)
+  spent              Float     @default(0)
   startDate          DateTime
   endDate            DateTime?
   location           String
-  beneficiariesCount Int      @default(0)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  beneficiariesCount Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Meeting {

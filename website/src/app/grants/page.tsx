@@ -1,5 +1,10 @@
 import { Landmark, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 
+export const metadata = {
+  title: 'Government Grants | Leimarembi Foundation',
+  description: 'Track Government Grant Proposals and PFMS status.',
+};
+
 export default function Grants() {
   const schemes = [
     { name: 'Senior Citizen Welfare Fund', department: 'Social Welfare', amount: '₹10,00,000', status: 'Approved', date: 'Aug 10, 2025' },
@@ -8,40 +13,50 @@ export default function Grants() {
   ];
 
   return (
-    <div className="animate-fade-in" style={{ padding: '2rem 0' }}>
-      <h1 className="glass-panel" style={{ marginBottom: '2rem', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
-        <Landmark size={32} color="#2B6CB0" /> Government Grant Management
-      </h1>
-      
-      <div className="card" style={{ marginBottom: '3rem' }}>
-        <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)' }}>Application Pipeline</h2>
-        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '1rem' }}>
-          <div style={{ flex: '1 1 200px', padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-            <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>1. Proposal Preparation</h4>
-            <div style={{ background: 'var(--surface-color)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
-              <strong>Health Infrastructure</strong>
+    <div className="animate-fade-in" style={{ padding: '2.5rem 0 4rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+        <div className="glass-panel" style={{ padding: '0.4rem 1.25rem', borderRadius: '30px', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
+            Module 4: Grant Tracking & PFMS Records
+          </span>
+        </div>
+        <h1 style={{ fontSize: '2.75rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+          <Landmark size={36} color="var(--info-color)" /> Government Grant Management
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', maxWidth: '700px', margin: '0.5rem auto 0' }}>
+          Proposal preparation, scheme database management, and Public Financial Management System (PFMS) tracking.
+        </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: '3rem', padding: '2rem' }}>
+        <h2 style={{ marginBottom: '1.5rem', color: 'var(--text-primary)', fontWeight: 800 }}>Application Pipeline</h2>
+        <div style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
+          <div style={{ flex: '1 1 220px', padding: '1.25rem', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+            <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', fontWeight: 700 }}>1. Proposal Preparation</h4>
+            <div style={{ background: 'var(--surface-color-solid)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
+              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Health Infrastructure</strong>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>Completion: 80%</div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}><ArrowRight size={24} /></div>
+          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}><ArrowRight size={20} /></div>
           
-          <div style={{ flex: '1 1 200px', padding: '1.5rem', background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '8px' }}>
-            <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>2. Under Review</h4>
-            <div style={{ background: 'var(--surface-color)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
-              <strong>Cultural Heritage Grant</strong>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <div style={{ flex: '1 1 220px', padding: '1.25rem', background: 'rgba(0,0,0,0.02)', border: '1px solid var(--border-color)', borderRadius: '12px' }}>
+            <h4 style={{ color: 'var(--text-secondary)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', fontWeight: 700 }}>2. Under Review</h4>
+            <div style={{ background: 'var(--surface-color-solid)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
+              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Cultural Heritage Grant</strong>
+              <div style={{ fontSize: '0.85rem', color: 'var(--secondary-color)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
                 <Clock size={14} /> Pending PFMS
               </div>
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}><ArrowRight size={24} /></div>
+          <div style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)' }}><ArrowRight size={20} /></div>
 
-          <div style={{ flex: '1 1 200px', padding: '1.5rem', background: 'rgba(56, 161, 105, 0.05)', border: '1px solid rgba(56, 161, 105, 0.2)', borderRadius: '8px' }}>
-            <h4 style={{ color: '#38A169', marginBottom: '1rem' }}>3. Approved & Funded</h4>
-            <div style={{ background: 'var(--surface-color)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid #38A169' }}>
-              <strong>Senior Welfare Fund</strong>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <CheckCircle size={14} color="#38A169" /> Funds Disbursed
+          <div style={{ flex: '1 1 220px', padding: '1.25rem', background: 'rgba(39, 174, 96, 0.05)', border: '1px solid rgba(39, 174, 96, 0.25)', borderRadius: '12px' }}>
+            <h4 style={{ color: 'var(--success-color)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase', fontWeight: 700 }}>3. Approved & Funded</h4>
+            <div style={{ background: 'var(--surface-color-solid)', padding: '1rem', borderRadius: '8px', boxShadow: 'var(--shadow-sm)', borderLeft: '4px solid var(--success-color)' }}>
+              <strong style={{ display: 'block', fontSize: '0.95rem' }}>Senior Welfare Fund</strong>
+              <div style={{ fontSize: '0.85rem', color: 'var(--success-color)', marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600 }}>
+                <CheckCircle size={14} /> Funds Disbursed
               </div>
             </div>
           </div>
@@ -49,14 +64,16 @@ export default function Grants() {
       </div>
 
       <div className="card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h2>Scheme Database & Applications</h2>
-          <button className="btn btn-primary">+ New Application</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0 }}>Scheme Database & Applications</h2>
+          <Link href="/ai" className="btn btn-primary" style={{ fontSize: '0.875rem' }}>
+            ✨ Search Schemes with AI
+          </Link>
         </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+        <div className="table-responsive">
+          <table>
             <thead>
-              <tr style={{ background: 'var(--bg-color)', color: 'var(--text-secondary)' }}>
+              <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
                 <th style={{ padding: '1rem' }}>Scheme Name</th>
                 <th style={{ padding: '1rem' }}>Department</th>
                 <th style={{ padding: '1rem' }}>Target Amount</th>
@@ -67,18 +84,18 @@ export default function Grants() {
             <tbody>
               {schemes.map((s, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                  <td style={{ padding: '1rem', fontWeight: 500 }}>{s.name}</td>
-                  <td style={{ padding: '1rem' }}>{s.department}</td>
-                  <td style={{ padding: '1rem', fontWeight: 600 }}>{s.amount}</td>
-                  <td style={{ padding: '1rem' }}>{s.date}</td>
+                  <td style={{ padding: '1rem', fontWeight: 700 }}>{s.name}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{s.department}</td>
+                  <td style={{ padding: '1rem', fontWeight: 700 }}>{s.amount}</td>
+                  <td style={{ padding: '1rem', color: 'var(--text-secondary)' }}>{s.date}</td>
                   <td style={{ padding: '1rem' }}>
                      <span style={{ 
-                        padding: '0.3rem 0.6rem', 
-                        borderRadius: '4px', 
+                        padding: '0.3rem 0.65rem', 
+                        borderRadius: '6px', 
                         fontSize: '0.8rem',
-                        background: s.status === 'Approved' ? 'rgba(56, 161, 105, 0.1)' : s.status === 'Under Review' ? 'rgba(214, 158, 46, 0.1)' : 'var(--bg-color)',
-                        color: s.status === 'Approved' ? '#38A169' : s.status === 'Under Review' ? '#D69E2E' : 'var(--text-secondary)',
-                        fontWeight: 600
+                        background: s.status === 'Approved' ? 'rgba(39, 174, 96, 0.12)' : s.status === 'Under Review' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(0,0,0,0.06)',
+                        color: s.status === 'Approved' ? 'var(--success-color)' : s.status === 'Under Review' ? 'var(--secondary-color)' : 'var(--text-secondary)',
+                        fontWeight: 800
                       }}>
                         {s.status}
                       </span>
@@ -92,3 +109,6 @@ export default function Grants() {
     </div>
   );
 }
+
+// Add Link import for Next.js
+import Link from 'next/link';
