@@ -54,6 +54,25 @@ export default function Documents() {
           </a>
         </div>
 
+        {/* Annual Reports */}
+        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '1.5rem' }}>
+            <div style={{ background: 'rgba(46, 204, 113, 0.1)', padding: '15px', borderRadius: '12px', color: '#2ecc71' }}>
+              <File size={32} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Annual Reports</h3>
+              <span style={{ fontSize: '0.85rem', color: '#888' }}>PDF Documents</span>
+            </div>
+          </div>
+          <p style={{ color: 'var(--text-secondary)', flex: 1, marginBottom: '2rem' }}>
+            Comprehensive yearly overviews of our financial statements, project impacts, and foundation growth.
+          </p>
+          <a href="#" className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', width: '100%' }}>
+            <Download size={18} /> View Reports
+          </a>
+        </div>
+
         {/* Locked Section */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', background: '#f8f9fa', border: '1px dashed #ccc', boxShadow: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '1.5rem' }}>

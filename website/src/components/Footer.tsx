@@ -22,6 +22,8 @@ export default function Footer() {
             <li><a href="/about" style={{ color: 'var(--text-secondary)', transition: 'color 0.3s' }}>About Foundation</a></li>
             <li><a href="/activities" style={{ color: 'var(--text-secondary)', transition: 'color 0.3s' }}>Projects & Activities</a></li>
             <li><a href="/documents" style={{ color: 'var(--text-secondary)', transition: 'color 0.3s' }}>Official Documents</a></li>
+            <li><a href="/news" style={{ color: 'var(--text-secondary)', transition: 'color 0.3s' }}>News & Events</a></li>
+            <li><a href="/gallery" style={{ color: 'var(--text-secondary)', transition: 'color 0.3s' }}>Photo & Video Gallery</a></li>
           </ul>
         </div>
         <div>
@@ -29,7 +31,8 @@ export default function Footer() {
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.8' }}>
             <strong style={{ color: 'var(--text-primary)' }}>Email:</strong> info@leimarembee.org<br />
             <strong style={{ color: 'var(--text-primary)' }}>Phone:</strong> +91 9876543210<br />
-            <strong style={{ color: 'var(--text-primary)' }}>Address:</strong> Imphal, Manipur, India
+            <strong style={{ color: 'var(--text-primary)' }}>Address:</strong> Imphal, Manipur, India<br />
+            <a href="/contact" style={{ color: 'var(--primary-color)', fontWeight: 600, display: 'inline-block', marginTop: '0.5rem' }}>View Contact Page &rarr;</a>
           </p>
         </div>
       </div>

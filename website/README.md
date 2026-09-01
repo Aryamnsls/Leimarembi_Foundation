@@ -50,7 +50,15 @@ The platform has been expanded into a comprehensive Digital Governance Platform 
 3. **Government Grants (\/grants\)**: Features an Application Pipeline UI and a Scheme Database tracker.
 4. **Health & Welfare (\/health\)**: Dashboard for tracking Medical Camps, Senior Citizen Welfare, and Emergency Contacts.
 5. **Cultural Preservation (\/culture\)**: Digital archive interface for Manipuri Heritage, traditional recipes, and song/dance.
-6. **Artificial Intelligence (\/ai\)**: A functional AI Chat Assistant mockup demonstrating future-phase natural language capabilities.
-7. **Digital Library (\/documents\)**: Repository for trust deeds, bye-laws, and technical architecture.
-8. **Mobile Application Bridge**: The entire platform is highly responsive and acts as a web-app, bypassing the immediate need for native app development while delivering the same value.
+6. **Artificial Intelligence (\/ai\)**: A functional AI Hub for Members including Chat Assistant, Auto Meeting Minutes, Grant Alerts, Translation (English–Manipuri–Assamese), and a Document Search System.
+7. **Digital Library (\/documents\)**: Repository for trust deeds, bye-laws, technical architecture, and Annual Reports.
+8. **Mobile Application Bridge**: The entire platform is highly responsive and acts as a web-app.
 
+### Additional Completed Features
+The official website now fully incorporates:
+- **News and Events (\/news\)**
+- **Photo and Video Gallery (\/gallery\)**
+- **Donation Section (\/donate\)**
+- **Contact Information (\/contact\)**
+- **Membership Registration (\/register\)**
+- **Vision, Mission, Objectives & Executive Committee (\/about, \/members\)**

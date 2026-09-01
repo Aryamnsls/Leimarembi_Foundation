@@ -76,7 +76,7 @@ export default function Navbar() {
           </div>
         </Link>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginLeft: 'auto' }}>
           <nav>
             <ul className={`nav-links ${isMenuOpen ? 'open' : ''}`} style={{ alignItems: 'center' }}>
               <li><Link href="/" onClick={() => setIsMenuOpen(false)} style={isActive('/') ? activeStyle : {}}>Home</Link></li>
@@ -84,9 +84,21 @@ export default function Navbar() {
               <li><Link href="/about" onClick={() => setIsMenuOpen(false)} style={isActive('/about') ? activeStyle : {}}>About Us</Link></li>
               <li><Link href="/members" onClick={() => setIsMenuOpen(false)} style={isActive('/members') ? activeStyle : {}}>Members</Link></li>
               <li><Link href="/activities" onClick={() => setIsMenuOpen(false)} style={isActive('/activities') ? activeStyle : {}}>Activities</Link></li>
+              <li><Link href="/news" onClick={() => setIsMenuOpen(false)} style={isActive('/news') ? activeStyle : {}}>News</Link></li>
+              <li><Link href="/gallery" onClick={() => setIsMenuOpen(false)} style={isActive('/gallery') ? activeStyle : {}}>Gallery</Link></li>
+              <li>
+                <Link
+                  href="/ai"
+                  onClick={() => setIsMenuOpen(false)}
+                  style={isActive('/ai') ? { color: '#7C3AED', fontWeight: 700 } : { color: '#7C3AED', fontWeight: 600 }}
+                >
+                  ✨ AI Hub
+                </Link>
+              </li>
               <li><Link href="/documents" onClick={() => setIsMenuOpen(false)} style={isActive('/documents') ? activeStyle : {}}>Documents</Link></li>
-              <li><Link href="/login" className="btn btn-secondary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.875rem', color: '#1A202C !important', fontWeight: 700 }} onClick={() => setIsMenuOpen(false)}>Login</Link></li>
-              <li><a href="#" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={() => setIsMenuOpen(false)}>Donate</a></li>
+              <li><Link href="/login" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', color: '#1A202C !important', fontWeight: 700 }} onClick={() => setIsMenuOpen(false)}>Login</Link></li>
+              <li><Link href="/register" className="btn btn-secondary" style={{ padding: '0.5rem 1rem', fontSize: '0.875rem', fontWeight: 700 }} onClick={() => setIsMenuOpen(false)}>Register</Link></li>
+              <li><Link href="/donate" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }} onClick={() => setIsMenuOpen(false)}>Donate</Link></li>
             </ul>
           </nav>
           
