@@ -27,16 +27,19 @@ export default function Navbar() {
   const activeStyle = { color: 'var(--info-color)', fontWeight: 800 };
 
   // Mount effect to avoid SSR hydration mismatch
+  // Website always defaults to light mode; user can toggle dark mode manually
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true);
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
+        // Respect user's explicit manual preference if they've toggled before
         setTheme(savedTheme);
         document.documentElement.setAttribute('data-theme', savedTheme);
-      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        setTheme('dark');
-        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        // Default to light mode always (ignore OS dark mode preference)
+        setTheme('light');
+        document.documentElement.setAttribute('data-theme', 'light');
       }
     }, 0);
     return () => clearTimeout(timer);
@@ -111,16 +114,16 @@ export default function Navbar() {
           {/* Logo Identity */}
           <Link href="/" className="logo-container" onClick={closeMenu} style={{ marginRight: '0.5rem' }}>
             <Image 
-              src="/logo_salai_taret.jpg" 
+              src="/leimarembi_logo.png" 
               alt="Leimarembi Foundation Logo" 
-              width={36} 
-              height={36} 
+              width={48} 
+              height={48} 
               className="logo-img" 
-              style={{ height: '36px', width: 'auto' }} 
+              style={{ height: '48px', width: 'auto' }} 
               priority 
             />
             <div className="logo-text" style={{ fontSize: '0.95rem' }}>
-              LEIMAREMBEE<br />
+              LEIMAREMBI<br />
               <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 FOUNDATION
               </span>
@@ -213,9 +216,9 @@ export default function Navbar() {
         {/* Drawer Header with Language Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.65rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Image src="/logo_salai_taret.jpg" alt="Logo" width={28} height={28} style={{ borderRadius: '6px' }} />
+            <Image src="/leimarembi_logo.png" alt="Logo" width={36} height={36} style={{ borderRadius: '6px' }} />
             <span style={{ fontWeight: 900, fontSize: '0.925rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>
-              Leimarembee Foundation
+              Leimarembi Foundation
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

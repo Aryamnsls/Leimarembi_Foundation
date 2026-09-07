@@ -95,10 +95,10 @@ export default function WelcomeOverlay() {
       >
         <div style={{ marginBottom: '1.25rem' }}>
           <Image 
-            src="/logo_salai_taret.jpg" 
-            alt="Leimarembee Foundation Logo" 
-            width={72} 
-            height={72} 
+            src="/leimarembi_logo.png" 
+            alt="Leimarembi Foundation Logo" 
+            width={110} 
+            height={110} 
             style={{ margin: '0 auto', borderRadius: '12px' }}
             priority
           />
@@ -108,9 +108,13 @@ export default function WelcomeOverlay() {
           Official Foundation Portal
         </span>
 
-        <h2 id="welcome-title" style={{ fontSize: '1.85rem', fontWeight: 900, marginTop: '0.35rem', marginBottom: '0.75rem', color: 'var(--primary-color)' }}>
-          Welcome to Leimarembee Foundation
+        <h2 id="welcome-title" style={{ fontSize: '1.65rem', fontWeight: 900, marginTop: '0.35rem', marginBottom: '0.15rem', color: '#1B2A57', lineHeight: 1.3, letterSpacing: '0.08em', wordSpacing: '0.1em' }}>
+          WELCOME TO LEIMAREMBI<br />FOUNDATION
         </h2>
+
+        <h3 style={{ fontSize: '1.4rem', fontWeight: 500, color: 'var(--text-muted)', marginBottom: '0.75rem', marginTop: '0.25rem', letterSpacing: '0.5px' }}>
+          ꯂꯩꯃꯔꯦꯝꯕꯤ ꯐꯥꯎꯟꯗꯦꯁꯟ
+        </h3>
 
         <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem', marginInline: 'auto' }}>
           Empowering communities through digital governance, rural health welfare, indigenous culture preservation, and transparent grant tracking in Northeast India.

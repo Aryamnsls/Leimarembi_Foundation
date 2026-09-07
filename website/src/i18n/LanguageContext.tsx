@@ -6,7 +6,7 @@ import en from './dictionaries/en';
 import hi from './dictionaries/hi';
 import as from './dictionaries/as';
 import mn from './dictionaries/mn';
-import mzo from './dictionaries/mzo';
+import bn from './dictionaries/bn';
 
 type DictionaryObj = Record<string, unknown>;
 
@@ -15,7 +15,7 @@ const dictionaries: Record<Language, DictionaryObj> = {
   hi: hi as unknown as DictionaryObj,
   as: as as unknown as DictionaryObj,
   mn: mn as unknown as DictionaryObj,
-  mzo: mzo as unknown as DictionaryObj
+  bn: bn as unknown as DictionaryObj
 };
 
 interface LanguageContextType {
@@ -28,7 +28,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const STORAGE_KEY = 'leimarembee_lang';
+const STORAGE_KEY = 'leimarembi_lang';
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(DEFAULT_LANGUAGE);
@@ -41,7 +41,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       setMounted(true);
       try {
         const saved = localStorage.getItem(STORAGE_KEY) as Language;
-        if (saved && (saved === 'en' || saved === 'hi' || saved === 'as' || saved === 'mn' || saved === 'mzo')) {
+        if (saved && (saved === 'en' || saved === 'hi' || saved === 'as' || saved === 'mn' || saved === 'bn')) {
           setLanguageState(saved);
         }
       } catch (e) {

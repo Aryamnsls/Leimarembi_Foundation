@@ -1,4 +1,4 @@
-# Leimarembi Foundation Platform
+# WELCOME TO LEIMAREMBI FOUNDATION
 
 Official Digital Governance & Community Development Platform for the Leimarembi Foundation.
 

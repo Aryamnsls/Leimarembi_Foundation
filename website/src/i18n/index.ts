@@ -1,4 +1,4 @@
-export type Language = 'en' | 'hi' | 'as' | 'mn' | 'mzo';
+export type Language = 'en' | 'hi' | 'as' | 'mn' | 'bn';
 
 export interface LanguageOption {
   code: Language;
@@ -12,7 +12,7 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
   { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी', shortLabel: 'HI' },
   { code: 'as', name: 'Assamese', nativeName: 'অসমীয়া', shortLabel: 'AS' },
   { code: 'mn', name: 'Meiteilon (Manipuri)', nativeName: 'ꯃꯅꯤꯄꯨꯔꯤ', shortLabel: 'MN' },
-  { code: 'mzo', name: 'Mizo', nativeName: 'Mizo ṭawng', shortLabel: 'MZO' }
+  { code: 'bn', name: 'Bengali', nativeName: 'বাংলা', shortLabel: 'BN' }
 ];
 
 export const DEFAULT_LANGUAGE: Language = 'en';

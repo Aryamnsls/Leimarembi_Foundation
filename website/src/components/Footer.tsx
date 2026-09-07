@@ -32,15 +32,15 @@ export default function Footer() {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.85rem' }}>
               <Image 
-                src="/logo_salai_taret.jpg" 
+                src="/leimarembi_logo.png" 
                 alt="Leimarembi Foundation Logo" 
-                width={38} 
-                height={38} 
+                width={48} 
+                height={48} 
                 style={{ borderRadius: '8px' }} 
               />
               <div>
                 <span style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--primary-color)', display: 'block', lineHeight: 1.1 }}>
-                  LEIMAREMBEE
+                  LEIMAREMBI
                 </span>
                 <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1.2px', textTransform: 'uppercase' }}>
                   FOUNDATION
@@ -100,23 +100,35 @@ export default function Footer() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
                 <MapPin size={18} color="var(--info-color)" style={{ marginTop: '2px', flexShrink: 0 }} />
-                <span>Leimarembi Foundation Headquarters, Imphal, Manipur, India</span>
+                <a
+                  href="https://www.google.com/maps/search/Manipuri+Rajbari,+Guwahati-781007,+Assam,+India"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="footer-clickable-contact"
+                  style={{ textDecoration: 'none' }}
+                >
+                  Manipuri Rajbari, Guwahati-781007, Assam<br />
+                  Head Office : Guwahati &nbsp;::&nbsp; Estd. 2001
+                </a>
               </div>
 
               {/* Clickable Email Link */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Mail size={18} color="var(--info-color)" style={{ flexShrink: 0 }} />
-                <a href="mailto:info@leimarembee.org" className="footer-clickable-contact">
-                  info@leimarembee.org
+                <a href="mailto:leimarembifoundation@gmail.com" className="footer-clickable-contact">
+                  leimarembifoundation@gmail.com
                 </a>
               </div>
 
-              {/* Clickable Phone Link */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Phone size={18} color="var(--info-color)" style={{ flexShrink: 0 }} />
-                <a href="tel:+919876543210" className="footer-clickable-contact">
-                  +91 98765 43210
-                </a>
+              {/* Clickable Phone Links */}
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <Phone size={18} color="var(--info-color)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                  <a href="tel:+919707499079" className="footer-clickable-contact">97074-99079</a>
+                  <a href="tel:+918134997237" className="footer-clickable-contact">81349-97237</a>
+                  <a href="tel:+917637087931" className="footer-clickable-contact">76370-87931</a>
+                  <a href="tel:+919864801906" className="footer-clickable-contact">98648-01906</a>
+                </div>
               </div>
 
               {/* Support Our Foundation Button */}

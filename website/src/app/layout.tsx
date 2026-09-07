@@ -10,8 +10,8 @@ import FloatingAiChat from "@/components/FloatingAiChat";
 import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
-  title: "Leimarembee Foundation | Digital Governance & Community Development",
-  description: "Official Digital Governance & Community Development Platform for Leimarembee Foundation in Northeast India.",
+  title: "Leimarembi Foundation | Digital Governance & Community Development",
+  description: "Official Digital Governance & Community Development Platform for Leimarembi Foundation in Northeast India.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

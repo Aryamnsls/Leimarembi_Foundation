@@ -8,9 +8,17 @@ export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
+  const FOUNDATION_EMAIL = 'leimarembifoundation@gmail.com';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
+
+    const subject = encodeURIComponent(`Message from ${formData.name} via Leimarembi Foundation Website`);
+    const body = encodeURIComponent(
+      `Name: ${formData.name}\nFrom Email: ${formData.email}\n\nMessage:\n${formData.message}`
+    );
+    window.open(`mailto:${FOUNDATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
     setSubmitted(true);
   };
 
@@ -41,33 +49,46 @@ export default function Contact() {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '2rem', maxWidth: '960px', margin: '0 auto 4rem' }}>
         <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px' }}>
+          <div className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px', flexShrink: 0, marginTop: '2px' }}>
               <MapPin size={28} />
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>Office Location</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Imphal, Manipur & Kamrup, Assam, India</p>
+              <a
+                href="https://www.google.com/maps/search/Manipuri+Rajbari,+Guwahati-781007,+Assam,+India"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem', textDecoration: 'none', display: 'block', lineHeight: '1.5' }}
+              >
+                Manipuri Rajbari, Guwahati-781007, Assam<br />
+                Head Office : Guwahati &nbsp;::&nbsp; Estd. 2001
+              </a>
             </div>
           </div>
 
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px' }}>
+          <div className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px', flexShrink: 0 }}>
               <Phone size={28} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>Phone Contact</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>+91 98765 43210</p>
+              <h3 style={{ margin: '0 0 0.35rem', fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>Phone Contact</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <a href="tel:+919707499079" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none' }}>97074-99079</a>
+                <a href="tel:+918134997237" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none' }}>81349-97237</a>
+                <a href="tel:+917637087931" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none' }}>76370-87931</a>
+                <a href="tel:+919864801906" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none' }}>98648-01906</a>
+              </div>
             </div>
           </div>
 
-          <div className="card" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px' }}>
+          <div className="card" style={{ display: 'flex', alignItems: 'flex-start', gap: '15px' }}>
+            <div style={{ color: 'var(--secondary-color)', background: 'rgba(2, 132, 199, 0.12)', padding: '12px', borderRadius: '12px', flexShrink: 0, marginTop: '2px' }}>
               <Mail size={28} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>Official Email</h3>
-              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.95rem' }}>info@leimarembee.org</p>
+              <h3 style={{ margin: '0 0 0.2rem', fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-color)' }}>Official Email</h3>
+              <a href="mailto:leimarembifoundation@gmail.com" style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textDecoration: 'none', wordBreak: 'break-all' }}>leimarembifoundation@gmail.com</a>
             </div>
           </div>
         </div>

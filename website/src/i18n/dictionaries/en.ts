@@ -61,16 +61,16 @@ const en = {
     tag: "Community Help Center",
     title: "Frequently Asked Questions",
     subtitle: "Find answers to common questions about membership, donations, health camps, and governance.",
-    q1: "How do I become an official member of Leimarembee Foundation?",
+    q1: "How do I become an official member of Leimarembi Foundation?",
     a1: "You can register directly on our website by clicking the 'Login / Register' button in the top navigation bar. Fill out your full name, contact details, blood group, and address. Upon submission, your unique Membership ID is generated instantly.",
     q2: "Are donations tax-exempt under Section 80G?",
-    a2: "Yes, Leimarembee Foundation is a recognized non-profit public charitable trust. All donations made towards our health camps, cultural preservation, and social welfare drives are eligible for tax deductions under Section 80G of the Income Tax Act.",
+    a2: "Yes, Leimarembi Foundation is a recognized non-profit public charitable trust. All donations made towards our health camps, cultural preservation, and social welfare drives are eligible for tax deductions under Section 80G of the Income Tax Act.",
     q3: "How can I volunteer for rural health camps?",
     a3: "We warmly welcome medical professionals, student volunteers, and community organizers! You can register as a volunteer by reaching out through our Contact page or contacting our Managing Director directly.",
     q4: "Where can I inspect official Foundation audit documents & filings?",
-    a4: "In compliance with digital governance principles, all public filings, financial audit reports, society registration certificates, and annual reports of Leimarembee Foundation are published under the 'Documents' page.",
+    a4: "In compliance with digital governance principles, all public filings, financial audit reports, society registration certificates, and annual reports of Leimarembi Foundation are published under the 'Documents' page.",
     q5: "What digital governance tools does the Foundation operate?",
-    a5: "Leimarembee Foundation operates a centralized Foundation Management System, an AI Heritage Knowledge Engine, automated donor receipt generation, and digitized beneficiary tracking."
+    a5: "Leimarembi Foundation operates a centralized Foundation Management System, an AI Heritage Knowledge Engine, automated donor receipt generation, and digitized beneficiary tracking."
   },
   donate: {
     title: "Support Leimarembi Foundation",
@@ -81,7 +81,7 @@ const en = {
     lastName: "Last Name *",
     email: "Email Address *",
     phone: "Phone Number (Optional)",
-    consent: "I confirm that this contribution is made voluntarily from my own accounts to support Leimarembee Foundation's public welfare objectives.",
+    consent: "I confirm that this contribution is made voluntarily from my own accounts to support Leimarembi Foundation's public welfare objectives.",
     submitBtn: "Proceed to Instant Payment (UPI / Bank)",
     qrTitle: "Scan using Google Pay, PhonePe, Paytm, or any BHIM UPI app:",
     bankTitle: "Bank Transfer Details (NEFT/IMPS)",
@@ -96,13 +96,13 @@ const en = {
     col3Title: "Headquarters & Support",
     supportCta: "Support Our Foundation",
     contactCta: "Contact Us",
-    rights: "Leimarembee Foundation. All Rights Reserved. Built with Digital Governance Standards."
+    rights: "Leimarembi Foundation. All Rights Reserved. Built with Digital Governance Standards."
   },
   ai: {
     buttonLabel: "AI Assistant",
     chatTitle: "AI Heritage & Governance Assistant",
     chatSubtitle: "Ask anything about Manipur culture, health camps, or Foundation services",
-    greeting: "Greetings! I am the Leimarembee Foundation AI Heritage & Governance Assistant. How may I assist you today?",
+    greeting: "Greetings! I am the Leimarembi Foundation AI Heritage & Governance Assistant. How may I assist you today?",
     chip1: "Tell me about Leimarembi Foundation",
     chip2: "How to register as a Member?",
     chip3: "Explain 80G tax exemption",

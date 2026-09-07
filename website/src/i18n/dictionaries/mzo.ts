@@ -61,7 +61,7 @@ const mzo = {
     tag: "Khawtlang Tanpuina Hmun",
     title: "Zawhna Zawt Zing Te",
     subtitle: "Member nihna, tanpuina pek, hriselna camp leh rorelna chungchang zawhna te.",
-    q1: "Leimarembee Foundation member engtin nge ka nih theih?",
+    q1: "Leimarembi Foundation member engtin nge ka nih theih?",
     a1: "Nav bar-a 'Lut / Inziak' tih hmeh la, i hming leh details ziak lut rawh.",
     q2: "Tanpuina pek hi Section 80G tax-exempt a ni em?",
     a2: "Ni e, Foundation hi registered NGO a ni a, tanpuina pek tawh phawt hi tax exemption a tling vek a ni.",
@@ -81,7 +81,7 @@ const mzo = {
     lastName: "Hming Hnuhnung *",
     email: "Email Address *",
     phone: "Phone Number (A tul hran lo)",
-    consent: "Ka duh thu-in Leimarembee Foundation tanpuina hi ka pe tih ka nemnghet e.",
+    consent: "Ka duh thu-in Leimarembi Foundation tanpuina hi ka pe tih ka nemnghet e.",
     submitBtn: "Pekna Kal Tlang Rawh (UPI / Bank)",
     qrTitle: "Google Pay, PhonePe, Paytm aṭangin QR hi Scan rawh:",
     bankTitle: "Bank Transfer Details (NEFT/IMPS)",
@@ -96,13 +96,13 @@ const mzo = {
     col3Title: "Headquarters & Tanpuina",
     supportCta: "Foundation Tanpui Rawh",
     contactCta: "Biak Pawhna",
-    rights: "Leimarembee Foundation. Thuneihna Vawnhim A Ni. Digital Governance Standards-a siam."
+    rights: "Leimarembi Foundation. Thuneihna Vawnhim A Ni. Digital Governance Standards-a siam."
   },
   ai: {
     buttonLabel: "AI Tanpui",
     chatTitle: "AI Heritage & Governance Tanpui",
     chatSubtitle: "Manipur hnam zia, hriselna camp leh NGO chungchang zawt rawh",
-    greeting: "Chibai! Leimarembee Foundation AI Tanpui ka ni e. Engtin nge ka tanpui theih che?",
+    greeting: "Chibai! Leimarembi Foundation AI Tanpui ka ni e. Engtin nge ka tanpui theih che?",
     chip1: "Foundation chungchang sawi rawh",
     chip2: "Member inziatluh dan",
     chip3: "80G tax exemption chungchang",

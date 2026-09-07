@@ -164,9 +164,9 @@ export default function DonatePage() {
         currency: 'INR',
         status: 'PENDING',
         expiresAt: new Date(Date.now() + 300000).toISOString(),
-        upiId: 'leimarembee@upi',
-        merchantName: 'Leimarembee Foundation',
-        upiIntentUrl: `upi://pay?pa=leimarembee@upi&pn=Leimarembee%20Foundation&am=${customAmountInput || 1000}&cu=INR`,
+        upiId: 'leimarembi@upi',
+        merchantName: 'Leimarembi Foundation',
+        upiIntentUrl: `upi://pay?pa=leimarembi@upi&pn=Leimarembi%20Foundation&am=${customAmountInput || 1000}&cu=INR`,
         bankDetails: {
           accountName: 'Leimarembi Foundation',
           bankName: 'State Bank of India',
@@ -381,7 +381,7 @@ export default function DonatePage() {
                   style={{ marginTop: '3px' }}
                 />
                 <span>
-                  I confirm that this contribution is made voluntarily from my own accounts to support Leimarembee Foundation&apos;s public welfare objectives.
+                  I confirm that this contribution is made voluntarily from my own accounts to support Leimarembi Foundation&apos;s public welfare objectives.
                 </span>
               </label>
               {errors.consent && <span style={fieldErrorStyle}>{errors.consent}</span>}
@@ -466,13 +466,13 @@ export default function DonatePage() {
                 </p>
 
                 <div style={{ display: 'inline-block', padding: '1rem', background: '#FFFFFF', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-md)', marginBottom: '1.25rem' }}>
-                  <QRCodeDisplay url={session.upiIntentUrl || session.upiId || 'leimarembee@upi'} />
+                  <QRCodeDisplay url={session.upiIntentUrl || session.upiId || 'leimarembi@upi'} />
                 </div>
 
                 <div style={{ background: 'var(--bg-color)', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: '380px', margin: '0 auto 1.5rem' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>UPI ID:</span>
-                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>{session.upiId || 'leimarembee@upi'}</strong>
-                  <button onClick={() => copyToClipboard(session.upiId || 'leimarembee@upi', 'UPI')} className="btn btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>
+                  <strong style={{ fontSize: '0.9rem', color: 'var(--primary-color)' }}>{session.upiId || 'leimarembi@upi'}</strong>
+                  <button onClick={() => copyToClipboard(session.upiId || 'leimarembi@upi', 'UPI')} className="btn btn-ghost" style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}>
                     {copiedUpi ? <CheckCircle2 size={14} color="var(--success-color)" /> : <Copy size={14} />} {copiedUpi ? 'Copied' : 'Copy'}
                   </button>
                 </div>
@@ -540,7 +540,7 @@ export default function DonatePage() {
               Donation Acknowledged & Success!
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '2rem' }}>
-              Thank you, {firstName}! Your donation of <strong>₹{session.amount.toLocaleString('en-IN')}</strong> has been received by the Leimarembee Foundation.
+              Thank you, {firstName}! Your donation of <strong>₹{session.amount.toLocaleString('en-IN')}</strong> has been received by the Leimarembi Foundation.
             </p>
 
             <div style={{ background: 'var(--bg-color)', padding: '1.25rem', borderRadius: '14px', border: '1px solid var(--border-color)', textAlign: 'left', maxWidth: '460px', margin: '0 auto 2rem' }}>
@@ -628,7 +628,7 @@ export default function DonatePage() {
             {/* Receipt Header */}
             <div style={{ textAlign: 'center', borderBottom: '2px solid #E2E8F0', paddingBottom: '1.25rem', marginBottom: '1.5rem' }}>
               <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1B2A57', letterSpacing: '1px' }}>
-                LEIMAREMBEE FOUNDATION
+                LEIMAREMBI FOUNDATION
               </div>
               <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '2px', fontWeight: 600 }}>
                 Registered Public Charitable Trust • Manipur & Assam, India

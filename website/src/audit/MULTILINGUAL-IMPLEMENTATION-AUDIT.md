@@ -15,7 +15,7 @@
   2. **Hindi (`hi` - हिन्दी)** — Official Indian national language.
   3. **Manipuri (`mn` - ꯃꯅꯤꯄꯨꯔꯤ / Meetei Mayek)** — Official State language of Manipur.
 - **Page Switching Performance**: **~120-150ms** in-memory transition without page reload, browser refresh, or loss of form/modal state.
-- **Selection Persistence**: LocalStorage key `leimarembee_lang`.
+- **Selection Persistence**: LocalStorage key `leimarembi_lang`.
 - **Lint Result**: **0 Errors, 1 Warning** (`@next/next/no-img-element` for dynamic headshots).
 - **Build Result**: **0 Compilation Errors** across 22 static and dynamic routes.
 
