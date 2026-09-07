@@ -31,13 +31,7 @@ export default function Footer() {
           {/* Column 1: Foundation Identity & Motto */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '0.85rem' }}>
-              <Image 
-                src="/leimarembi_logo.png" 
-                alt="Leimarembi Foundation Logo" 
-                width={48} 
-                height={48} 
-                style={{ borderRadius: '8px' }} 
-              />
+              <Image src="/leimarembi_official_logo.png" alt="Leimarembi Foundation Logo" width={48} height={48} style={{ borderRadius: '8px', objectFit: 'contain' }} />
               <div>
                 <span style={{ fontWeight: 900, fontSize: '1.05rem', color: 'var(--primary-color)', display: 'block', lineHeight: 1.1 }}>
                   LEIMAREMBI

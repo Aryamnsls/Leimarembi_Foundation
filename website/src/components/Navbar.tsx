@@ -114,12 +114,12 @@ export default function Navbar() {
           {/* Logo Identity */}
           <Link href="/" className="logo-container" onClick={closeMenu} style={{ marginRight: '0.5rem' }}>
             <Image 
-              src="/leimarembi_logo.png" 
+              src="/leimarembi_official_logo.png" 
               alt="Leimarembi Foundation Logo" 
-              width={48} 
-              height={48} 
+              width={52} 
+              height={52} 
               className="logo-img" 
-              style={{ height: '48px', width: 'auto' }} 
+              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '8px' }} 
               priority 
             />
             <div className="logo-text" style={{ fontSize: '0.95rem' }}>
@@ -216,7 +216,7 @@ export default function Navbar() {
         {/* Drawer Header with Language Switcher */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.65rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.5rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Image src="/leimarembi_logo.png" alt="Logo" width={36} height={36} style={{ borderRadius: '6px' }} />
+            <Image src="/leimarembi_official_logo.png" alt="Logo" width={36} height={36} style={{ borderRadius: '6px', objectFit: 'contain' }} />
             <span style={{ fontWeight: 900, fontSize: '0.925rem', color: 'var(--primary-color)', letterSpacing: '0.5px' }}>
               Leimarembi Foundation
             </span>

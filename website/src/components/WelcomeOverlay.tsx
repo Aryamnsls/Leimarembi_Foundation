@@ -95,16 +95,16 @@ export default function WelcomeOverlay() {
       >
         <div style={{ marginBottom: '1.25rem' }}>
           <Image 
-            src="/leimarembi_logo.png" 
+            src="/leimarembi_logo_new.jpeg" 
             alt="Leimarembi Foundation Logo" 
             width={110} 
             height={110} 
-            style={{ margin: '0 auto', borderRadius: '12px' }}
+            style={{ margin: '0 auto', borderRadius: '12px', objectFit: 'contain' }}
             priority
           />
         </div>
 
-        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+        <span className="golden-label" style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px' }}>
           Official Foundation Portal
         </span>
 

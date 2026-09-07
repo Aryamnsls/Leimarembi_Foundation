@@ -483,3 +483,13 @@ p {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Theme-adaptive Golden Label — used in WelcomeOverlay */
+.golden-label {
+  color: #B8860B;
+  text-shadow: 0 1px 4px rgba(184, 134, 11, 0.25);
+}
+[data-theme="dark"] .golden-label {
+  color: #F5C842;
+  text-shadow: 0 1px 8px rgba(245, 200, 66, 0.4);
+}

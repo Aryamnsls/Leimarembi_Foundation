@@ -93,6 +93,9 @@ npm run start
 ## Maintenance & Updates
 
 ### Recent Updates
+* **Language Support & Localization**: Added full Bengali (বাংলা) language support across the entire platform and removed Mizo language support.
+* **Official Branding Update**: Replaced all placeholder logos with the official Leimarembi Foundation logo across the Navbar, Mobile Drawer, Footer, and Favicon. The Welcome Overlay retains the Leirambi Goddess image with enhanced adaptive golden typography.
+* **HQ Contact & Direct Messaging**: Updated the official headquarters address (Manipuri Rajbari, Guwahati), phone numbers, and email. The Contact Us form is now fully functional, securely routing direct messages to the official foundation email via the native mail client.
 * **Official Member Profiles & Executive Committee Roster (`/members`)**: Implemented a dedicated interactive member profiles page detailing all 12 office bearers & executive committee members extracted from `final website members profile.pdf`. Features instant search by name/designation/responsibility, role filter tabs (*All*, *Executive Officers*, *Executive Members*), photo asset mapping from `as/` directory, fallback avatar for members without photos, and detailed modal popups.
 * **About Us Page Integration**: Updated `/about` to display live preview cards of executive officers with direct navigation to `/members`.
 * **Backend REST API Implementation**: Built a production-ready Node.js + Express + Prisma ORM REST API in `backend/` serving all 8 Digital Governance modules with JWT authentication, RBAC (Admin, Trustee, Staff, Member), and full database seeding.
