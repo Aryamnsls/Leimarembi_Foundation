@@ -60,7 +60,7 @@ jobs:
           cache-dependency-path: ./website/package-lock.json
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build Next.js
         run: npm run build
