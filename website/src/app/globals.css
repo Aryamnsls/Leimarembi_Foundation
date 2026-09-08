@@ -475,6 +475,16 @@ p {
   animation: fadeIn 0.3s ease forwards;
 }
 
+@keyframes pulse-icon {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pulse-icon {
+  animation: pulse-icon 1.5s infinite ease-in-out;
+}
+
 /* Reduced Motion Override */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Utensils, BookOpen, Music, X, ChevronRight } from 'lucide-react';
+import { Utensils, BookOpen, Music, X, ChevronRight, PlayCircle } from 'lucide-react';
 
 interface Recipe {
   id: string;
@@ -12,6 +12,8 @@ interface Recipe {
   origin: string;
   ingredients: string[];
   significance: string;
+  photoUrl?: string;
+  youtubeUrl?: string;
 }
 
 export default function CulturePage() {
@@ -48,7 +50,9 @@ export default function CulturePage() {
       description: 'A classic Manipuri dish prepared by mashing boiled vegetables with fermented fish (Ngari) and fiery local king chillies (U-Morok). Served with fresh fragrant herbs.',
       origin: 'Meitei Heritage Kitchens',
       ingredients: ['Ngari (Fermented Fish)', 'U-Morok (King Chilli)', 'Tree Bean (Yongchak) / Potato', 'Fresh Maroi (Chives)'],
-      significance: 'Central to community feasts and daily family nutrition in Manipur.'
+      significance: 'Central to community feasts and daily family nutrition in Manipur.',
+      photoUrl: '/culture/eromba.jpg',
+      youtubeUrl: 'https://www.youtube.com/watch?v=V21-6Z_SJS4'
     },
     {
       id: 'singju',
@@ -57,16 +61,20 @@ export default function CulturePage() {
       description: 'A raw, nutritious salad made from finely shredded seasonal vegetables, roasted pea powder, perilla seeds (Thoiding), and seasoned with Ngari or salt.',
       origin: 'Manipuri Traditional Wellness',
       ingredients: ['Lotus Root (Thambou)', 'Cabbage / Banana Floret', 'Roasted Thoiding Seeds', 'Chilli Powder & Pea Powder'],
-      significance: 'Rich in dietary fiber and medicinal indigenous herbs.'
+      significance: 'Rich in dietary fiber and medicinal indigenous herbs.',
+      photoUrl: '/culture/singju.jpg',
+      youtubeUrl: 'https://www.youtube.com/watch?v=GKG0GuC8CJ0'
     },
     {
-      id: 'chakalang',
+      id: 'chakhao',
       name: 'Chak-hao Kheer (Black Rice Sweet Pudding)',
       category: 'Dessert',
       description: 'A rich, aromatic dessert crafted from organic Manipuri black rice (Chak-hao), simmered in full-cream milk, cardamom, and garnished with dry fruits.',
-      origin: 'Royal Culinary Tradition',
-      ingredients: ['Chak-hao (Black Rice)', 'Fresh Milk', 'Cardamom', 'Cashews & Almonds'],
-      significance: 'High in antioxidants (anthocyanins); served during special celebrations.'
+      origin: 'Royal Manipuri Cuisine',
+      ingredients: ['Chak-hao (Black Glutinous Rice)', 'Full-Cream Milk', 'Cardamom & Bay Leaf', 'Cashews, Almonds & Raisins'],
+      significance: 'Traditionally served during ceremonies and festive occasions as a mark of prosperity.',
+      photoUrl: '/culture/chakhao_kheer.jpg',
+      youtubeUrl: 'https://www.youtube.com/watch?v=R2m-_R9M6D8'
     }
   ];
 
@@ -240,6 +248,12 @@ export default function CulturePage() {
               <X size={18} />
             </button>
 
+            {selectedRecipe.photoUrl && (
+              <div style={{ margin: '-2rem -2rem 1.25rem -2rem', height: '260px', overflow: 'hidden', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }}>
+                <img src={selectedRecipe.photoUrl} alt={selectedRecipe.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              </div>
+            )}
+
             <div style={{ marginBottom: '1.25rem', paddingRight: '2rem' }}>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                 {selectedRecipe.category} • {selectedRecipe.origin}
@@ -267,6 +281,12 @@ export default function CulturePage() {
             <p style={{ fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-muted)', margin: '0 0 1.25rem 0' }}>
               📌 Cultural Significance: {selectedRecipe.significance}
             </p>
+
+            {selectedRecipe.youtubeUrl && (
+              <a href={selectedRecipe.youtubeUrl} target="_blank" rel="noopener noreferrer" className="btn" style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem', background: '#DC2626', color: 'white', border: 'none', fontWeight: 800 }}>
+                <PlayCircle size={18} /> Watch Recipe on YouTube
+              </a>
+            )}
 
             <button onClick={() => setSelectedRecipe(null)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
               Close Recipe View
