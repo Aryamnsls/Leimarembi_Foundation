@@ -1,38 +1,59 @@
 "use client";
 
-import { useState } from 'react';
-import { Calendar, ArrowRight, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, ArrowRight, X, RefreshCw } from 'lucide-react';
+import { api } from '../../lib/api';
 
 interface NewsItem {
-  id: number;
+  id: string | number;
   title: string;
-  date: string;
+  slug?: string;
   category: string;
-  snippet: string;
+  excerpt?: string;
   content: string;
+  publishedAt?: string;
+  createdAt?: string;
 }
 
-export default function NewsAndEvents() {
-  const [activeArticle, setActiveArticle] = useState<NewsItem | null>(null);
+const FALLBACK_ARTICLES: NewsItem[] = [
+  {
+    id: "1",
+    title: "Annual Health Camp for Senior Citizens",
+    category: "Health & Welfare",
+    excerpt: "Join us for our annual free health check-up camp for senior citizens at Kekranagar.",
+    content: "The Leimarembi Foundation is organizing its annual Free Health Check-up Camp dedicated to senior citizens at Sri Sri Radha Gobindo Mandir premises, Kekranagar. Specialized doctors in cardiology, general medicine, and ophthalmology will provide free consultations, blood pressure screening, diabetes tests, and free medication distribution.",
+    publishedAt: "2026-10-15T00:00:00.000Z"
+  },
+  {
+    id: "2",
+    title: "Manipuri Cultural Heritage & Literary Festival",
+    category: "Cultural Preservation",
+    excerpt: "A day dedicated to showcasing traditional Manipuri dance, songs, and culinary arts.",
+    content: "Hosted by Dr. Phuritsabam Birmani and executive committee members, this festival will bring together artists, writers, and community leaders for a full day of traditional Nata Sankirtana performances, Meitei Mayek workshops, and an indigenous Manipuri culinary fair.",
+    publishedAt: "2026-11-05T00:00:00.000Z"
+  }
+];
 
-  const articles: NewsItem[] = [
-    {
-      id: 1,
-      title: "Annual Health Camp for Senior Citizens",
-      date: "October 15, 2026",
-      category: "Health & Welfare",
-      snippet: "Join us for our annual free health check-up camp for senior citizens at Kekranagar.",
-      content: "The Leimarembi Foundation is organizing its annual Free Health Check-up Camp dedicated to senior citizens at Sri Sri Radha Gobindo Mandir premises, Kekranagar. Specialized doctors in cardiology, general medicine, and ophthalmology will provide free consultations, blood pressure screening, diabetes tests, and free medication distribution."
-    },
-    {
-      id: 2,
-      title: "Manipuri Cultural Heritage & Literary Festival",
-      date: "November 5, 2026",
-      category: "Cultural Preservation",
-      snippet: "A day dedicated to showcasing traditional Manipuri dance, songs, and culinary arts.",
-      content: "Hosted by Dr. Phuritsabam Birmani and executive committee members, this festival will bring together artists, writers, and community leaders for a full day of traditional Nata Sankirtana performances, Meitei Mayek workshops, and an indigenous Manipuri culinary fair."
+export default function NewsAndEvents() {
+  const [articles, setArticles] = useState<NewsItem[]>(FALLBACK_ARTICLES);
+  const [activeArticle, setActiveArticle] = useState<NewsItem | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchNews() {
+      try {
+        const res = await api.get('/news');
+        if (res.data?.articles?.length > 0) {
+          setArticles(res.data.articles);
+        }
+      } catch (err) {
+        console.warn('API connection offline, using curated fallback news articles.');
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    fetchNews();
+  }, []);
 
   return (
     <div className="animate-fade-in" style={{ padding: '2.5rem 0 4rem' }}>
@@ -48,39 +69,52 @@ export default function NewsAndEvents() {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        {articles.map((art) => (
-          <div key={art.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <span style={{ 
-                  fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', 
-                  color: 'var(--secondary-color)', background: 'rgba(212, 175, 55, 0.15)',
-                  padding: '0.2rem 0.6rem', borderRadius: '4px' 
-                }}>
-                  {art.category}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                  <Calendar size={16} />
-                  <span>{art.date}</span>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <RefreshCw className="animate-spin" size={32} style={{ margin: '0 auto 1rem' }} />
+          <p style={{ color: 'var(--text-secondary)' }}>Loading latest foundation announcements...</p>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          {articles.map((art) => {
+            const dateStr = art.publishedAt || art.createdAt
+              ? new Date(art.publishedAt || art.createdAt!).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+              : 'Recent Update';
+
+            return (
+              <div key={art.id} className="card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                    <span style={{ 
+                      fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', 
+                      color: 'var(--secondary-color)', background: 'rgba(212, 175, 55, 0.15)',
+                      padding: '0.2rem 0.6rem', borderRadius: '4px' 
+                    }}>
+                      {art.category}
+                    </span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      <Calendar size={16} />
+                      <span>{dateStr}</span>
+                    </div>
+                  </div>
+                  <h2 style={{ fontSize: '1.4rem', marginBottom: '0.75rem', fontWeight: 800 }}>{art.title}</h2>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.6, fontSize: '0.95rem' }}>
+                    {art.excerpt || art.content.substring(0, 150) + '...'}
+                  </p>
                 </div>
+                <button 
+                  onClick={() => setActiveArticle(art)}
+                  className="btn btn-outline" 
+                  style={{ justifyContent: 'center', width: '100%' }}
+                >
+                  <span>Read Announcement</span>
+                  <ArrowRight size={16} />
+                </button>
               </div>
-              <h2 style={{ fontSize: '1.4rem', marginBottom: '0.75rem', fontWeight: 800 }}>{art.title}</h2>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', lineHeight: 1.6, fontSize: '0.95rem' }}>
-                {art.snippet}
-              </p>
-            </div>
-            <button 
-              onClick={() => setActiveArticle(art)}
-              className="btn btn-outline" 
-              style={{ justifyContent: 'center', width: '100%' }}
-            >
-              <span>Read Announcement</span>
-              <ArrowRight size={16} />
-            </button>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Article Detail Modal */}
       {activeArticle && (
@@ -136,12 +170,12 @@ export default function NewsAndEvents() {
             </button>
 
             <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase' }}>
-              {activeArticle.category} • {activeArticle.date}
+              {activeArticle.category}
             </span>
             <h2 id="news-modal-title" style={{ fontSize: '1.65rem', fontWeight: 800, margin: '0.5rem 0 1rem' }}>
               {activeArticle.title}
             </h2>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '1rem' }}>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: '1rem', whiteSpace: 'pre-wrap' }}>
               {activeArticle.content}
             </p>
             <div style={{ textAlign: 'right', marginTop: '1.5rem' }}>

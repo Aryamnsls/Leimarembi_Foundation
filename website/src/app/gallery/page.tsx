@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { ImageIcon, Play, X, ZoomIn } from 'lucide-react';
 
+import { api } from '../../lib/api';
+
 interface MediaItem {
   id: string;
   title: string;
@@ -11,11 +13,78 @@ interface MediaItem {
   date: string;
   description: string;
   type: 'image' | 'video';
+  imageUrl?: string;
 }
+
+const DEFAULT_MEDIA_ITEMS: MediaItem[] = [
+  {
+    id: '1',
+    title: 'Free Rural Health Camp 2026',
+    category: 'Events',
+    date: 'February 2026',
+    description: 'Free medical check-ups, geriatric care, and essential medicines distribution for senior citizens and low-income families.',
+    type: 'image'
+  },
+  {
+    id: '2',
+    title: 'Traditional Manipuri Cultural Performance',
+    category: 'Videos',
+    date: 'January 2026',
+    description: 'Documentary performance highlighting classical Ras Lila and traditional Meitei folk songs.',
+    type: 'video'
+  },
+  {
+    id: '3',
+    title: 'Meetei Mayek Script Literacy Workshop',
+    category: 'Photos',
+    date: 'December 2025',
+    description: 'Educational session teaching the traditional Meetei Mayek script to local youth and community members.',
+    type: 'image'
+  },
+  {
+    id: '4',
+    title: 'Executive Body Annual General Assembly',
+    category: 'Events',
+    date: 'November 2025',
+    description: 'Annual gathering of office bearers, executive officers, and members discussing transparent digital governance.',
+    type: 'image'
+  },
+  {
+    id: '5',
+    title: 'Clean Environment & Plantation Drive',
+    category: 'Photos',
+    date: 'October 2025',
+    description: 'Community-led tree plantation and ecological conservation movement in local villages.',
+    type: 'image'
+  },
+  {
+    id: '6',
+    title: 'Youth Sports & Kabaddi Championship',
+    category: 'Videos',
+    date: 'September 2025',
+    description: 'Highlights from the regional Kabaddi tournament organised under the guidance of K. Ajit Singh.',
+    type: 'video'
+  }
+];
 
 export default function GalleryPage() {
   const [selectedFilter, setSelectedFilter] = useState<'All' | 'Photos' | 'Videos' | 'Events'>('All');
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>(DEFAULT_MEDIA_ITEMS);
+
+  useEffect(() => {
+    async function fetchGallery() {
+      try {
+        const res = await api.get('/gallery');
+        if (res.data?.items?.length > 0) {
+          setMediaItems(res.data.items);
+        }
+      } catch {
+        // use default curated gallery
+      }
+    }
+    fetchGallery();
+  }, []);
 
   // Strict Body scroll locking when lightbox is active
   useEffect(() => {
@@ -39,57 +108,6 @@ export default function GalleryPage() {
       document.body.style.touchAction = '';
     }
   }, [selectedMedia]);
-
-  const mediaItems: MediaItem[] = [
-    {
-      id: '1',
-      title: 'Free Rural Health Camp 2026',
-      category: 'Events',
-      date: 'February 2026',
-      description: 'Free medical check-ups, geriatric care, and essential medicines distribution for senior citizens and low-income families.',
-      type: 'image'
-    },
-    {
-      id: '2',
-      title: 'Traditional Manipuri Cultural Performance',
-      category: 'Videos',
-      date: 'January 2026',
-      description: 'Documentary performance highlighting classical Ras Lila and traditional Meitei folk songs.',
-      type: 'video'
-    },
-    {
-      id: '3',
-      title: 'Meetei Mayek Script Literacy Workshop',
-      category: 'Photos',
-      date: 'December 2025',
-      description: 'Educational session teaching the traditional Meetei Mayek script to local youth and community members.',
-      type: 'image'
-    },
-    {
-      id: '4',
-      title: 'Executive Body Annual General Assembly',
-      category: 'Events',
-      date: 'November 2025',
-      description: 'Annual gathering of office bearers, executive officers, and members discussing transparent digital governance.',
-      type: 'image'
-    },
-    {
-      id: '5',
-      title: 'Clean Environment & Plantation Drive',
-      category: 'Photos',
-      date: 'October 2025',
-      description: 'Community-led tree plantation and ecological conservation movement in local villages.',
-      type: 'image'
-    },
-    {
-      id: '6',
-      title: 'Youth Sports & Kabaddi Championship',
-      category: 'Videos',
-      date: 'September 2025',
-      description: 'Highlights from the regional Kabaddi tournament organised under the guidance of K. Ajit Singh.',
-      type: 'video'
-    }
-  ];
 
   const filteredItems = mediaItems.filter((item) =>
     selectedFilter === 'All' ? true : item.category === selectedFilter

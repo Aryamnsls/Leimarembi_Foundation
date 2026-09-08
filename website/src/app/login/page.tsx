@@ -51,11 +51,12 @@ function LoginCard() {
       localStorage.setItem("lf_token", data.data.token);
       localStorage.setItem("lf_user", JSON.stringify(data.data.user));
 
-      // Redirect based on role
-      if (data.data.user.role === "ADMIN") {
+      // Redirect based on server-validated role
+      const adminRoles = ['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF'];
+      if (adminRoles.includes(data.data.user.role)) {
         router.push("/management");
       } else {
-        router.push("/portal");
+        router.push("/portal/dashboard");
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An error occurred";

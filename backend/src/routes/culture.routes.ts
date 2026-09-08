@@ -23,7 +23,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Add new cultural item to archive
-router.post('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { title, category, description, mediaUrl, archiveType, region, language } = req.body;
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 import FaqAccordion from '@/components/FaqAccordion';
+import { api } from '../../lib/api';
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -10,16 +11,33 @@ export default function Contact() {
 
   const FOUNDATION_EMAIL = 'leimarembifoundation@gmail.com';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
 
-    const subject = encodeURIComponent(`Message from ${formData.name} via Leimarembi Foundation Website`);
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\nFrom Email: ${formData.email}\n\nMessage:\n${formData.message}`
-    );
-    window.open(`mailto:${FOUNDATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
-    setSubmitted(true);
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/contact', {
+        name: formData.name,
+        email: formData.email,
+        message: formData.message,
+      });
+      setSubmitted(true);
+    } catch (err: any) {
+      // Fallback to mailto if server unreachable
+      const subject = encodeURIComponent(`Message from ${formData.name} via Leimarembi Foundation Website`);
+      const body = encodeURIComponent(
+        `Name: ${formData.name}\nFrom Email: ${formData.email}\n\nMessage:\n${formData.message}`
+      );
+      window.open(`mailto:${FOUNDATION_EMAIL}?subject=${subject}&body=${body}`, '_blank');
+      setSubmitted(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const inputStyle = {

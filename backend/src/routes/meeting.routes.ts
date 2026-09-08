@@ -6,7 +6,7 @@ import { authenticateToken, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 // Get meetings
-router.get('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const meetings = await prisma.meeting.findMany({
       orderBy: { date: 'desc' },
@@ -18,7 +18,7 @@ router.get('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), a
 });
 
 // Create meeting notice
-router.post('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { title, type, date, location, agenda } = req.body;
 

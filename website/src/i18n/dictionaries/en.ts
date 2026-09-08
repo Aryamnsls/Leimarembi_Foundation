@@ -1,7 +1,7 @@
 const en = {
   nav: {
     home: "Home",
-    portal: "Portal",
+    portal: "Digital Services",
     about: "About Us",
     members: "Members",
     activities: "Activities",

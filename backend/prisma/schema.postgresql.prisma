@@ -1,0 +1,420 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  SUPER_ADMIN     // Full system access, can manage everything including roles
+  ADMIN           // Foundation administrator, full operational access
+  CORE_MEMBER     // Trusted senior member — access to welfare, internal docs
+  TRUSTEE         // Board trustee — finance approval, governance
+  STAFF           // Operations staff — data entry, content management
+  VOLUNTEER       // Registered volunteer — limited task-based access
+  MEMBER          // Registered general member
+  REGISTERED_USER // Registered portal user (pending full membership validation)
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+// ─── Users / Members ──────────────────────────────────────────────────────────
+
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String
+  name               String
+  role               Role       @default(MEMBER)
+  status             Status     @default(ACTIVE)
+  membershipNo       String?    @unique
+  phone              String?
+  address            String?
+  bloodGroup         String?
+  isSeniorCitizen    Boolean    @default(false)
+  familyMembersCount Int        @default(1)
+  profilePhoto       String?    // URL to profile image
+  designation        String?    // e.g. "Founding Trustee", "Cultural Secretary"
+  bio                String?
+  // Relations
+  donations          Donation[]
+  auditLogsAsActor   AuditLog[] @relation("AuditActor")
+  welfareRequests    WelfareRequest[]
+  emergencyContacts  EmergencyContact[]
+  // Timestamps
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  deletedAt          DateTime?  // Soft delete
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+// ─── Financial ────────────────────────────────────────────────────────────────
+
+model Donation {
+  id                String    @id @default(uuid())
+  publicDonationId  String    @unique @default(uuid())
+  donorName         String
+  firstName         String?
+  lastName          String?
+  email             String
+  phone             String?
+  amount            Decimal   @db.Decimal(12, 2)
+  currency          String    @default("INR")
+  paymentMethod     String    @default("UPI_QR") // UPI_INTENT, UPI_QR, BANK_TRANSFER, CARD
+  provider          String    @default("MANUAL_UPI") // MANUAL_UPI, RAZORPAY, PAYU, BANK_TRANSFER
+  providerOrderId   String?
+  providerPaymentId String?
+  transactionId     String?
+  receiptNo         String    @unique
+  purpose           String    @default("General Foundation Fund")
+  status            String    @default("CREATED") // CREATED, PENDING, PROCESSING, SUCCESS, FAILED, CANCELLED, EXPIRED
+  expiresAt         DateTime?
+  paidAt            DateTime?
+  metadata          String?
+  notes             String?   // Admin notes
+  userId            String?
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime? // Soft delete — financial records are never hard-deleted
+
+  @@index([status])
+  @@index([email])
+  @@index([receiptNo])
+  @@index([publicDonationId])
+  @@index([createdAt])
+}
+
+// ─── Projects ─────────────────────────────────────────────────────────────────
+
+model Project {
+  id                 String    @id @default(uuid())
+  title              String
+  category           String    @default("Community Development")
+  description        String
+  status             String    @default("ONGOING") // PLANNING, ONGOING, COMPLETED, ON_HOLD
+  budget             Decimal   @default(0) @db.Decimal(12, 2)
+  spent              Decimal   @default(0) @db.Decimal(12, 2)
+  startDate          DateTime
+  endDate            DateTime?
+  location           String
+  beneficiariesCount Int       @default(0)
+  imageUrl           String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+
+  @@index([status])
+  @@index([category])
+}
+
+// ─── Governance ───────────────────────────────────────────────────────────────
+
+model Meeting {
+  id        String   @id @default(uuid())
+  title     String
+  type      String   @default("GENERAL") // GENERAL, EXECUTIVE, TRUSTEE, ANNUAL
+  date      DateTime
+  location  String
+  agenda    String
+  minutes   String?
+  status    String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([date])
+  @@index([type])
+}
+
+model Grant {
+  id                           String   @id @default(uuid())
+  title                        String
+  schemeName                   String
+  department                   String
+  amountRequested              Decimal  @db.Decimal(12, 2)
+  amountSanctioned             Decimal  @default(0) @db.Decimal(12, 2)
+  status                       String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
+  pfmsReference                String?
+  applicationDate              DateTime @default(now())
+  utilizationCertificateStatus String   @default("PENDING") // PENDING, SUBMITTED, VERIFIED
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+  deletedAt                    DateTime?
+
+  @@index([status])
+}
+
+// ─── Cultural Archive ─────────────────────────────────────────────────────────
+
+model CulturalItem {
+  id          String   @id @default(uuid())
+  title       String
+  category    String   @default("HERITAGE") // HERITAGE, MUSIC, DANCE, RECIPE, FOLKLORE, CRAFT, FESTIVAL
+  description String
+  mediaUrl    String?
+  archiveType String   @default("DOCUMENT") // DOCUMENT, AUDIO, VIDEO, IMAGE
+  region      String   @default("Manipur")
+  language    String   @default("Manipuri / Meiteilon")
+  isPublic    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([category])
+  @@index([isPublic])
+}
+
+// ─── Health Camps ─────────────────────────────────────────────────────────────
+
+model HealthRecord {
+  id             String   @id @default(uuid())
+  campName       String
+  location       String
+  date           DateTime
+  patientsServed Int      @default(0)
+  doctorsCount   Int      @default(1)
+  details        String
+  specializations String?
+  imageUrl       String?
+  isPublic       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
+
+  @@index([date])
+}
+
+// ─── Documents (Digital Library) ─────────────────────────────────────────────
+
+model Document {
+  id           String   @id @default(uuid())
+  title        String
+  documentType String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, ANNUAL_REPORT, NOTIFICATION, FORM, MINUTES
+  category     String   @default("GOVERNANCE") // GOVERNANCE, FINANCE, HEALTH, CULTURE, LEGAL, ADMIN
+  fileUrl      String
+  fileSize     String   @default("1.2 MB")
+  description  String
+  isPublic     Boolean  @default(true)
+  accessLevel  String   @default("PUBLIC") // PUBLIC, REGISTERED_USER, MEMBER, CORE_MEMBER, TRUSTEE, ADMIN, SUPER_ADMIN
+  uploadedById String?
+  downloadCount Int     @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@index([accessLevel])
+  @@index([category])
+  @@index([documentType])
+  @@index([isPublic])
+}
+
+// ─── Audit Logs ───────────────────────────────────────────────────────────────
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  actorId    String?
+  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String   // e.g. LOGIN_SUCCESS, LOGIN_FAILED, USER_ROLE_CHANGED, DONATION_APPROVED
+  resource   String   // e.g. User, Donation, Document
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  success    Boolean  @default(true)
+  metadata   String?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ─── Welfare Assistance ───────────────────────────────────────────────────────
+
+model WelfareRequest {
+  id                String   @id @default(uuid())
+  requesterId       String?
+  requester         User?    @relation(fields: [requesterId], references: [id], onDelete: SetNull)
+  requesterName     String
+  requesterPhone    String?
+  requesterEmail    String?
+  type              String   // MEDICAL, FINANCIAL, EDUCATION, FOOD, EMERGENCY
+  description       String
+  amountRequested   Decimal? @db.Decimal(12, 2)
+  amountApproved    Decimal? @db.Decimal(12, 2)
+  status            String   @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, DISBURSED, REJECTED, CLOSED
+  priority          String   @default("NORMAL") // URGENT, HIGH, NORMAL, LOW
+  adminNotes        String?
+  reviewedById      String?
+  approvedAt        DateTime?
+  disbursedAt       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
+
+  @@index([status])
+  @@index([priority])
+  @@index([requesterId])
+}
+
+// ─── Emergency Contacts ───────────────────────────────────────────────────────
+
+model EmergencyContact {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  relation    String
+  phone       String
+  altPhone    String?
+  address     String?
+  isPrimary   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ─── News & Events ────────────────────────────────────────────────────────────
+
+model News {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     String
+  excerpt     String?
+  imageUrl    String?
+  category    String   @default("GENERAL")
+  status      String   @default("DRAFT")
+  publishedAt DateTime?
+  authorId    String?
+  isPublic    Boolean  @default(true)
+  viewCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime?
+
+  @@index([slug])
+  @@index([status])
+  @@index([category])
+}
+
+model Event {
+  id           String   @id @default(uuid())
+  title        String
+  description  String
+  imageUrl     String?
+  location     String?
+  eventDate    DateTime
+  endDate      DateTime?
+  category     String   @default("GENERAL")
+  status       String   @default("UPCOMING")
+  isPublic     Boolean  @default(true)
+  registrationRequired Boolean @default(false)
+  maxAttendees Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  deletedAt    DateTime?
+
+  @@index([eventDate])
+  @@index([status])
+}
+
+// ─── Gallery ──────────────────────────────────────────────────────────────────
+
+model GalleryAlbum {
+  id          String        @id @default(uuid())
+  title       String
+  description String?
+  coverImage  String?
+  isPublic    Boolean       @default(true)
+  category    String        @default("GENERAL")
+  photos      GalleryPhoto[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
+
+  @@index([isPublic])
+}
+
+model GalleryPhoto {
+  id          String       @id @default(uuid())
+  albumId     String
+  album       GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  url         String
+  caption     String?
+  uploadedById String?
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  deletedAt   DateTime?
+
+  @@index([albumId])
+}
+
+// ─── Contact / Feedback ───────────────────────────────────────────────────────
+
+model ContactMessage {
+  id           String   @id @default(uuid())
+  name         String
+  email        String
+  phone        String?
+  subject      String?
+  message      String
+  status       String   @default("UNREAD")
+  adminReply   String?
+  repliedAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ─── Foundation Settings (CMS Config) ────────────────────────────────────────
+
+model FoundationSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedById String?
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+}
+
+// ─── Granular Permissions & RBAC ─────────────────────────────────────────────
+
+model Permission {
+  id          String           @id @default(uuid())
+  name        String           @unique
+  description String?
+  module      String           @default("GENERAL")
+  roles       RolePermission[]
+  createdAt   DateTime         @default(now())
+
+  @@index([module])
+}
+
+model RolePermission {
+  id           String     @id @default(uuid())
+  role         Role
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([role, permissionId])
+  @@index([role])
+}

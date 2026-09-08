@@ -53,6 +53,7 @@ export default function DonatePage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [location, setLocation] = useState('');
   const [customAmountInput, setCustomAmountInput] = useState('');
   const [selectedPreset, setSelectedPreset] = useState<number | null>(null);
   const [consent, setConsent] = useState(false);
@@ -135,7 +136,7 @@ export default function DonatePage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/donations/session`, {
+      const res = await fetch(`${API_BASE_URL}/donations/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -143,10 +144,11 @@ export default function DonatePage() {
           lastName: lastName.trim(),
           email: email.trim(),
           phone: phone.trim() || undefined,
+          location: location.trim() || undefined,
           amount: Number(customAmountInput),
-          currency: 'INR',
-          consent: true,
-        }),
+          purpose: 'Community Welfare & Cultural Development',
+          paymentMethod: 'UPI_QR'
+        })
       });
 
       const data = await res.json();
@@ -346,7 +348,7 @@ export default function DonatePage() {
               </div>
             </div>
 
-            {/* Contact Details */}
+            {/* Contact Details & Location */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
                 <label style={labelStyle}>Email Address *</label>
@@ -369,6 +371,18 @@ export default function DonatePage() {
                   style={inputStyle}
                 />
               </div>
+            </div>
+
+            {/* Donor Location */}
+            <div>
+              <label style={labelStyle}>Location / City / State (Optional)</label>
+              <input
+                type="text"
+                placeholder="e.g. Guwahati, Assam or Imphal, Manipur"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                style={inputStyle}
+              />
             </div>
 
             {/* Consent & Tax Benefit Notice */}

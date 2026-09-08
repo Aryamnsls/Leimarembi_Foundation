@@ -23,12 +23,15 @@ export default function Breadcrumb() {
     grants: 'PFMS Grant Tracker',
     health: 'Rural Healthcare Camps',
     login: 'Account Login',
-    management: 'Admin Portal',
+    management: 'Management',
     members: 'Executive Committee',
     news: 'News & Announcements',
-    portal: 'Services Portal',
+    portal: 'Digital Services',
     register: 'Member Registration'
   };
+
+  // Custom breadcrumb rendering for portal dashboard and specific routes
+  const isPortalDashboard = pathname === '/portal/dashboard';
 
   return (
     <nav aria-label="Breadcrumb" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center' }}>
@@ -52,26 +55,35 @@ export default function Breadcrumb() {
           </Link>
         </li>
 
-        {pathSegments.map((segment, index) => {
-          const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
-          const isLast = index === pathSegments.length - 1;
-          const label = routeNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
+        {isPortalDashboard ? (
+          <li style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <ChevronRight size={13} color="var(--text-muted)" />
+            <span style={{ color: 'var(--primary-color)', fontWeight: 800 }} aria-current="page">
+              Member Portal
+            </span>
+          </li>
+        ) : (
+          pathSegments.map((segment, index) => {
+            const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
+            const isLast = index === pathSegments.length - 1;
+            const label = routeNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
 
-          return (
-            <li key={href} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-              <ChevronRight size={13} color="var(--text-muted)" />
-              {isLast ? (
-                <span style={{ color: 'var(--primary-color)', fontWeight: 800 }} aria-current="page">
-                  {label}
-                </span>
-              ) : (
-                <Link href={href} style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
-                  {label}
-                </Link>
-              )}
-            </li>
-          );
-        })}
+            return (
+              <li key={href} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                <ChevronRight size={13} color="var(--text-muted)" />
+                {isLast ? (
+                  <span style={{ color: 'var(--primary-color)', fontWeight: 800 }} aria-current="page">
+                    {label}
+                  </span>
+                ) : (
+                  <Link href={href} style={{ color: 'var(--text-secondary)', fontWeight: 600 }}>
+                    {label}
+                  </Link>
+                )}
+              </li>
+            );
+          })
+        )}
       </ol>
     </nav>
   );

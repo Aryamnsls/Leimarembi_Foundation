@@ -8,9 +8,10 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { 
   Moon, Sun, Menu, X, ArrowRight, Home, LayoutGrid, Info, Activity,
   BookOpen, LogIn, Heart, Users, Newspaper, 
-  ImageIcon, FileText 
+  ImageIcon, FileText, User, ShieldCheck, LogOut
 } from 'lucide-react';
 import Image from 'next/image';
+import { getAuthUser, logoutUser } from '@/lib/api';
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -18,6 +19,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [authUser, setAuthUser] = useState<any>(null);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
 
@@ -31,6 +33,9 @@ export default function Navbar() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true);
+      const user = getAuthUser();
+      setAuthUser(user);
+
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
         // Respect user's explicit manual preference if they've toggled before
@@ -43,7 +48,7 @@ export default function Navbar() {
       }
     }, 0);
     return () => clearTimeout(timer);
-  }, []);
+  }, [pathname]);
 
   // Handle scroll to hide/show navbar on scroll direction
   useEffect(() => {
@@ -99,6 +104,15 @@ export default function Navbar() {
 
   const closeMenu = () => setIsMenuOpen(false);
 
+  const handleLogout = () => {
+    logoutUser();
+    setAuthUser(null);
+    closeMenu();
+    window.location.href = '/';
+  };
+
+  const isManagementRole = authUser && ['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF'].includes(authUser.role);
+
   return (
     <>
       {/* Top Header Bar (zIndex: 1000) */}
@@ -134,7 +148,21 @@ export default function Navbar() {
           <nav aria-label="Main Navigation" className="desktop-nav" style={{ marginRight: 'auto' }}>
             <ul className="nav-links" style={{ display: 'flex', gap: '0.25rem', padding: 0, margin: 0 }}>
               <li><Link href="/" style={isActive('/') ? activeStyle : {}}>{t('nav.home')}</Link></li>
-              <li><Link href="/portal" style={isActive('/portal') ? activeStyle : {}}>{t('nav.portal')}</Link></li>
+              <li><Link href="/portal" style={isActive('/portal') && !isActive('/portal/dashboard') ? activeStyle : {}}>{t('nav.portal')}</Link></li>
+              {authUser && !isManagementRole && (
+                <li>
+                  <Link href="/portal/dashboard" style={isActive('/portal/dashboard') ? activeStyle : { color: 'var(--primary-color)', fontWeight: 700 }}>
+                    My Portal
+                  </Link>
+                </li>
+              )}
+              {isManagementRole && (
+                <li>
+                  <Link href="/management" style={isActive('/management') ? activeStyle : { color: 'var(--primary-color)', fontWeight: 700 }}>
+                    Management
+                  </Link>
+                </li>
+              )}
               <li><Link href="/about" style={isActive('/about') ? activeStyle : {}}>{t('nav.about')}</Link></li>
               <li><Link href="/members" style={isActive('/members') ? activeStyle : {}}>{t('nav.members')}</Link></li>
               <li><Link href="/activities" style={isActive('/activities') ? activeStyle : {}}>{t('nav.activities')}</Link></li>
@@ -146,13 +174,38 @@ export default function Navbar() {
           </nav>
           
           {/* Action Bar */}
-          <div className="desktop-action-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0, marginLeft: 'auto' }}>
+          <div className="desktop-action-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0, marginLeft: 'auto' }}>
             {/* Native Language Switcher */}
             <LanguageSwitcher />
 
-            <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
-              <LogIn size={13} /> {t('nav.login')}
-            </Link>
+            {mounted && authUser ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Link 
+                  href={isManagementRole ? "/management" : "/portal/dashboard"} 
+                  className="btn btn-outline desktop-only-btn" 
+                  style={{ padding: '0.3rem 0.6rem', fontSize: '0.775rem', minHeight: '32px', gap: '5px', borderColor: 'var(--primary-color)', color: 'var(--primary-color)', fontWeight: 700 }}
+                  title={`${authUser.name} (${authUser.role})`}
+                >
+                  {isManagementRole ? <ShieldCheck size={14} /> : <User size={14} />}
+                  <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {authUser.name?.split(' ')[0] || 'My Account'}
+                  </span>
+                </Link>
+                <button 
+                  onClick={handleLogout}
+                  className="btn btn-outline desktop-only-btn" 
+                  style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', minHeight: '32px', gap: '3px', color: 'var(--danger-color)', borderColor: 'var(--border-color)' }}
+                  title="Sign Out"
+                >
+                  <LogOut size={13} />
+                </button>
+              </div>
+            ) : (
+              <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
+                <LogIn size={13} /> {t('nav.login')}
+              </Link>
+            )}
+
             <Link href="/donate" className="btn btn-primary desktop-only-btn" style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 800, minHeight: '32px', gap: '3px', whiteSpace: 'nowrap' }}>
               {t('nav.donate')} <ArrowRight size={12} />
             </Link>
@@ -237,7 +290,20 @@ export default function Navbar() {
           <Link href="/" onClick={closeMenu} className="drawer-link" style={isActive('/') ? activeStyle : {}}>
             <Home size={16} /> {t('nav.home')}
           </Link>
-          <Link href="/portal" onClick={closeMenu} className="drawer-link" style={isActive('/portal') ? activeStyle : {}}>
+
+          {authUser && !isManagementRole && (
+            <Link href="/portal/dashboard" onClick={closeMenu} className="drawer-link" style={isActive('/portal/dashboard') ? activeStyle : { color: 'var(--primary-color)', fontWeight: 800 }}>
+              <User size={16} /> My Portal
+            </Link>
+          )}
+
+          {isManagementRole && (
+            <Link href="/management" onClick={closeMenu} className="drawer-link" style={isActive('/management') ? activeStyle : { color: 'var(--primary-color)', fontWeight: 800 }}>
+              <ShieldCheck size={16} /> Management
+            </Link>
+          )}
+
+          <Link href="/portal" onClick={closeMenu} className="drawer-link" style={isActive('/portal') && !isActive('/portal/dashboard') ? activeStyle : {}}>
             <LayoutGrid size={16} /> {t('nav.portal')}
           </Link>
           <Link href="/about" onClick={closeMenu} className="drawer-link" style={isActive('/about') ? activeStyle : {}}>
@@ -265,9 +331,19 @@ export default function Navbar() {
         
         {/* Drawer Action CTAs */}
         <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
-          <Link href="/login" className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }} onClick={closeMenu}>
-            <LogIn size={16} /> {t('nav.login')}
-          </Link>
+          {authUser ? (
+            <button 
+              onClick={handleLogout} 
+              className="btn btn-outline" 
+              style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px', color: 'var(--danger-color)', borderColor: 'var(--danger-color)' }}
+            >
+              <LogOut size={16} /> Sign Out ({authUser.name?.split(' ')[0]})
+            </button>
+          ) : (
+            <Link href="/login" className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }} onClick={closeMenu}>
+              <LogIn size={16} /> {t('nav.login')}
+            </Link>
+          )}
           <Link href="/donate" className="btn btn-primary" style={{ padding: '0.65rem 1rem', fontSize: '0.9rem', width: '100%', justifyContent: 'center', minHeight: '44px', marginTop: '0.5rem', gap: '8px' }} onClick={closeMenu}>
             <Heart size={16} color="var(--secondary-color)" /> {t('nav.donate')} <ArrowRight size={16} />
           </Link>

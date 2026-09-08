@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Landmark, ArrowRight, CheckCircle, Clock } from 'lucide-react';
 
 export const metadata = {
@@ -109,6 +110,3 @@ export default function Grants() {
     </div>
   );
 }
-
-// Add Link import for Next.js
-import Link from 'next/link';

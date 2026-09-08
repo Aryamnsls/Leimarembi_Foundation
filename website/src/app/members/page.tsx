@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MEMBERS_DATA, Member } from '@/data/membersData';
-import { Search, Shield, Briefcase, Award, X, ChevronRight, Users, CheckCircle2 } from 'lucide-react';
+import { Search, Shield, Briefcase, Award, X, ChevronRight, Users, CheckCircle2, Phone, Mail, Droplets, UserCheck } from 'lucide-react';
 import Image from 'next/image';
 
 export default function MembersPage() {
@@ -273,25 +273,43 @@ export default function MembersPage() {
                   </div>
                 </div>
 
-                {/* Profile & Background Snippet */}
+                {/* Profile Summary Snippet */}
                 <div style={{ marginBottom: '1.1rem' }}>
-                  <h4 style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--secondary-color)', letterSpacing: '0.5px', marginBottom: '0.3rem', fontWeight: 800 }}>
-                    PROFILE & BACKGROUND
-                  </h4>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                  <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.55, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                     {member.shortProfile}
                   </p>
                 </div>
 
-                {/* Area of Responsibility Box */}
-                <div style={{ marginTop: 'auto', marginBottom: '1.25rem', padding: '0.85rem', background: 'var(--bg-color)', borderRadius: '10px', borderLeft: '3px solid var(--info-color)', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.25rem', fontSize: '0.775rem', fontWeight: 800, color: 'var(--primary-color)' }}>
-                    <Award size={14} style={{ color: 'var(--info-color)' }} />
-                    Responsibility Area
-                  </div>
-                  <p style={{ margin: 0, fontSize: '0.825rem', color: 'var(--text-secondary)', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                    {member.areaOfResponsibility}
-                  </p>
+                {/* Quick Highlights / Badges */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', marginBottom: '1rem' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '0.2rem 0.55rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(220,38,38,0.1)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.25)' }}>
+                    <Droplets size={12} /> {member.bloodGroup}
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '0.2rem 0.55rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(124,58,237,0.1)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.25)' }}>
+                    <UserCheck size={12} /> {member.ageCategory}
+                  </span>
+                </div>
+
+                {/* Quick Phone & Email Contacts */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.75rem' }}>
+                  <a
+                    href={`tel:${member.contact.replace(/-/g, '')}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', fontWeight: 600, color: 'var(--success-color)', textDecoration: 'none' }}
+                  >
+                    <Phone size={13} /> {member.contact}
+                  </a>
+                  {member.email ? (
+                    <a
+                      href={`mailto:${member.email}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', fontWeight: 600, color: 'var(--secondary-color)', textDecoration: 'none', wordBreak: 'break-all' }}
+                    >
+                      <Mail size={13} /> {member.email}
+                    </a>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.83rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      <Mail size={13} /> Email: Waiting
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -466,6 +484,39 @@ export default function MembersPage() {
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
                   {activeModalMember.areaOfResponsibility}
                 </p>
+              </div>
+
+              {/* Contact Details Section in Modal */}
+              <div style={{ padding: '1.1rem', background: 'var(--bg-color)', borderRadius: '14px', border: '1px solid var(--border-color)' }}>
+                <h4 style={{ fontSize: '0.85rem', color: 'var(--primary-color)', marginBottom: '0.75rem', fontWeight: 800 }}>Contact Details</h4>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.85rem' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '0.25rem 0.7rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: 'rgba(220,38,38,0.1)', color: '#dc2626', border: '1px solid rgba(220,38,38,0.25)' }}>
+                    <Droplets size={13} /> Blood Group: {activeModalMember.bloodGroup}
+                  </span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '0.25rem 0.7rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700, background: 'rgba(124,58,237,0.1)', color: '#7c3aed', border: '1px solid rgba(124,58,237,0.25)' }}>
+                    <UserCheck size={13} /> {activeModalMember.ageCategory}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                  <a
+                    href={`tel:${activeModalMember.contact.replace(/-/g, '')}`}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: 'var(--success-color)', textDecoration: 'none' }}
+                  >
+                    <Phone size={16} /> {activeModalMember.contact}
+                  </a>
+                  {activeModalMember.email ? (
+                    <a
+                      href={`mailto:${activeModalMember.email}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.95rem', fontWeight: 700, color: 'var(--secondary-color)', textDecoration: 'none', wordBreak: 'break-all' }}
+                    >
+                      <Mail size={16} /> {activeModalMember.email}
+                    </a>
+                  ) : (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      <Mail size={16} /> Email: Waiting
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success-color)', fontSize: '0.85rem', fontWeight: 700, paddingTop: '0.25rem' }}>
