@@ -52,7 +52,7 @@ export default function CulturePage() {
       ingredients: ['Ngari (Fermented Fish)', 'U-Morok (King Chilli)', 'Tree Bean (Yongchak) / Potato', 'Fresh Maroi (Chives)'],
       significance: 'Central to community feasts and daily family nutrition in Manipur.',
       photoUrl: '/culture/eromba.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=Jm00G19P-aQ'
+      youtubeUrl: 'https://www.youtube.com/watch?v=V21-6Z_SJS4'
     },
     {
       id: 'singju',
@@ -63,7 +63,7 @@ export default function CulturePage() {
       ingredients: ['Lotus Root (Thambou)', 'Cabbage / Banana Floret', 'Roasted Thoiding Seeds', 'Chilli Powder & Pea Powder'],
       significance: 'Rich in dietary fiber and medicinal indigenous herbs.',
       photoUrl: '/culture/singju.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=g9o-Zq5xU7M'
+      youtubeUrl: 'https://www.youtube.com/watch?v=GKG0GuC8CJ0'
     },
     {
       id: 'chakhao',
@@ -74,7 +74,7 @@ export default function CulturePage() {
       ingredients: ['Chak-hao (Black Glutinous Rice)', 'Full-Cream Milk', 'Cardamom & Bay Leaf', 'Cashews, Almonds & Raisins'],
       significance: 'Traditionally served during ceremonies and festive occasions as a mark of prosperity.',
       photoUrl: '/culture/chakhao_kheer.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=23B-Jp0gO4Y'
+      youtubeUrl: 'https://www.youtube.com/watch?v=R2m-_R9M6D8'
     }
   ];
 
@@ -209,29 +209,31 @@ export default function CulturePage() {
             animation: 'fadeIn 0.2s ease'
           }}
         >
-          <div 
-            className="card animate-fade-in"
+          <div
+            className="animate-fade-in"
             style={{
               width: 'min(540px, 94vw)',
               maxHeight: '88dvh',
               overflowY: 'auto',
               borderRadius: '24px',
-              padding: '2rem',
               position: 'relative',
               boxShadow: '0 25px 60px rgba(0, 0, 0, 0.4)',
               background: 'var(--surface-color)',
               border: '1px solid var(--border-color)',
-              margin: 'auto'
+              margin: 'auto',
+              overflow: 'hidden'
             }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close button — always on top */}
             <button
               onClick={() => setSelectedRecipe(null)}
               style={{
                 position: 'absolute',
-                top: '18px',
-                right: '18px',
-                background: 'var(--bg-color)',
+                top: '14px',
+                right: '14px',
+                background: 'rgba(255,255,255,0.92)',
+                backdropFilter: 'blur(8px)',
                 border: '1px solid var(--border-color)',
                 color: 'var(--text-primary)',
                 width: '36px',
@@ -241,56 +243,86 @@ export default function CulturePage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                zIndex: 10
+                zIndex: 20
               }}
               aria-label="Close modal"
             >
               <X size={18} />
             </button>
 
+            {/* Dish Photo with YouTube overlay */}
             {selectedRecipe.photoUrl && (
-              <div style={{ margin: '-2rem -2rem 1.25rem -2rem', height: '260px', overflow: 'hidden', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }}>
-                <img src={selectedRecipe.photoUrl} alt={selectedRecipe.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{ width: '100%', height: '220px', overflow: 'hidden', flexShrink: 0, position: 'relative' }}>
+                <img
+                  src={selectedRecipe.photoUrl}
+                  alt={selectedRecipe.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
+                {/* Dark gradient overlay at bottom */}
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(transparent, rgba(0,0,0,0.55))' }} />
               </div>
             )}
 
-            <div style={{ marginBottom: '1.25rem', paddingRight: '2rem' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {selectedRecipe.category} • {selectedRecipe.origin}
-              </span>
-              <h2 style={{ fontSize: '1.65rem', fontWeight: 900, marginTop: '4px', color: 'var(--primary-color)' }}>
-                {selectedRecipe.name}
-              </h2>
-            </div>
-
-            <p style={{ fontSize: '0.925rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-              {selectedRecipe.description}
-            </p>
-
-            <div style={{ background: 'var(--bg-color)', padding: '1.15rem', borderRadius: '14px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
-              <strong style={{ color: 'var(--primary-color)', fontSize: '0.875rem', display: 'block', marginBottom: '0.5rem' }}>
-                Key Ingredients & Ethnobotanicals:
-              </strong>
-              <ul style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-                {selectedRecipe.ingredients.map((ing, idx) => (
-                  <li key={idx}>{ing}</li>
-                ))}
-              </ul>
-            </div>
-
-            <p style={{ fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-muted)', margin: '0 0 1.25rem 0' }}>
-              📌 Cultural Significance: {selectedRecipe.significance}
-            </p>
-
+            {/* YouTube button — always visible right below photo */}
             {selectedRecipe.youtubeUrl && (
-              <a href={selectedRecipe.youtubeUrl} target="_blank" rel="noopener noreferrer" className="btn" style={{ width: '100%', justifyContent: 'center', marginBottom: '0.75rem', background: '#DC2626', color: 'white', border: 'none', fontWeight: 800 }}>
-                <PlayCircle size={18} /> Watch Recipe on YouTube
+              <a
+                href={selectedRecipe.youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px',
+                  background: 'linear-gradient(135deg, #DC2626 0%, #991B1B 100%)',
+                  color: 'white',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  padding: '0.9rem 1.5rem',
+                  textDecoration: 'none',
+                  borderBottom: '1px solid rgba(255,255,255,0.1)',
+                  letterSpacing: '0.01em'
+                }}
+              >
+                <PlayCircle size={22} />
+                🎬 Watch Traditional Recipe on YouTube
               </a>
             )}
 
-            <button onClick={() => setSelectedRecipe(null)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-              Close Recipe View
-            </button>
+            {/* Content */}
+            <div style={{ padding: '1.75rem' }}>
+              <div style={{ marginBottom: '1rem', paddingRight: '2rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  {selectedRecipe.category} • {selectedRecipe.origin}
+                </span>
+                <h2 style={{ fontSize: '1.55rem', fontWeight: 900, marginTop: '4px', color: 'var(--primary-color)' }}>
+                  {selectedRecipe.name}
+                </h2>
+              </div>
+
+              <p style={{ fontSize: '0.925rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
+                {selectedRecipe.description}
+              </p>
+
+              <div style={{ background: 'var(--bg-color)', padding: '1.15rem', borderRadius: '14px', border: '1px solid var(--border-color)', marginBottom: '1.25rem' }}>
+                <strong style={{ color: 'var(--primary-color)', fontSize: '0.875rem', display: 'block', marginBottom: '0.5rem' }}>
+                  Key Ingredients & Ethnobotanicals:
+                </strong>
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', color: 'var(--text-primary)', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                  {selectedRecipe.ingredients.map((ing, idx) => (
+                    <li key={idx}>{ing}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <p style={{ fontSize: '0.85rem', fontStyle: 'italic', color: 'var(--text-muted)', margin: '0 0 1.25rem 0' }}>
+                📌 Cultural Significance: {selectedRecipe.significance}
+              </p>
+
+              <button onClick={() => setSelectedRecipe(null)} className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                Close Recipe View
+              </button>
+            </div>
           </div>
         </div>,
         document.body
