@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Providers from "@/components/Providers";
 import "./globals.css";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import Navbar from "@/components/Navbar";
@@ -23,18 +24,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <LanguageProvider>
-          <GlobalBackground />
-          <WelcomeOverlay />
-          <Navbar />
-          <main className="container" style={{ minHeight: 'calc(100dvh - 160px)', paddingTop: '0.5rem' }}>
-            <Breadcrumb />
-            {children}
-          </main>
-          <ScrollToTop />
-          <FloatingAiChat />
-          <Footer />
-        </LanguageProvider>
+        <Providers>
+          <LanguageProvider>
+            <GlobalBackground />
+            <WelcomeOverlay />
+            <Navbar />
+            <main className="container" style={{ minHeight: 'calc(100dvh - 160px)', paddingTop: '0.5rem' }}>
+              <Breadcrumb />
+              {children}
+            </main>
+            <ScrollToTop />
+            <FloatingAiChat />
+            <Footer />
+          </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );

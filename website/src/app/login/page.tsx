@@ -1,17 +1,28 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, UserPlus, Shield } from "lucide-react";
+import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 
 type Tab = "login" | "register";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
+/** Persist session to both localStorage (client) AND a cookie (middleware can read it) */
+function saveSession(token: string, user: object) {
+  localStorage.setItem("lf_token", token);
+  localStorage.setItem("lf_user", JSON.stringify(user));
+  // Set cookie for 7 days so Next.js middleware can guard routes
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `lf_token=${token}; path=/; expires=${expires}; SameSite=Lax`;
+}
+
 function LoginCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || null;
   const isRegisterParam = searchParams.get("tab") === "register" || searchParams.get("mode") === "register" || searchParams.get("tab") === "signup";
   const [tab, setTab] = useState<Tab>(isRegisterParam ? "register" : "login");
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +32,24 @@ function LoginCard() {
 
   // Login form
   const [loginData, setLoginData] = useState({ email: "", password: "" });
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("lf_token");
+    const userStr = localStorage.getItem("lf_user");
+    if (token && userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === "ADMIN") {
+          router.push("/management");
+        } else {
+          router.push("/portal");
+        }
+      } catch (e) {
+        // invalid user string
+      }
+    }
+  }, [router]);
 
   // Register form
   const [registerData, setRegisterData] = useState({
@@ -47,12 +76,12 @@ function LoginCard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Login failed");
 
-      // Save token
-      localStorage.setItem("lf_token", data.data.token);
-      localStorage.setItem("lf_user", JSON.stringify(data.data.user));
+      saveSession(data.data.token, data.data.user);
 
-      // Redirect based on role
-      if (data.data.user.role === "ADMIN") {
+      // Redirect to original intended page or role-based default
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (data.data.user.role === "ADMIN") {
         router.push("/management");
       } else {
         router.push("/portal");
@@ -84,6 +113,35 @@ function LoginCard() {
       setLoginData({ email: registerData.email, password: "" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An error occurred";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: credentialResponse.credential }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Google authentication failed");
+
+      saveSession(data.data.token, data.data.user);
+
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (data.data.user.role === "ADMIN") {
+        router.push("/management");
+      } else {
+        router.push("/portal");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "An error occurred with Google Sign In";
       setError(message);
     } finally {
       setLoading(false);
@@ -219,8 +277,25 @@ function LoginCard() {
 
           {/* TAB 1: LOGIN FORM */}
           {tab === "login" && (
-            <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-              <div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError("Google Sign In failed")}
+                  text="signin_with"
+                  shape="rectangular"
+                  size="large"
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", margin: "0.5rem 0" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600 }}>OR</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+              </div>
+
+              <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
                   Email Address *
                 </label>
@@ -305,12 +380,30 @@ function LoginCard() {
                 </button>
               </p>
             </form>
+            </div>
           )}
 
           {/* TAB 2: REGISTER FORM */}
           {tab === "register" && (
-            <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              <div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError("Google Sign In failed")}
+                  text="signup_with"
+                  shape="rectangular"
+                  size="large"
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", margin: "0.5rem 0" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", fontWeight: 600 }}>OR</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
+              </div>
+
+              <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.3rem" }}>
                   Full Name *
                 </label>
@@ -511,6 +604,7 @@ function LoginCard() {
                 </button>
               </p>
             </form>
+            </div>
           )}
         </div>
       </div>
@@ -524,14 +618,19 @@ function LoginCard() {
   );
 }
 
+
 export default function LoginPage() {
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1234567890-dummy.apps.googleusercontent.com";
+
   return (
-    <Suspense fallback={
-      <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div className="card" style={{ padding: "2rem", textAlign: "center" }}>Loading Member Portal...</div>
-      </div>
-    }>
-      <LoginCard />
-    </Suspense>
+    <GoogleOAuthProvider clientId={clientId}>
+      <Suspense fallback={
+        <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="card" style={{ padding: "2rem", textAlign: "center" }}>Loading Member Portal...</div>
+        </div>
+      }>
+        <LoginCard />
+      </Suspense>
+    </GoogleOAuthProvider>
   );
 }

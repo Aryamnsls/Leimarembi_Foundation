@@ -92,7 +92,7 @@ router.get('/donations/status/:publicDonationId', async (req: Request, res: Resp
     const { publicDonationId } = req.params;
 
     const donation = await prisma.donation.findUnique({
-      where: { publicDonationId },
+      where: { publicDonationId: publicDonationId as string },
     });
 
     if (!donation) {
@@ -273,7 +273,7 @@ router.patch('/donations/admin/:id/status', authenticateToken, requireRole(['ADM
     }
 
     const updated = await prisma.donation.update({
-      where: { id },
+      where: { id: id as string },
       data: {
         status,
         transactionId: transactionId || undefined,

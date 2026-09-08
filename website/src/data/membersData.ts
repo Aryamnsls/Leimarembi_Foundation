@@ -67,7 +67,7 @@ export const MEMBERS_DATA: Member[] = [
     subtitle: "Retired Army Personnel | Executive Member, UMAA (Central) | Executive Member, GMSO",
     shortProfile: "A retired Army personnel with a strong commitment to community service and social welfare. He actively participates in community initiatives through his association with UMAA and GMSO.",
     areaOfResponsibility: "Supports the Foundation's programmes, community outreach, member coordination and implementation of social and welfare initiatives.",
-    photo: null,
+    photo: "/members/K_Braja_Babu_Singha.jpg",
     category: "Executive"
   },
   {

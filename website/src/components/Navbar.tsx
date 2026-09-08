@@ -18,6 +18,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
 
@@ -31,6 +32,9 @@ export default function Navbar() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setMounted(true);
+      if (localStorage.getItem('lf_token')) {
+        setIsLoggedIn(true);
+      }
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
         // Respect user's explicit manual preference if they've toggled before
@@ -97,6 +101,14 @@ export default function Navbar() {
     localStorage.setItem('theme', newTheme);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('lf_token');
+    localStorage.removeItem('lf_user');
+    document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
+    setIsLoggedIn(false);
+    window.location.href = '/login';
+  };
+
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
@@ -150,9 +162,15 @@ export default function Navbar() {
             {/* Native Language Switcher */}
             <LanguageSwitcher />
 
-            <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
-              <LogIn size={13} /> {t('nav.login')}
-            </Link>
+            {mounted && isLoggedIn ? (
+              <button onClick={handleLogout} className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
+                <LogIn size={13} /> Sign Out
+              </button>
+            ) : (
+              <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
+                <LogIn size={13} /> {t('nav.login')}
+              </Link>
+            )}
             <Link href="/donate" className="btn btn-primary desktop-only-btn" style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 800, minHeight: '32px', gap: '3px', whiteSpace: 'nowrap' }}>
               {t('nav.donate')} <ArrowRight size={12} />
             </Link>
@@ -265,9 +283,15 @@ export default function Navbar() {
         
         {/* Drawer Action CTAs */}
         <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
-          <Link href="/login" className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }} onClick={closeMenu}>
-            <LogIn size={16} /> {t('nav.login')}
-          </Link>
+          {mounted && isLoggedIn ? (
+            <button onClick={() => { handleLogout(); closeMenu(); }} className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }}>
+              <LogIn size={16} /> Sign Out
+            </button>
+          ) : (
+            <Link href="/login" className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }} onClick={closeMenu}>
+              <LogIn size={16} /> {t('nav.login')}
+            </Link>
+          )}
           <Link href="/donate" className="btn btn-primary" style={{ padding: '0.65rem 1rem', fontSize: '0.9rem', width: '100%', justifyContent: 'center', minHeight: '44px', marginTop: '0.5rem', gap: '8px' }} onClick={closeMenu}>
             <Heart size={16} color="var(--secondary-color)" /> {t('nav.donate')} <ArrowRight size={16} />
           </Link>

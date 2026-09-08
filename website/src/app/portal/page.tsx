@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   Globe, 
   Smartphone, 
@@ -6,16 +10,39 @@ import {
   Library, 
   HeartPulse, 
   BookOpen, 
-  BrainCircuit 
+  BrainCircuit,
+  LogOut,
+  UserCircle,
+  ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Services Portal | Leimarembi Foundation',
-  description: 'Central Digital Governance Platform Modules',
-};
-
 export default function Portal() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ name: string; email: string; role: string; membershipNo: string } | null>(null);
+
+  useEffect(() => {
+    const userStr = localStorage.getItem('lf_user');
+    const token = localStorage.getItem('lf_token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    if (userStr) {
+      try {
+        setUser(JSON.parse(userStr));
+      } catch (e) {}
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('lf_token');
+    localStorage.removeItem('lf_user');
+    // Clear the cookie so middleware blocks re-entry
+    document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
+    router.push('/login');
+  };
+
   const modules = [
     {
       title: "1. Official Website",
@@ -77,6 +104,91 @@ export default function Portal() {
 
   return (
     <div className="animate-fade-in" style={{ padding: '3rem 0' }}>
+      
+      {/* User Profile Banner */}
+      {user && (
+        <div style={{
+          background: 'linear-gradient(135deg, var(--primary-color) 0%, var(--info-color) 100%)',
+          borderRadius: '16px',
+          padding: '1.5rem 2rem',
+          marginBottom: '2.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          boxShadow: 'var(--shadow-lg)',
+          color: '#fff'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.2)',
+              borderRadius: '50%',
+              width: '52px',
+              height: '52px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <UserCircle size={32} color="#fff" />
+            </div>
+            <div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.8, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                Signed in as
+              </div>
+              <div style={{ fontSize: '1.15rem', fontWeight: 800 }}>{user.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>{user.email}</span>
+                {user.membershipNo && (
+                  <span style={{
+                    background: 'rgba(255,255,255,0.25)',
+                    borderRadius: '20px',
+                    padding: '1px 8px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <ShieldCheck size={11} /> {user.membershipNo}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              background: 'rgba(255,255,255,0.18)',
+              border: '1.5px solid rgba(255,255,255,0.5)',
+              color: '#fff',
+              borderRadius: '10px',
+              padding: '0.55rem 1.25rem',
+              fontSize: '0.9rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              backdropFilter: 'blur(4px)',
+              flexShrink: 0
+            }}
+            onMouseEnter={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.32)';
+            }}
+            onMouseLeave={e => {
+              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.18)';
+            }}
+          >
+            <LogOut size={16} /> Sign Out
+          </button>
+        </div>
+      )}
+
+      {/* Portal Header */}
       <div className="glass-panel" style={{ textAlign: 'center', marginBottom: '4rem', display: 'block', margin: '0 auto 4rem', maxWidth: '800px' }}>
         <span style={{ color: 'var(--secondary-color)', fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase' }}>
           LFDGCDP Command Center

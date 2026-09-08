@@ -29,10 +29,18 @@ export default function Health() {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Upcoming Medical Camp</h3>
-            <p style={{ color: 'var(--text-secondary)', margin: '0.2rem 0 0', fontSize: '0.95rem' }}>August 25, 2026 • Imphal East</p>
+            <p style={{ color: 'var(--text-secondary)', margin: '0.2rem 0 0', fontSize: '0.95rem' }}>To be notified soon (This Year)</p>
+            <a
+              href="https://www.google.com/maps/search/Manipuri+Rajbari,+Guwahati-781007,+Assam,+India"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--secondary-color)', display: 'inline-block', marginTop: '0.2rem', fontSize: '0.9rem', fontWeight: 600 }}
+            >
+              Manipuri Rajbari, Guwahati-781007, Assam
+            </a>
           </div>
         </div>
-        
+
         <div className="card" style={{ display: 'flex', gap: '1.25rem', alignItems: 'center', borderTop: '4px solid var(--success-color)' }}>
           <div style={{ background: 'rgba(39, 174, 96, 0.12)', color: 'var(--success-color)', padding: '1rem', borderRadius: '50%', flexShrink: 0 }}>
             <Activity size={32} />
@@ -57,7 +65,7 @@ export default function Health() {
                 <Phone size={16} /> Call
               </a>
             </div>
-            
+
             <div style={{ padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem' }}>
               <div>
                 <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700 }}>JNIMS Hospital Emergency</h4>
