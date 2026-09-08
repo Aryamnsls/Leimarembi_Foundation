@@ -52,7 +52,7 @@ export default function CulturePage() {
       ingredients: ['Ngari (Fermented Fish)', 'U-Morok (King Chilli)', 'Tree Bean (Yongchak) / Potato', 'Fresh Maroi (Chives)'],
       significance: 'Central to community feasts and daily family nutrition in Manipur.',
       photoUrl: '/culture/eromba.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=V21-6Z_SJS4'
+      youtubeUrl: 'https://www.youtube.com/watch?v=Jm00G19P-aQ'
     },
     {
       id: 'singju',
@@ -63,7 +63,7 @@ export default function CulturePage() {
       ingredients: ['Lotus Root (Thambou)', 'Cabbage / Banana Floret', 'Roasted Thoiding Seeds', 'Chilli Powder & Pea Powder'],
       significance: 'Rich in dietary fiber and medicinal indigenous herbs.',
       photoUrl: '/culture/singju.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=GKG0GuC8CJ0'
+      youtubeUrl: 'https://www.youtube.com/watch?v=g9o-Zq5xU7M'
     },
     {
       id: 'chakhao',
@@ -74,7 +74,7 @@ export default function CulturePage() {
       ingredients: ['Chak-hao (Black Glutinous Rice)', 'Full-Cream Milk', 'Cardamom & Bay Leaf', 'Cashews, Almonds & Raisins'],
       significance: 'Traditionally served during ceremonies and festive occasions as a mark of prosperity.',
       photoUrl: '/culture/chakhao_kheer.jpg',
-      youtubeUrl: 'https://www.youtube.com/watch?v=R2m-_R9M6D8'
+      youtubeUrl: 'https://www.youtube.com/watch?v=23B-Jp0gO4Y'
     }
   ];
 
