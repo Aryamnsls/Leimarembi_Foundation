@@ -8,7 +8,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { 
   Moon, Sun, Menu, X, ArrowRight, Home, LayoutGrid, Info, Activity,
   BookOpen, LogIn, Heart, Users, Newspaper, 
-  ImageIcon, FileText 
+  ImageIcon, FileText, Video 
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -154,6 +154,7 @@ export default function Navbar() {
               <li><Link href="/gallery" style={isActive('/gallery') ? activeStyle : {}}>{t('nav.gallery')}</Link></li>
               <li><Link href="/culture" style={isActive('/culture') ? activeStyle : {}}>{t('nav.culture')}</Link></li>
               <li><Link href="/documents" style={isActive('/documents') ? activeStyle : {}}>{t('nav.documents')}</Link></li>
+              <li><Link href="/meetings" style={isActive('/meetings') ? activeStyle : {}}>{t('nav.meetings')}</Link></li>
             </ul>
           </nav>
           
@@ -278,6 +279,9 @@ export default function Navbar() {
           </Link>
           <Link href="/documents" onClick={closeMenu} className="drawer-link" style={isActive('/documents') ? activeStyle : {}}>
             <FileText size={16} /> {t('nav.documents')}
+          </Link>
+          <Link href="/meetings" onClick={closeMenu} className="drawer-link" style={isActive('/meetings') ? activeStyle : {}}>
+            <Video size={16} /> {t('nav.meetings')}
           </Link>
         </div>
         

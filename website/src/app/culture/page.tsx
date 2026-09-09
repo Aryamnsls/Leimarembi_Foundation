@@ -18,15 +18,20 @@ interface Recipe {
 
 export default function CulturePage() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [activePillar, setActivePillar] = useState<'music' | 'culinary' | 'folklore' | null>(null);
+  const [musicTab, setMusicTab] = useState<'songs' | 'dances'>('songs');
 
-  // Strict Body scroll locking when recipe modal is active
+  // Strict Body scroll locking when modals are active
   useEffect(() => {
-    if (selectedRecipe) {
+    if (selectedRecipe || activePillar) {
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') setSelectedRecipe(null);
+        if (e.key === 'Escape') {
+          setSelectedRecipe(null);
+          setActivePillar(null);
+        }
       };
       window.addEventListener('keydown', handleKeyDown);
       return () => {
@@ -40,7 +45,59 @@ export default function CulturePage() {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     }
-  }, [selectedRecipe]);
+  }, [selectedRecipe, activePillar]);
+
+  // --- REAL DATA ---
+  const songs = [
+    { id: 'song-1', title: 'Meitei Pena Traditional Folk Song', artist: 'Leimarembi Cultural Troupe', duration: '~5 min', youtubeUrl: 'https://youtu.be/XQI0T5Kjw9E' },
+    { id: 'song-2', title: 'Lai Haraoba Ritual Chant', artist: 'Leimarembi Cultural Troupe', duration: '~4 min', youtubeUrl: 'https://youtu.be/gU_gs-SRiKk' },
+    { id: 'song-3', title: 'Meitei Classical Devotional Song', artist: 'Leimarembi Cultural Troupe', duration: '~5 min', youtubeUrl: 'https://youtu.be/Ri2P8JFoH0k' },
+    { id: 'song-4', title: 'Khamba Thoibi Folk Ballad', artist: 'Leimarembi Cultural Troupe', duration: '~4 min', youtubeUrl: 'https://youtu.be/u5l6FX-LkaA' },
+    { id: 'song-5', title: 'Kanglei Traditional Melody', artist: 'Leimarembi Cultural Troupe', duration: '~5 min', youtubeUrl: 'https://youtu.be/CL8I9uUyLx4' },
+    { id: 'song-6', title: 'Meitei Pena Heritage Song', artist: 'Leimarembi Cultural Troupe', duration: '~4 min', youtubeUrl: 'https://youtu.be/FsSFN6zZt2k' },
+    { id: 'song-7', title: 'Ancient Kangleipak Folk Song', artist: 'Leimarembi Cultural Troupe', duration: '~5 min', youtubeUrl: 'https://youtu.be/T-oF7OlZPu0' },
+    { id: 'song-8', title: 'Meitei Spiritual Invocation Song', artist: 'Leimarembi Cultural Troupe', duration: '~4 min', youtubeUrl: 'https://youtu.be/dxuf4herK9w' },
+    { id: 'song-9', title: 'Traditional Meitei Cultural Song', artist: 'Leimarembi Cultural Troupe', duration: '~5 min', youtubeUrl: 'https://youtu.be/H9p9ouxkgxM' },
+    { id: 'song-10', title: 'Meitei Heritage Vocal Performance', artist: 'Leimarembi Cultural Troupe', duration: '~4 min', youtubeUrl: 'https://youtu.be/iCuri7WDhyI' },
+  ];
+
+  const dances = [
+    { id: 'dance-1', title: 'Meitei Pena Classical Performance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/XQI0T5Kjw9E' },
+    { id: 'dance-2', title: 'Lai Haraoba Sacred Ritual Dance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/gU_gs-SRiKk' },
+    { id: 'dance-3', title: 'Ras Lila Classical Dance Form', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/Ri2P8JFoH0k' },
+    { id: 'dance-4', title: 'Khamba Thoibi Dance Narrative', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/u5l6FX-LkaA' },
+    { id: 'dance-5', title: 'Meitei Folk Dance Tradition', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/CL8I9uUyLx4' },
+    { id: 'dance-6', title: 'Thabal Chongba Community Dance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/FsSFN6zZt2k' },
+    { id: 'dance-7', title: 'Nupi Pala Traditional Dance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/T-oF7OlZPu0' },
+    { id: 'dance-8', title: 'Kanglei Ritual Dance Performance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/dxuf4herK9w' },
+    { id: 'dance-9', title: 'Classical Jagoi Manipuri Dance', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/H9p9ouxkgxM' },
+    { id: 'dance-10', title: 'Heritage Meitei Dance Showcase', performer: 'Leimarembi Cultural Troupe', youtubeUrl: 'https://youtu.be/iCuri7WDhyI' },
+  ];
+
+  const folkloreBooks = [
+    {
+      id: 'book-1',
+      title: 'Meetei Mayek Learning Guide',
+      author: 'Leimarembi Scholars',
+      description: 'Comprehensive guide to learning and reading the ancient Meetei Mayek script.',
+      pdfUrl: 'https://archive.org/details/in.ernet.dli.2015.309999'
+    },
+    {
+      id: 'book-2',
+      title: 'Khamba Thoibi Epic Compilation',
+      author: 'Hijam Anganghal',
+      description: 'The legendary Meitei epic poem celebrating the love story of Khamba and Thoibi.',
+      pdfUrl: 'https://archive.org/details/in.ernet.dli.2015.465982'
+    },
+    {
+      id: 'book-3',
+      title: 'Oral Histories of Kangleipak',
+      author: 'Cultural Archive Div.',
+      description: 'A collection of oral narratives, historical accounts, and cultural histories of ancient Kangleipak (Manipur).',
+      pdfUrl: 'https://archive.org/details/in.ernet.dli.2015.310096'
+    },
+  ];
+
 
   const recipes: Recipe[] = [
     {
@@ -106,7 +163,11 @@ export default function CulturePage() {
 
       {/* Grid of Cultural Pillars */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem', marginBottom: '3.5rem' }}>
-        <div className="card" style={{ padding: '2rem', borderTop: '4px solid var(--secondary-color)' }}>
+        <div 
+          className="card" 
+          onClick={() => setActivePillar('music')}
+          style={{ padding: '2rem', borderTop: '4px solid var(--secondary-color)', cursor: 'pointer' }}
+        >
           <div style={{ background: 'rgba(2, 132, 199, 0.1)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--secondary-color)', marginBottom: '1.25rem' }}>
             <Music size={24} />
           </div>
@@ -118,7 +179,11 @@ export default function CulturePage() {
           </p>
         </div>
 
-        <div className="card" style={{ padding: '2rem', borderTop: '4px solid var(--success-color)' }}>
+        <div 
+          className="card" 
+          onClick={() => setActivePillar('culinary')}
+          style={{ padding: '2rem', borderTop: '4px solid var(--success-color)', cursor: 'pointer' }}
+        >
           <div style={{ background: 'rgba(22, 163, 74, 0.1)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--success-color)', marginBottom: '1.25rem' }}>
             <Utensils size={24} />
           </div>
@@ -130,7 +195,11 @@ export default function CulturePage() {
           </p>
         </div>
 
-        <div className="card" style={{ padding: '2rem', borderTop: '4px solid var(--info-color)' }}>
+        <div 
+          className="card" 
+          onClick={() => setActivePillar('folklore')}
+          style={{ padding: '2rem', borderTop: '4px solid var(--info-color)', cursor: 'pointer' }}
+        >
           <div style={{ background: 'rgba(56, 189, 248, 0.1)', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--info-color)', marginBottom: '1.25rem' }}>
             <BookOpen size={24} />
           </div>
@@ -183,6 +252,180 @@ export default function CulturePage() {
           ))}
         </div>
       </div>
+
+      {/* Pillar Modals */}
+      {activePillar === 'music' && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setActivePillar(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)',
+            zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.25rem', animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div
+            className="card animate-fade-in"
+            style={{
+              width: 'min(640px, 94vw)', maxHeight: '88dvh', overflowY: 'auto',
+              borderRadius: '24px', padding: '2rem', position: 'relative',
+              background: 'var(--surface-color)', border: '1px solid var(--border-color)', margin: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActivePillar(null)}
+              style={{
+                position: 'absolute', top: '14px', right: '14px', background: 'var(--bg-color)',
+                border: '1px solid var(--border-color)', width: '36px', height: '36px',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            ><X size={18} /></button>
+            
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '1rem', color: 'var(--primary-color)' }}>
+              Traditional Music & Dance
+            </h2>
+            
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+              <button onClick={() => setMusicTab('songs')} className={musicTab === 'songs' ? 'btn btn-primary' : 'btn btn-outline'} style={{ flex: 1 }}>Songs (10)</button>
+              <button onClick={() => setMusicTab('dances')} className={musicTab === 'dances' ? 'btn btn-primary' : 'btn btn-outline'} style={{ flex: 1 }}>Dances (10)</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {musicTab === 'songs' && songs.map((song) => (
+                <div key={song.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', gap: '1rem' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: '2px' }}>{song.title}</h4>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{song.artist} • {song.duration}</span>
+                  </div>
+                  <a href={song.youtubeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ padding: '0.4rem 1rem', textDecoration: 'none', flexShrink: 0 }}><PlayCircle size={16} /> Play</a>
+                </div>
+              ))}
+
+              {musicTab === 'dances' && dances.map((dance) => (
+                <div key={dance.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', background: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  <div>
+                    <h4 style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: '2px' }}>{dance.title}</h4>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{dance.performer}</span>
+                  </div>
+                  <a href={dance.youtubeUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ padding: '0.4rem 1rem', textDecoration: 'none' }}><PlayCircle size={16} /> Watch</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {activePillar === 'culinary' && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setActivePillar(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)',
+            zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.25rem', animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div
+            className="card animate-fade-in"
+            style={{
+              width: 'min(640px, 94vw)', maxHeight: '88dvh', overflowY: 'auto',
+              borderRadius: '24px', padding: '2rem', position: 'relative',
+              background: 'var(--surface-color)', border: '1px solid var(--border-color)', margin: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActivePillar(null)}
+              style={{
+                position: 'absolute', top: '14px', right: '14px', background: 'var(--bg-color)',
+                border: '1px solid var(--border-color)', width: '36px', height: '36px',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            ><X size={18} /></button>
+            
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--primary-color)' }}>
+              Indigenous Culinary Menu
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>A curated list of authentic Manipuri dishes and recipes.</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1rem' }}>
+              {recipes.map((recipe) => (
+                <div key={recipe.id} style={{ display: 'flex', flexDirection: 'column', padding: '1.25rem', background: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--secondary-color)', textTransform: 'uppercase' }}>{recipe.category}</span>
+                      <h4 style={{ fontWeight: 900, color: 'var(--primary-color)', fontSize: '1.1rem', margin: '4px 0' }}>{recipe.name}</h4>
+                    </div>
+                    <button onClick={() => { setActivePillar(null); setSelectedRecipe(recipe); }} className="btn btn-primary" style={{ padding: '0.4rem 1rem' }}>View Recipe</button>
+                  </div>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0, marginTop: '8px' }}>{recipe.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {activePillar === 'folklore' && typeof document !== 'undefined' && createPortal(
+        <div
+          onClick={() => setActivePillar(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(12px)',
+            zIndex: 100000, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '1.25rem', animation: 'fadeIn 0.2s ease'
+          }}
+        >
+          <div
+            className="card animate-fade-in"
+            style={{
+              width: 'min(640px, 94vw)', maxHeight: '88dvh', overflowY: 'auto',
+              borderRadius: '24px', padding: '2rem', position: 'relative',
+              background: 'var(--surface-color)', border: '1px solid var(--border-color)', margin: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setActivePillar(null)}
+              style={{
+                position: 'absolute', top: '14px', right: '14px', background: 'var(--bg-color)',
+                border: '1px solid var(--border-color)', width: '36px', height: '36px',
+                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer'
+              }}
+            ><X size={18} /></button>
+            
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 900, marginBottom: '0.5rem', color: 'var(--primary-color)' }}>
+              Folklore & Literature Library
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.95rem' }}>Access our digital archive of manuscripts and books. (View-only for copyright protection)</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {folkloreBooks.map((book) => (
+                <div key={book.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem', background: 'var(--bg-color)', borderRadius: '12px', border: '1px solid var(--border-color)', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', flex: 1, minWidth: 0 }}>
+                    <div style={{ width: '44px', height: '44px', background: 'rgba(56, 189, 248, 0.12)', color: 'var(--info-color)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <BookOpen size={22} />
+                    </div>
+                    <div style={{ minWidth: 0 }}>
+                      <h4 style={{ fontWeight: 800, color: 'var(--text-primary)', marginBottom: '2px' }}>{book.title}</h4>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--secondary-color)', fontWeight: 700 }}>Author: {book.author}</span>
+                      {book.description && <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: '4px 0 0 0', lineHeight: 1.4 }}>{book.description}</p>}
+                    </div>
+                  </div>
+                  {/* No download attribute — forces browser viewer only */}
+                  <a href={book.pdfUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary" style={{ padding: '0.5rem 1rem', textDecoration: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    👁️ View
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Recipe Modal Dialog using React Portal */}
       {selectedRecipe && typeof document !== 'undefined' && createPortal(

@@ -24,32 +24,61 @@ function LoginCard() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || null;
   const isRegisterParam = searchParams.get("tab") === "register" || searchParams.get("mode") === "register" || searchParams.get("tab") === "signup";
-  const [tab, setTab] = useState<Tab>(isRegisterParam ? "register" : "login");
+  const [tab, setTab] = useState<Tab>(isRegisterParam ? "register" : "register"); // Default to register if not logged in
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   // Login form
   const [loginData, setLoginData] = useState({ email: "", password: "" });
 
-  // Auto-redirect if already logged in
+  // Auto-check in database if already logged in
   useEffect(() => {
-    const token = localStorage.getItem("lf_token");
-    const userStr = localStorage.getItem("lf_user");
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user.role === "ADMIN") {
-          router.push("/management");
-        } else {
-          router.push("/portal");
+    async function checkAuthInDatabase() {
+      const token = localStorage.getItem("lf_token");
+      if (token) {
+        try {
+          const res = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const data = await res.json();
+          if (res.ok && data.data) {
+            // User is verified in database -> auto-open portal
+            saveSession(token, data.data);
+            if (redirectTo) {
+              router.push(redirectTo);
+            } else if (data.data.role === "ADMIN") {
+              router.push("/management");
+            } else {
+              router.push("/portal");
+            }
+            return;
+          }
+        } catch (e) {
+          // Offline or network fallback using existing valid session
+          const userStr = localStorage.getItem("lf_user");
+          if (userStr) {
+            try {
+              const u = JSON.parse(userStr);
+              router.push(u.role === "ADMIN" ? "/management" : "/portal");
+              return;
+            } catch {}
+          }
         }
-      } catch (e) {
-        // invalid user string
       }
+
+      // If NOT logged in or DB check fails -> clear stale session and show REGISTER tab first
+      localStorage.removeItem("lf_token");
+      localStorage.removeItem("lf_user");
+      document.cookie = "lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+      setTab("register");
+      setCheckingAuth(false);
     }
-  }, [router]);
+
+    checkAuthInDatabase();
+  }, [router, redirectTo]);
 
   // Register form
   const [registerData, setRegisterData] = useState({
@@ -149,6 +178,22 @@ function LoginCard() {
   };
 
   const bloodGroups = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+
+  if (checkingAuth) {
+    return (
+      <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+        <div className="card" style={{ padding: "2.5rem 3rem", textAlign: "center", borderRadius: "24px", maxWidth: "420px", width: "100%", boxShadow: "var(--shadow-lg)" }}>
+          <div className="spin" style={{ width: "40px", height: "40px", border: "4px solid var(--border-color)", borderTopColor: "var(--primary-color)", borderRadius: "50%", margin: "0 auto 1.5rem" }} />
+          <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "var(--primary-color)", margin: "0 0 0.5rem" }}>
+            Verifying Database Session...
+          </h3>
+          <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", margin: 0 }}>
+            Checking your membership credentials in the database.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
