@@ -115,10 +115,8 @@ export default function WelcomeOverlay() {
 
           // 5. Draw Emblem Logo Symbol inside Central Badge
           const logoImg = document.createElement('img');
-          logoImg.onload = () => {
-            ctx.drawImage(logoImg, 420, 420, 160, 160);
-
-            // 6. Trigger PNG download
+          logoImg.crossOrigin = 'anonymous';
+          const triggerDownload = () => {
             const pngUrl = canvas.toDataURL('image/png');
             const downloadLink = document.createElement('a');
             downloadLink.href = pngUrl;
@@ -126,6 +124,22 @@ export default function WelcomeOverlay() {
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
+          };
+          logoImg.onload = () => {
+            ctx.drawImage(logoImg, 420, 420, 160, 160);
+            triggerDownload();
+          };
+          logoImg.onerror = () => {
+            // Fallback emblem draw if image path fails
+            ctx.fillStyle = '#10B981';
+            ctx.beginPath();
+            ctx.arc(500, 480, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1E293B';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('LEIMAREMBI', 500, 550);
+            triggerDownload();
           };
           logoImg.src = '/leimarembi_official_logo.png';
         }
