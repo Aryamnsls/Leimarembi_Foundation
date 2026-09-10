@@ -5,6 +5,8 @@ import { ChevronRight, QrCode, Share2, Copy, Check, ShieldCheck, Sparkles, X, Sm
 import Image from 'next/image';
 import QRCode from 'react-qr-code';
 
+import { EMBLEM_LOGO_BASE64 } from '@/data/emblemLogoBase64';
+
 export default function WelcomeOverlay() {
   const [isVisible, setIsVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -115,8 +117,10 @@ export default function WelcomeOverlay() {
 
           // 5. Draw Emblem Logo Symbol inside Central Badge
           const logoImg = document.createElement('img');
-          logoImg.crossOrigin = 'anonymous';
-          const triggerDownload = () => {
+          logoImg.onload = () => {
+            ctx.drawImage(logoImg, 420, 420, 160, 160);
+
+            // 6. Trigger PNG Download
             const pngUrl = canvas.toDataURL('image/png');
             const downloadLink = document.createElement('a');
             downloadLink.href = pngUrl;
@@ -125,32 +129,7 @@ export default function WelcomeOverlay() {
             downloadLink.click();
             document.body.removeChild(downloadLink);
           };
-          logoImg.onload = () => {
-            ctx.drawImage(logoImg, 420, 420, 160, 160);
-            triggerDownload();
-          };
-          logoImg.onerror = () => {
-            // Retry alternate logo path
-            const retryImg = document.createElement('img');
-            retryImg.crossOrigin = 'anonymous';
-            retryImg.onload = () => {
-              ctx.drawImage(retryImg, 420, 420, 160, 160);
-              triggerDownload();
-            };
-            retryImg.onerror = () => {
-              ctx.fillStyle = '#10B981';
-              ctx.beginPath();
-              ctx.arc(500, 480, 40, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.fillStyle = '#1E293B';
-              ctx.font = 'bold 24px sans-serif';
-              ctx.textAlign = 'center';
-              ctx.fillText('LEIMAREMBI', 500, 550);
-              triggerDownload();
-            };
-            retryImg.src = '/website/public/leimarembi_official_logo.png';
-          };
-          logoImg.src = '/leimarembi_official_logo.png';
+          logoImg.src = EMBLEM_LOGO_BASE64;
         }
       };
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
