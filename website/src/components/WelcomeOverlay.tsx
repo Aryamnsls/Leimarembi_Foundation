@@ -65,6 +65,17 @@ export default function WelcomeOverlay() {
     }
   };
 
+  const handleWhatsAppShare = () => {
+    if (typeof window !== 'undefined') {
+      const text = encodeURIComponent(
+        `🏛️ *LEIMAREMBI FOUNDATION - OFFICIAL DIGITAL GOVERNANCE PORTAL*\n\n` +
+        `Scan the official QR Code or tap the link below to access Executive Board Meetings, News Hub, Member Roster & Governance Archives:\n\n` +
+        `🔗 ${currentUrl}`
+      );
+      window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+    }
+  };
+
   const handleDownloadKeyringQR = () => {
     if (typeof window !== 'undefined') {
       const svg = document.getElementById('foundation-qr-code-svg');
@@ -72,7 +83,7 @@ export default function WelcomeOverlay() {
       const svgData = new XMLSerializer().serializeToString(svg);
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      const img = new Image();
+      const img = document.createElement('img');
       img.onload = () => {
         canvas.width = 1000;
         canvas.height = 1000;
