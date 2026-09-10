@@ -106,23 +106,20 @@ export default function WelcomeOverlay() {
           // 3. Draw QR Code matrix
           ctx.drawImage(img, 120, 120, 760, 760);
 
-          // 4. Draw Central White Circle Badge with Gold Border
+          // 4. Draw Central White Circle Badge
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
           ctx.arc(500, 500, 110, 0, 2 * Math.PI);
           ctx.fill();
-          ctx.strokeStyle = '#F59E0B';
-          ctx.lineWidth = 8;
-          ctx.stroke();
 
-          // 5. Draw Emblem Logo Symbol inside Central Badge
+          // 5. Draw Official Production Emblem Logo Badge
           const logoImg = document.createElement('img');
           let downloaded = false;
           const triggerDownload = () => {
             if (downloaded) return;
             downloaded = true;
             try {
-              ctx.drawImage(logoImg, 410, 410, 180, 180);
+              ctx.drawImage(logoImg, 390, 390, 220, 220);
             } catch (e) {
               console.error('Logo draw error:', e);
             }
