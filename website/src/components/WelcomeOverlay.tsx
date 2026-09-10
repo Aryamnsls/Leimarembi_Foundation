@@ -15,7 +15,7 @@ export default function WelcomeOverlay() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const origin = window.location.origin;
-      setCurrentUrl(origin.includes('localhost') ? `${origin}?qr=1` : 'https://leimarembi.org?qr=1');
+      setCurrentUrl(`${origin}?qr=1`);
 
       const searchParams = new URLSearchParams(window.location.search);
       const isQrScan = searchParams.has('qr');
