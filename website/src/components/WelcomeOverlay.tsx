@@ -30,9 +30,8 @@ export default function WelcomeOverlay() {
       setIsMobile(mobileDevice);
 
       // RULE 1: If someone scans the QR code from phone (or clicks direct scan link)
-      // -> Directly enter the platform, DO NOT show the QR modal again!
+      // -> Open directly to the Welcome Page (do not show QR code again!)
       if (isDirectScanned) {
-        sessionStorage.setItem('welcomeShown', 'true');
         sessionStorage.setItem('qrScannedVerified', 'true');
         try {
           localStorage.setItem('phoneQrVerified', 'true');
@@ -49,7 +48,12 @@ export default function WelcomeOverlay() {
           window.history.replaceState(null, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : '') + cleanUrl.hash);
         }
 
-        setIsVisible(false);
+        // Directly open the Welcome Page!
+        setIsVisible(true);
+        setStep('welcome');
+        document.documentElement.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
+        document.body.style.touchAction = 'none';
         return;
       }
 
@@ -468,7 +472,7 @@ export default function WelcomeOverlay() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {!isMobile ? (
               <button 
-                onClick={selectedDevice === 'desktop' ? handleEnterPlatform : () => setSelectedDevice('desktop')}
+                onClick={selectedDevice === 'desktop' ? handleProceedToWelcome : () => setSelectedDevice('desktop')}
                 style={{
                   background: selectedDevice === 'desktop' 
                     ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' 
@@ -490,7 +494,7 @@ export default function WelcomeOverlay() {
               >
                 {selectedDevice === 'desktop' ? (
                   <>
-                    <CheckCircle2 size={20} /> Enter Official Platform (Desktop Mode) <ChevronRight size={18} />
+                    <CheckCircle2 size={20} /> Continue to Welcome Page <ChevronRight size={18} />
                   </>
                 ) : (
                   <>
@@ -631,13 +635,31 @@ export default function WelcomeOverlay() {
             Empowering communities through digital governance, rural health welfare, indigenous culture preservation, and transparent grant tracking in Northeast India.
           </p>
 
-          <button 
-            onClick={handleEnterPlatform}
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center', minHeight: '48px', fontSize: '1rem', gap: '8px' }}
-          >
-            Enter Official Platform <ChevronRight size={18} />
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button 
+              onClick={handleEnterPlatform}
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center', minHeight: '50px', fontSize: '1.05rem', fontWeight: 900, gap: '8px' }}
+            >
+              Enter Official Platform <ChevronRight size={18} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setStep('qr')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--text-muted)',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                padding: '0.4rem',
+                textDecoration: 'underline'
+              }}
+            >
+              ← View QR Gateway & Keyring Download
+            </button>
+          </div>
         </div>
       )}
 
