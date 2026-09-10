@@ -106,21 +106,26 @@ export default function WelcomeOverlay() {
           // 3. Draw QR Code matrix
           ctx.drawImage(img, 120, 120, 760, 760);
 
-          // 4. Draw Central White Circle Badge
+          // 4. Draw Central White Circle Badge with Gold Border
           ctx.fillStyle = '#FFFFFF';
           ctx.beginPath();
-          ctx.arc(500, 500, 100, 0, 2 * Math.PI);
+          ctx.arc(500, 500, 110, 0, 2 * Math.PI);
           ctx.fill();
-          ctx.strokeStyle = '#E2E8F0';
-          ctx.lineWidth = 6;
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 8;
           ctx.stroke();
 
           // 5. Draw Emblem Logo Symbol inside Central Badge
           const logoImg = document.createElement('img');
-          logoImg.onload = () => {
-            ctx.drawImage(logoImg, 420, 420, 160, 160);
-
-            // 6. Trigger PNG Download
+          let downloaded = false;
+          const triggerDownload = () => {
+            if (downloaded) return;
+            downloaded = true;
+            try {
+              ctx.drawImage(logoImg, 410, 410, 180, 180);
+            } catch (e) {
+              console.error('Logo draw error:', e);
+            }
             const pngUrl = canvas.toDataURL('image/png');
             const downloadLink = document.createElement('a');
             downloadLink.href = pngUrl;
@@ -129,7 +134,12 @@ export default function WelcomeOverlay() {
             downloadLink.click();
             document.body.removeChild(downloadLink);
           };
+
+          logoImg.onload = triggerDownload;
           logoImg.src = EMBLEM_LOGO_BASE64;
+          if (logoImg.complete) {
+            triggerDownload();
+          }
         }
       };
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
