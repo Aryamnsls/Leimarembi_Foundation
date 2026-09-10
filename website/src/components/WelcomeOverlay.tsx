@@ -14,6 +14,7 @@ export default function WelcomeOverlay() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [currentUrl, setCurrentUrl] = useState<string>('https://leimarembifoundation.org/?direct=1');
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedDevice, setSelectedDevice] = useState<'desktop' | 'mobile' | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -335,32 +336,108 @@ export default function WelcomeOverlay() {
             </div>
           </div>
 
-          {/* INSTRUCTIONS CARD: DESKTOP VS MOBILE RULES */}
+          {/* INSTRUCTIONS & DEVICE SELECTION: DESKTOP VS MOBILE RULES */}
           {!isMobile ? (
             <div 
               style={{ 
                 background: 'rgba(15, 23, 42, 0.75)',
                 border: '1px solid rgba(245, 158, 11, 0.35)',
-                borderRadius: '16px',
-                padding: '0.85rem 1rem',
+                borderRadius: '18px',
+                padding: '1rem',
                 marginBottom: '1.25rem',
                 textAlign: 'left',
                 fontSize: '0.82rem',
                 lineHeight: '1.5'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#38BDF8', fontWeight: 800 }}>
-                <Monitor size={16} /> Desktop Access Instruction:
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                  🖥️ Step 1: Select Your Device Type
+                </span>
+                {selectedDevice === 'desktop' && (
+                  <span style={{ fontSize: '0.72rem', background: '#10B981', color: '#000000', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
+                    ✓ VERIFIED
+                  </span>
+                )}
               </div>
-              <div style={{ color: '#E2E8F0', marginBottom: '8px', paddingLeft: '24px' }}>
-                You are on Desktop. Click <strong>"Enter Official Platform"</strong> below to enter directly.
+
+              {/* Interactive Device Selector Tiles */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.85rem' }}>
+                {/* Tile A: Desktop / Laptop / PC */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDevice('desktop')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0.75rem 0.5rem',
+                    borderRadius: '14px',
+                    border: selectedDevice === 'desktop' ? '2px solid #10B981' : '1px solid rgba(255, 255, 255, 0.2)',
+                    background: selectedDevice === 'desktop' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
+                    <Monitor size={18} style={{ color: selectedDevice === 'desktop' ? '#10B981' : '#38BDF8' }} />
+                    <span>Desktop / Laptop / PC</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: selectedDevice === 'desktop' ? '#6EE7B7' : '#94A3B8', marginTop: '3px' }}>
+                    {selectedDevice === 'desktop' ? '✓ Selected Workstation' : 'Click to Select Workstation'}
+                  </span>
+                </button>
+
+                {/* Tile B: Mobile Phone / Tablet */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedDevice('mobile')}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0.75rem 0.5rem',
+                    borderRadius: '14px',
+                    border: selectedDevice === 'mobile' ? '2px solid #EF4444' : '1px solid rgba(255, 255, 255, 0.2)',
+                    background: selectedDevice === 'mobile' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
+                    <Smartphone size={18} style={{ color: selectedDevice === 'mobile' ? '#EF4444' : '#F59E0B' }} />
+                    <span>Mobile / Tablet</span>
+                  </div>
+                  <span style={{ fontSize: '0.72rem', color: selectedDevice === 'mobile' ? '#FCA5A5' : '#94A3B8', marginTop: '3px' }}>
+                    {selectedDevice === 'mobile' ? 'Must Scan Keyring QR' : 'Requires QR Camera Scan'}
+                  </span>
+                </button>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#F59E0B', fontWeight: 800 }}>
-                <Smartphone size={16} /> Mobile Phone Rule:
-              </div>
-              <div style={{ color: '#94A3B8', paddingLeft: '24px' }}>
-                To enter on a smartphone, users must scan this official Keyring QR Code using their phone camera.
-              </div>
+
+              {/* Dynamic feedback message */}
+              {selectedDevice === 'desktop' && (
+                <div style={{ fontSize: '0.8rem', color: '#6EE7B7', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                  <CheckCircle2 size={16} style={{ color: '#10B981', flexShrink: 0 }} />
+                  <span>Desktop/PC device selected! Click <strong>"Enter Official Platform"</strong> below.</span>
+                </div>
+              )}
+
+              {selectedDevice === 'mobile' && (
+                <div style={{ fontSize: '0.8rem', color: '#FCA5A5', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                  <Lock size={16} style={{ color: '#EF4444', flexShrink: 0 }} />
+                  <span>Mobile rule applies: Smartphones must scan the physical Keyring QR code with camera to enter.</span>
+                </div>
+              )}
+
+              {!selectedDevice && (
+                <div style={{ fontSize: '0.78rem', color: '#CBD5E1', textAlign: 'center' }}>
+                  👉 Please select <strong>"Desktop / Laptop / PC"</strong> above to enable platform entry.
+                </div>
+              )}
             </div>
           ) : (
             <div 
@@ -391,25 +468,35 @@ export default function WelcomeOverlay() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {!isMobile ? (
               <button 
-                onClick={handleEnterPlatform}
+                onClick={selectedDevice === 'desktop' ? handleEnterPlatform : () => setSelectedDevice('desktop')}
                 style={{
-                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                  color: '#000000',
+                  background: selectedDevice === 'desktop' 
+                    ? 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)' 
+                    : 'rgba(255, 255, 255, 0.08)',
+                  color: selectedDevice === 'desktop' ? '#000000' : '#E2E8F0',
                   padding: '0.9rem 1.5rem',
                   borderRadius: '50px',
                   fontWeight: 900,
                   fontSize: '1rem',
-                  border: 'none',
+                  border: selectedDevice === 'desktop' ? 'none' : '1px dashed rgba(245, 158, 11, 0.5)',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 10px 25px rgba(245, 158, 11, 0.4)',
-                  transition: 'transform 0.2s ease'
+                  boxShadow: selectedDevice === 'desktop' ? '0 10px 25px rgba(245, 158, 11, 0.4)' : 'none',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <CheckCircle2 size={20} /> Enter Official Platform <ChevronRight size={18} />
+                {selectedDevice === 'desktop' ? (
+                  <>
+                    <CheckCircle2 size={20} /> Enter Official Platform (Desktop Mode) <ChevronRight size={18} />
+                  </>
+                ) : (
+                  <>
+                    <Monitor size={18} style={{ color: '#F59E0B' }} /> Select Desktop / Laptop / PC to Enter <ChevronRight size={16} />
+                  </>
+                )}
               </button>
             ) : (
               <div 
