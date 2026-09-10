@@ -26,7 +26,7 @@ export default function WelcomeOverlay() {
       const isDirectScanned = searchParams.has('direct') || searchParams.has('scanned') || searchParams.get('qr') === 'direct';
       const explicitQrModal = searchParams.get('qr') === '1' || searchParams.get('qr') === 'gateway';
       
-      const mobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      const mobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
       setIsMobile(mobileDevice);
 
       // RULE 1: If someone scans the QR code from phone (or clicks direct scan link)
@@ -234,60 +234,49 @@ export default function WelcomeOverlay() {
           style={{
             maxWidth: '500px',
             width: '100%',
+            maxHeight: '94vh',
+            overflowY: 'auto',
             textAlign: 'center',
-            padding: '2.25rem 2rem',
+            padding: '2rem 1.75rem',
             borderRadius: '28px',
             background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 100%)',
-            border: isMobile ? '2px solid rgba(239, 68, 68, 0.5)' : '2px solid rgba(245, 158, 11, 0.4)',
+            border: '2px solid rgba(245, 158, 11, 0.4)',
             boxShadow: '0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.2)',
             position: 'relative',
             color: '#FFFFFF'
           }}
         >
           {/* Top Metallic Security Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1.25rem' }}>
-            {isMobile ? (
-              <>
-                <ShieldAlert size={18} style={{ color: '#EF4444' }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#EF4444', letterSpacing: '2px', textTransform: 'uppercase' }}>
-                  MOBILE ACCESS RESTRICTED • SCAN REQUIRED
-                </span>
-              </>
-            ) : (
-              <>
-                <ShieldCheck size={18} style={{ color: '#F59E0B' }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#F59E0B', letterSpacing: '2px', textTransform: 'uppercase' }}>
-                  OFFICIAL EXECUTIVE QR GATEWAY
-                </span>
-              </>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1rem' }}>
+            <ShieldCheck size={18} style={{ color: '#F59E0B' }} />
+            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#F59E0B', letterSpacing: '2px', textTransform: 'uppercase' }}>
+              OFFICIAL EXECUTIVE QR GATEWAY
+            </span>
           </div>
 
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 0.5rem 0', color: '#FFFFFF' }}>
+          <h2 style={{ fontSize: '1.45rem', fontWeight: 900, margin: '0 0 0.35rem 0', color: '#FFFFFF' }}>
             Leimarembi Foundation
           </h2>
-          <p style={{ fontSize: '0.875rem', color: '#94A3B8', margin: '0 0 1.25rem 0' }}>
-            {isMobile 
-              ? 'Scan Physical Keyring QR with Phone Camera to Enter' 
-              : 'Digital Governance Suite & Verified Keyring Access'}
+          <p style={{ fontSize: '0.85rem', color: '#94A3B8', margin: '0 0 1rem 0' }}>
+            Digital Governance Suite & Verified Keyring Access
           </p>
 
           {/* DYNAMIC QR CODE DISPLAY BOX WITH EMBEDDED LOGO BADGE */}
           <div 
-            onClick={!isMobile ? handleEnterPlatform : undefined}
+            onClick={selectedDevice === 'desktop' ? handleProceedToWelcome : () => setSelectedDevice('desktop')}
             style={{
               position: 'relative',
               background: '#FFFFFF',
-              padding: '1.5rem',
+              padding: '1.25rem',
               borderRadius: '24px',
               display: 'inline-block',
-              margin: '0 auto 1.25rem',
+              margin: '0 auto 1.15rem',
               boxShadow: '0 15px 35px rgba(0, 0, 0, 0.4)',
-              cursor: !isMobile ? 'pointer' : 'default',
-              border: isMobile ? '4px solid #EF4444' : '4px solid #F59E0B',
+              cursor: 'pointer',
+              border: '4px solid #F59E0B',
               transition: 'transform 0.3s ease, boxShadow 0.3s ease'
             }}
-            title={!isMobile ? "Click to Enter Official Platform" : "Scan with Phone Camera"}
+            title="Click or Scan QR Code"
           >
             {/* Holographic Laser Scan Line */}
             <div 
@@ -306,7 +295,7 @@ export default function WelcomeOverlay() {
             <QRCode 
               id="foundation-qr-code-svg"
               value={currentUrl} 
-              size={200}
+              size={180}
               level="H"
               fgColor="#0F172A"
               bgColor="#FFFFFF"
@@ -321,156 +310,149 @@ export default function WelcomeOverlay() {
                 transform: 'translate(-50%, -50%)',
                 background: '#FFFFFF',
                 borderRadius: '50%',
-                padding: '5px',
+                padding: '4px',
                 boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '48px',
-                height: '48px'
+                width: '44px',
+                height: '44px'
               }}
             >
               <Image 
                 src="/leimarembi_official_logo.png" 
                 alt="Foundation Seal" 
-                width={36} 
-                height={36} 
+                width={34} 
+                height={34} 
                 style={{ borderRadius: '50%', objectFit: 'contain' }}
               />
             </div>
           </div>
 
-          {/* INSTRUCTIONS & DEVICE SELECTION: DESKTOP VS MOBILE RULES */}
-          {!isMobile ? (
-            <div 
-              style={{ 
-                background: 'rgba(15, 23, 42, 0.75)',
-                border: '1px solid rgba(245, 158, 11, 0.35)',
-                borderRadius: '18px',
-                padding: '1rem',
-                marginBottom: '1.25rem',
-                textAlign: 'left',
-                fontSize: '0.82rem',
-                lineHeight: '1.5'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  🖥️ Step 1: Select Your Device Type
-                </span>
-                {selectedDevice === 'desktop' && (
-                  <span style={{ fontSize: '0.72rem', background: '#10B981', color: '#000000', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
-                    ✓ VERIFIED
-                  </span>
-                )}
-              </div>
-
-              {/* Interactive Device Selector Tiles */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.85rem' }}>
-                {/* Tile A: Desktop / Laptop / PC */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedDevice('desktop')}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.75rem 0.5rem',
-                    borderRadius: '14px',
-                    border: selectedDevice === 'desktop' ? '2px solid #10B981' : '1px solid rgba(255, 255, 255, 0.2)',
-                    background: selectedDevice === 'desktop' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-                    color: '#FFFFFF',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
-                    <Monitor size={18} style={{ color: selectedDevice === 'desktop' ? '#10B981' : '#38BDF8' }} />
-                    <span>Desktop / Laptop / PC</span>
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: selectedDevice === 'desktop' ? '#6EE7B7' : '#94A3B8', marginTop: '3px' }}>
-                    {selectedDevice === 'desktop' ? '✓ Selected Workstation' : 'Click to Select Workstation'}
-                  </span>
-                </button>
-
-                {/* Tile B: Mobile Phone / Tablet */}
-                <button
-                  type="button"
-                  onClick={() => setSelectedDevice('mobile')}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '0.75rem 0.5rem',
-                    borderRadius: '14px',
-                    border: selectedDevice === 'mobile' ? '2px solid #EF4444' : '1px solid rgba(255, 255, 255, 0.2)',
-                    background: selectedDevice === 'mobile' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                    color: '#FFFFFF',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
-                    <Smartphone size={18} style={{ color: selectedDevice === 'mobile' ? '#EF4444' : '#F59E0B' }} />
-                    <span>Mobile / Tablet</span>
-                  </div>
-                  <span style={{ fontSize: '0.72rem', color: selectedDevice === 'mobile' ? '#FCA5A5' : '#94A3B8', marginTop: '3px' }}>
-                    {selectedDevice === 'mobile' ? 'Must Scan Keyring QR' : 'Requires QR Camera Scan'}
-                  </span>
-                </button>
-              </div>
-
-              {/* Dynamic feedback message */}
+          {/* STEP 1: SELECT YOUR DEVICE TYPE (ALWAYS AVAILABLE TO ALL DEVICES) */}
+          <div 
+            style={{ 
+              background: 'rgba(15, 23, 42, 0.75)',
+              border: '1px solid rgba(245, 158, 11, 0.35)',
+              borderRadius: '18px',
+              padding: '1rem',
+              marginBottom: '1.25rem',
+              textAlign: 'left',
+              fontSize: '0.82rem',
+              lineHeight: '1.5'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#F59E0B', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                🖥️ Step 1: Select Your Device Type
+              </span>
               {selectedDevice === 'desktop' && (
-                <div style={{ fontSize: '0.8rem', color: '#6EE7B7', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-                  <CheckCircle2 size={16} style={{ color: '#10B981', flexShrink: 0 }} />
-                  <span>Desktop/PC device selected! Click <strong>"Enter Official Platform"</strong> below.</span>
-                </div>
-              )}
-
-              {selectedDevice === 'mobile' && (
-                <div style={{ fontSize: '0.8rem', color: '#FCA5A5', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
-                  <Lock size={16} style={{ color: '#EF4444', flexShrink: 0 }} />
-                  <span>Mobile rule applies: Smartphones must scan the physical Keyring QR code with camera to enter.</span>
-                </div>
-              )}
-
-              {!selectedDevice && (
-                <div style={{ fontSize: '0.78rem', color: '#CBD5E1', textAlign: 'center' }}>
-                  👉 Please select <strong>"Desktop / Laptop / PC"</strong> above to enable platform entry.
-                </div>
+                <span style={{ fontSize: '0.72rem', background: '#10B981', color: '#000000', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
+                  ✓ VERIFIED WORKSTATION
+                </span>
               )}
             </div>
-          ) : (
-            <div 
-              style={{ 
-                background: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                borderRadius: '16px',
-                padding: '0.85rem 1rem',
-                marginBottom: '1.25rem',
-                textAlign: 'left',
-                fontSize: '0.82rem',
-                lineHeight: '1.5'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#F87171', fontWeight: 800 }}>
-                <Lock size={16} /> Mobile Scan Rule:
-              </div>
-              <div style={{ color: '#FEE2E2', paddingLeft: '24px', marginBottom: '6px' }}>
-                To enter the platform on your phone, you must scan the physical <strong>Keyring QR Code</strong> using your phone camera. Direct entry on mobile is restricted.
-              </div>
-              <div style={{ color: '#FCA5A5', paddingLeft: '24px', fontSize: '0.78rem' }}>
-                ✨ Once scanned with your camera, your phone will bypass this gateway and open the platform directly!
-              </div>
+
+            {/* Interactive Device Selector Tiles */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.85rem' }}>
+              {/* Tile A: Desktop / Laptop / PC */}
+              <button
+                type="button"
+                onClick={() => setSelectedDevice('desktop')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '14px',
+                  border: selectedDevice === 'desktop' ? '2px solid #10B981' : '1px solid rgba(255, 255, 255, 0.2)',
+                  background: selectedDevice === 'desktop' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
+                  <Monitor size={18} style={{ color: selectedDevice === 'desktop' ? '#10B981' : '#38BDF8' }} />
+                  <span>Desktop / Laptop / PC</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: selectedDevice === 'desktop' ? '#6EE7B7' : '#94A3B8', marginTop: '3px' }}>
+                  {selectedDevice === 'desktop' ? '✓ Selected Workstation' : 'Click to Select Workstation'}
+                </span>
+              </button>
+
+              {/* Tile B: Mobile Phone / Tablet */}
+              <button
+                type="button"
+                onClick={() => setSelectedDevice('mobile')}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0.75rem 0.5rem',
+                  borderRadius: '14px',
+                  border: selectedDevice === 'mobile' ? '2px solid #EF4444' : '1px solid rgba(255, 255, 255, 0.2)',
+                  background: selectedDevice === 'mobile' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                  color: '#FFFFFF',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.85rem' }}>
+                  <Smartphone size={18} style={{ color: selectedDevice === 'mobile' ? '#EF4444' : '#F59E0B' }} />
+                  <span>Mobile / Tablet</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', color: selectedDevice === 'mobile' ? '#FCA5A5' : '#94A3B8', marginTop: '3px' }}>
+                  {selectedDevice === 'mobile' ? 'Must Scan Keyring QR' : 'Requires QR Camera Scan'}
+                </span>
+              </button>
             </div>
-          )}
+
+            {/* Dynamic feedback message */}
+            {selectedDevice === 'desktop' && (
+              <div style={{ fontSize: '0.8rem', color: '#6EE7B7', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                <CheckCircle2 size={16} style={{ color: '#10B981', flexShrink: 0 }} />
+                <span>Desktop/PC verified! Click <strong>"Continue to Welcome Page →"</strong> below.</span>
+              </div>
+            )}
+
+            {selectedDevice === 'mobile' && (
+              <div style={{ fontSize: '0.8rem', color: '#FCA5A5', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700 }}>
+                <Lock size={16} style={{ color: '#EF4444', flexShrink: 0 }} />
+                <span>Mobile rule applies: Smartphones must scan the physical Keyring QR code with camera to enter.</span>
+              </div>
+            )}
+
+            {!selectedDevice && (
+              <div style={{ fontSize: '0.78rem', color: '#CBD5E1', textAlign: 'center' }}>
+                👉 Please select <strong>"Desktop / Laptop / PC"</strong> above to continue to the Welcome Page.
+              </div>
+            )}
+          </div>
 
           {/* ACTION BUTTONS */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            {!isMobile ? (
+            {selectedDevice === 'mobile' ? (
+              <div 
+                style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid #F59E0B',
+                  color: '#FCD34D',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '16px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Smartphone size={18} /> Point phone camera at Keyring QR to Enter
+              </div>
+            ) : (
               <button 
                 onClick={selectedDevice === 'desktop' ? handleProceedToWelcome : () => setSelectedDevice('desktop')}
                 style={{
@@ -502,24 +484,6 @@ export default function WelcomeOverlay() {
                   </>
                 )}
               </button>
-            ) : (
-              <div 
-                style={{
-                  background: 'rgba(245, 158, 11, 0.15)',
-                  border: '1px solid #F59E0B',
-                  color: '#FCD34D',
-                  padding: '0.75rem 1rem',
-                  borderRadius: '16px',
-                  fontSize: '0.85rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px'
-                }}
-              >
-                <Smartphone size={18} /> Point phone camera at Keyring QR to Enter
-              </div>
             )}
 
             <button
