@@ -1,0 +1,15 @@
+# Hostinger Web Server Configuration for Leimarembi Foundation
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # If request is not for a file or directory inside root, route into website/out or website
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^$ website/out/index.html [L]
+</IfModule>
+
+# Options -Indexes disables directory browsing safely while index.html handles requests
+Options -Indexes
