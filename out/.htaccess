@@ -1,0 +1,23 @@
+# Hostinger Web Server Configuration for Leimarembi Foundation Website
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Preserve ?qr=1 query parameter
+    RewriteCond %{QUERY_STRING} (^|&)qr= [NC]
+    RewriteRule ^$ index.html [QSA,L]
+
+    # Serve static assets if they exist
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Fallback to index.html for Next.js routes
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>
+
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>

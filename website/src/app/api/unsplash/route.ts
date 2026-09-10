@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-static';
+
 export async function GET() {
   const apiKey = process.env.UNSPLASH_ACCESS_KEY;
   const queryTopics = ['Manipur', 'Loktak Lake', 'Imphal', 'Northeast India nature', 'Manipur landscape'];

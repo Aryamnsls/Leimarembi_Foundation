@@ -1,34 +1,35 @@
 # Hostinger Web Server Configuration for Leimarembi Foundation
-DirectoryIndex index.html index.php
+DirectoryIndex index.html
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteBase /
 
-    # Rewrite /website or /website/ directly to root index.html with QSA
-    RewriteRule ^website/?$ /index.html [QSA,L]
-    RewriteRule ^website/(.*)$ /$1 [QSA,L]
+    # 1. Serve static files from out/ directory if they exist
+    RewriteCond %{DOCUMENT_ROOT}/out%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ out/$1 [L]
 
-    # Ensure query string (like ?qr=1) is passed through
-    RewriteCond %{QUERY_STRING} (^|&)qr= [NC]
-    RewriteRule ^$ index.html [QSA,L]
+    # 2. Serve subroute index.html from out/ directory (e.g. /news -> out/news/index.html)
+    RewriteCond %{DOCUMENT_ROOT}/out%{REQUEST_URI}/index.html -f
+    RewriteRule ^(.*)$ out/$1/index.html [L]
 
-    # Handle static files and existing directories
+    # 3. Serve static files from website/out/ directory if they exist
+    RewriteCond %{DOCUMENT_ROOT}/website/out%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ website/out/$1 [L]
+
+    # 4. Serve subroute index.html from website/out/ directory
+    RewriteCond %{DOCUMENT_ROOT}/website/out%{REQUEST_URI}/index.html -f
+    RewriteRule ^(.*)$ website/out/$1/index.html [L]
+
+    # Handle existing root files directly
     RewriteCond %{REQUEST_FILENAME} -f [OR]
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
-    # Route all incoming requests to index.html with QSA
-    RewriteRule ^ index.html [QSA,L]
+    # Fallback to Next.js App Router root index.html
+    RewriteRule ^ out/index.html [L]
 </IfModule>
 
-# Security: Prevent directory listing safely
 <IfModule mod_autoindex.c>
     Options -Indexes
-</IfModule>
-
-# Security Headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-XSS-Protection "1; mode=block"
 </IfModule>
