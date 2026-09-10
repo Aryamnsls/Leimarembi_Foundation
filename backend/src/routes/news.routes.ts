@@ -49,7 +49,7 @@ router.get('/:slug', async (req: Request, res: Response) => {
 });
 
 // ─── Create News Article (ADMIN/STAFF/SUPER_ADMIN) ────────────────────────────
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF']), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, requireRole(['ADMIN', 'STAFF']), async (req: AuthRequest, res: Response) => {
   try {
     const { title, content, excerpt, imageUrl, category, status, isPublic } = req.body;
     if (!title || !content) return sendError(res, 'Title and content are required', 400);
@@ -76,7 +76,7 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF'
 });
 
 // ─── Update News Article ──────────────────────────────────────────────────────
-router.put('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF']), async (req: Request, res: Response) => {
+router.put('/:id', authenticateToken, requireRole(['ADMIN', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { title, content, excerpt, imageUrl, category, status, isPublic } = req.body;
@@ -98,7 +98,7 @@ router.put('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAF
 });
 
 // ─── Soft-Delete News Article ─────────────────────────────────────────────────
-router.delete('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: Request, res: Response) => {
+router.delete('/:id', authenticateToken, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   try {
     await prisma.news.update({ where: { id: String(req.params.id) }, data: { deletedAt: new Date() } });
     return sendSuccess(res, 'Article archived (soft deleted)');
@@ -108,3 +108,4 @@ router.delete('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), 
 });
 
 export default router;
+

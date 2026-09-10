@@ -14,9 +14,9 @@ export const metadata: Metadata = {
   title: "Leimarembi Foundation | Digital Governance & Community Development",
   description: "Official Digital Governance & Community Development Platform for Leimarembi Foundation in Northeast India.",
   icons: {
-    icon: '/leimarembi_official_logo.png',
-    shortcut: '/leimarembi_official_logo.png',
-    apple: '/leimarembi_official_logo.png',
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 

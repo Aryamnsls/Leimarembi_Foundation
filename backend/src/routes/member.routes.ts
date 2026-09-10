@@ -9,7 +9,7 @@ import { logAudit } from '../middleware/audit.js';
 const router = Router();
 
 // ─── Get All Members (staff/admin/trustee/core_member/super_admin only) ───────
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'CORE_MEMBER', 'STAFF']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { status, search, page, limit } = req.query;
 
@@ -65,7 +65,7 @@ router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE
 });
 
 // ─── Create New Member (SUPER_ADMIN / ADMIN only) ────────────────────────────
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, requireRole(['ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
     const { email, password, name, phone, address, bloodGroup, isSeniorCitizen, familyMembersCount, designation, profilePhoto, bio, role, status } = req.body;
 
@@ -89,7 +89,7 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async
     const membershipNo = `LF-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
     // Security: Only SUPER_ADMIN can assign privileged roles
-    const requestedRole = (req.user?.role === 'SUPER_ADMIN' && role) ? role : (role === 'SUPER_ADMIN' ? 'MEMBER' : role || 'MEMBER');
+    const requestedRole = (req.user?.role === 'ADMIN' && role) ? role : (role === 'ADMIN' ? 'MEMBER' : role || 'MEMBER');
 
     const newMember = await prisma.user.create({
       data: {
@@ -152,7 +152,7 @@ router.get('/:id/card', authenticateToken, async (req: AuthRequest, res: Respons
     const requestingRole = req.user?.role;
 
     // Privileged roles can view any card; regular members can only view their own
-    const privilegedRoles = ['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'CORE_MEMBER', 'STAFF'];
+    const privilegedRoles = ['ADMIN', 'TRUSTEE', 'STAFF'];
     const isPrivileged = privilegedRoles.includes(requestingRole || '');
 
     if (!isPrivileged && requestedId !== requestingUserId) {
@@ -215,7 +215,7 @@ router.get('/:id/card', authenticateToken, async (req: AuthRequest, res: Respons
 });
 
 // ─── Update Member Details (ADMIN/SUPER_ADMIN only) ───────────────────────────
-router.patch('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: AuthRequest, res: Response) => {
+router.patch('/:id', authenticateToken, requireRole(['ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, phone, address, bloodGroup, isSeniorCitizen, familyMembersCount, designation, profilePhoto, bio } = req.body;
@@ -274,12 +274,12 @@ router.patch('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), a
 });
 
 // ─── Update Member Status (ADMIN/SUPER_ADMIN only) ────────────────────────────
-router.patch('/:id/status', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/status', authenticateToken, requireRole(['ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    const validStatuses = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
+    const validStatuses = ['ACTIVE', 'INACTIVE', 'PENDING'];
     if (!validStatuses.includes(status)) {
       return sendError(res, `Invalid status. Must be one of: ${validStatuses.join(', ')}`, 400);
     }
@@ -313,12 +313,12 @@ router.patch('/:id/status', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMI
 });
 
 // ─── Update Member Role (SUPER_ADMIN only) ────────────────────────────────────
-router.patch('/:id/role', authenticateToken, requireRole(['SUPER_ADMIN']), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/role', authenticateToken, requireRole(['ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { role } = req.body;
 
-    const validRoles = ['SUPER_ADMIN', 'ADMIN', 'CORE_MEMBER', 'TRUSTEE', 'STAFF', 'VOLUNTEER', 'MEMBER', 'REGISTERED_USER'];
+    const validRoles = ['ADMIN', 'TRUSTEE', 'STAFF', 'MEMBER'];
     if (!validRoles.includes(role)) {
       return sendError(res, `Invalid role. Must be one of: ${validRoles.join(', ')}`, 400);
     }
@@ -347,3 +347,4 @@ router.patch('/:id/role', authenticateToken, requireRole(['SUPER_ADMIN']), async
 });
 
 export default router;
+

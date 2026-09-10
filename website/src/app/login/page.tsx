@@ -49,23 +49,15 @@ function LoginCard() {
             saveSession(token, data.data);
             if (redirectTo) {
               router.push(redirectTo);
-            } else if (data.data.role === "ADMIN") {
+            } else if (['ADMIN', 'TRUSTEE', 'STAFF'].includes(data.data.role)) {
               router.push("/management");
             } else {
               router.push("/portal");
             }
             return;
           }
-        } catch (e) {
-          // Offline or network fallback using existing valid session
-          const userStr = localStorage.getItem("lf_user");
-          if (userStr) {
-            try {
-              const u = JSON.parse(userStr);
-              router.push(u.role === "ADMIN" ? "/management" : "/portal");
-              return;
-            } catch {}
-          }
+        } catch {
+          // Do not trust locally cached identity when the server cannot verify the token.
         }
       }
 
@@ -110,7 +102,7 @@ function LoginCard() {
       // Redirect to original intended page or role-based default
       if (redirectTo) {
         router.push(redirectTo);
-      } else if (data.data.user.role === "ADMIN") {
+      } else if (['ADMIN', 'TRUSTEE', 'STAFF'].includes(data.data.user.role)) {
         router.push("/management");
       } else {
         router.push("/portal");
@@ -164,7 +156,7 @@ function LoginCard() {
 
       if (redirectTo) {
         router.push(redirectTo);
-      } else if (data.data.user.role === "ADMIN") {
+      } else if (['ADMIN', 'TRUSTEE', 'STAFF'].includes(data.data.user.role)) {
         router.push("/management");
       } else {
         router.push("/portal");

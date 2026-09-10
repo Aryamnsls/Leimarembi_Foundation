@@ -47,7 +47,7 @@ router.get('/:key', async (req: Request, res: Response) => {
 });
 
 // ─── Get Admin Settings (includes sensitive config) ───────────────────────────
-router.get('/admin/all', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: Request, res: Response) => {
+router.get('/admin/all', authenticateToken, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   try {
     const settings = await prisma.foundationSetting.findMany({ orderBy: { key: 'asc' } });
     return sendSuccess(res, 'All foundation settings retrieved', settings);
@@ -57,7 +57,7 @@ router.get('/admin/all', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']
 });
 
 // ─── Update Setting (SUPER_ADMIN only) ───────────────────────────────────────
-router.put('/:key', authenticateToken, requireRole(['SUPER_ADMIN']), async (req: AuthRequest, res: Response) => {
+router.put('/:key', authenticateToken, requireRole(['ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
     const keyStr = String(req.params.key);
     const { value, description } = req.body;
@@ -90,3 +90,4 @@ router.put('/:key', authenticateToken, requireRole(['SUPER_ADMIN']), async (req:
 });
 
 export default router;
+

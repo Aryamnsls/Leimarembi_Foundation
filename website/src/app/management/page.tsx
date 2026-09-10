@@ -182,7 +182,7 @@ export default function ManagementPortal() {
       router.push('/login');
       return;
     }
-    const allowedRoles = ['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF'];
+    const allowedRoles = ['ADMIN', 'TRUSTEE', 'STAFF'];
     if (!allowedRoles.includes(user.role)) {
       setError('Access Denied: Executive credentials required to access the Foundation Management Portal.');
       setLoadingUser(false);

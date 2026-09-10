@@ -18,7 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
 });
 
 // Create new health camp record
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.post('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { campName, location, date, patientsServed, doctorsCount, details } = req.body;
 
@@ -44,3 +44,4 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTE
 });
 
 export default router;
+

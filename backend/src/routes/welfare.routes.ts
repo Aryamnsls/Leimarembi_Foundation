@@ -90,7 +90,7 @@ router.get('/my-requests', authenticateToken, async (req: AuthRequest, res: Resp
 });
 
 // ─── List All Welfare Requests (ADMIN/CORE_MEMBER/TRUSTEE only) ───────────────
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'CORE_MEMBER']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE']), async (req: Request, res: Response) => {
   try {
     const { status, priority, type, page, limit } = req.query;
     const pageNum = Math.max(1, parseInt(String(page || '1'), 10));
@@ -124,7 +124,7 @@ router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE
 });
 
 // ─── Update Welfare Request Status (ADMIN/TRUSTEE only) ──────────────────────
-router.patch('/:id/status', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE']), async (req: AuthRequest, res: Response) => {
+router.patch('/:id/status', authenticateToken, requireRole(['ADMIN', 'TRUSTEE']), async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { status, amountApproved, adminNotes } = req.body;
@@ -167,3 +167,4 @@ router.patch('/:id/status', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMI
 });
 
 export default router;
+

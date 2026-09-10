@@ -8,7 +8,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { 
   Moon, Sun, Menu, X, ArrowRight, Home, LayoutGrid, Info, Activity,
   BookOpen, LogIn, Heart, Users, Newspaper, 
-  ImageIcon, FileText, Video 
+  ImageIcon, FileText, Video, Settings
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -19,7 +19,10 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const lastScrollY = useRef(0);
+
+  const isExecutive = ['ADMIN', 'TRUSTEE', 'STAFF'].includes(userRole ?? '');
   const pathname = usePathname();
 
   const isActive = (href: string) =>
@@ -34,6 +37,13 @@ export default function Navbar() {
       setMounted(true);
       if (localStorage.getItem('lf_token')) {
         setIsLoggedIn(true);
+        try {
+          const userStr = localStorage.getItem('lf_user');
+          if (userStr) {
+            const u = JSON.parse(userStr);
+            setUserRole(u.role ?? null);
+          }
+        } catch {}
       }
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
@@ -106,6 +116,7 @@ export default function Navbar() {
     localStorage.removeItem('lf_user');
     document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
     setIsLoggedIn(false);
+    setUserRole(null);
     window.location.href = '/login';
   };
 
@@ -131,7 +142,7 @@ export default function Navbar() {
               width={52} 
               height={52} 
               className="logo-img" 
-              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '8px' }} 
+              style={{ height: '52px', width: 'auto', objectFit: 'contain', borderRadius: '8px' }} 
               priority 
             />
             <div className="logo-text" style={{ fontSize: '0.95rem' }}>
@@ -155,6 +166,13 @@ export default function Navbar() {
               <li><Link href="/culture" style={isActive('/culture') ? activeStyle : {}}>{t('nav.culture')}</Link></li>
               <li><Link href="/documents" style={isActive('/documents') ? activeStyle : {}}>{t('nav.documents')}</Link></li>
               <li><Link href="/meetings" style={isActive('/meetings') ? activeStyle : {}}>{t('nav.meetings')}</Link></li>
+              {mounted && isExecutive && (
+                <li>
+                  <Link href="/management" style={isActive('/management') ? activeStyle : { color: 'var(--secondary-color)', fontWeight: 700 }}>
+                    Admin
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
           
@@ -283,6 +301,11 @@ export default function Navbar() {
           <Link href="/meetings" onClick={closeMenu} className="drawer-link" style={isActive('/meetings') ? activeStyle : {}}>
             <Video size={16} /> {t('nav.meetings')}
           </Link>
+          {mounted && isExecutive && (
+            <Link href="/management" onClick={closeMenu} className="drawer-link" style={isActive('/management') ? activeStyle : { color: 'var(--secondary-color)', fontWeight: 700 }}>
+              <Settings size={16} /> Admin Panel
+            </Link>
+          )}
         </div>
         
         {/* Drawer Action CTAs */}

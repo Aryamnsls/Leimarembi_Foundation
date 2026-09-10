@@ -36,3 +36,9 @@ backend/.env
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local install/debug logs
+_install.log
+_install2.log
+website/_install.log
+website/_install2.log

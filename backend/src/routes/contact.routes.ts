@@ -40,7 +40,7 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 // ─── List Contact Messages (ADMIN only) ───────────────────────────────────────
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['ADMIN', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { status, page, limit } = req.query;
     const pageNum = Math.max(1, parseInt(String(page || '1'), 10));
@@ -69,7 +69,7 @@ router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF']
 });
 
 // ─── Mark Message as Read / Reply ────────────────────────────────────────────
-router.patch('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'STAFF']), async (req: Request, res: Response) => {
+router.patch('/:id', authenticateToken, requireRole(['ADMIN', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, adminReply } = req.body;
@@ -90,3 +90,4 @@ router.patch('/:id', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'ST
 });
 
 export default router;
+

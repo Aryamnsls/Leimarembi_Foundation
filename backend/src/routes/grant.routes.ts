@@ -6,7 +6,7 @@ import { authenticateToken, requireRole } from '../middleware/auth.js';
 const router = Router();
 
 // Get all government grants and scheme applications
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const grants = await prisma.grant.findMany({
       orderBy: { createdAt: 'desc' },
@@ -18,7 +18,7 @@ router.get('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE
 });
 
 // Submit/Create new grant application record
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.post('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { title, schemeName, department, amountRequested, pfmsReference } = req.body;
 
@@ -43,3 +43,4 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTE
 });
 
 export default router;
+

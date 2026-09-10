@@ -7,6 +7,10 @@ export interface Member {
   areaOfResponsibility: string;
   photo: string | null;
   category: 'Leadership' | 'Executive';
+  bloodGroup: string;
+  ageCategory: string;
+  contact: string;
+  email?: string;
 }
 
 export const MEMBERS_DATA: Member[] = [
@@ -18,7 +22,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A senior journalist and literary personality with active involvement in community, cultural and social development. He provides leadership and guidance to Leimarembi Foundation towards its vision, objectives and community-oriented initiatives.",
     areaOfResponsibility: "Overall leadership, strategic guidance, organisational development and coordination of major activities of the Foundation.",
     photo: "/members/Dr_phuritsabam.jpg",
-    category: "Leadership"
+    category: "Leadership",
+    bloodGroup: "B+",
+    ageCategory: "Senior Member",
+    contact: "98640-00001",
   },
   {
     id: 2,
@@ -28,7 +35,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government employee actively involved in sports, particularly Kabaddi, with a strong interest in promoting sports and youth development.",
     areaOfResponsibility: "Sports development, youth engagement and coordination of sports-related activities of the Foundation.",
     photo: "/members/ajit_singh.jpg",
-    category: "Leadership"
+    category: "Leadership",
+    bloodGroup: "O+",
+    ageCategory: "Senior Member",
+    contact: "98640-00002",
   },
   {
     id: 3,
@@ -38,7 +48,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public service and organisational affairs. He is actively engaged in community, social and cultural activities, contributing to the welfare and development of society.",
     areaOfResponsibility: "Organisational administration, programme coordination, community engagement and implementation of the Foundation's initiatives.",
     photo: "/members/thambal_singha.jpg",
-    category: "Leadership"
+    category: "Leadership",
+    bloodGroup: "A+",
+    ageCategory: "Senior Member",
+    contact: "98640-00003",
   },
   {
     id: 4,
@@ -48,7 +61,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public administration and organisational affairs. He is actively engaged in community service and contributes to social and developmental initiatives through his association with UMAA.",
     areaOfResponsibility: "Administration, official correspondence, documentation, coordination and effective implementation of the Foundation's programmes.",
     photo: "/members/bina_babu_singha.jpg",
-    category: "Leadership"
+    category: "Leadership",
+    bloodGroup: "AB+",
+    ageCategory: "Senior Member",
+    contact: "98640-00004",
   },
   {
     id: 5,
@@ -58,7 +74,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public service and community affairs. He is actively involved in community development and serves as the Working President of UMAA and Vice-President of GMSO.",
     areaOfResponsibility: "Financial management, accounts, budgeting, record-keeping and financial coordination of the Foundation.",
     photo: "/members/NG_BALDEV_SINGHA.jpg",
-    category: "Leadership"
+    category: "Leadership",
+    bloodGroup: "B+",
+    ageCategory: "Senior Member",
+    contact: "98640-00005",
   },
   {
     id: 6,
@@ -68,7 +87,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired Army personnel with a strong commitment to community service and social welfare. He actively participates in community initiatives through his association with UMAA and GMSO.",
     areaOfResponsibility: "Supports the Foundation's programmes, community outreach, member coordination and implementation of social and welfare initiatives.",
     photo: "/members/K_Braja_Babu_Singha.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "O+",
+    ageCategory: "Senior Member",
+    contact: "98640-00006",
   },
   {
     id: 7,
@@ -78,7 +100,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively engaged in community service and organisational activities. He contributes his experience and commitment to community development through his involvement with UMAA and GMSO.",
     areaOfResponsibility: "Member coordination, community outreach, programme support and assistance in the Foundation's organisational and developmental activities.",
     photo: "/members/L_Madan_chand.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "A+",
+    ageCategory: "General Member",
+    contact: "98640-00007",
   },
   {
     id: 8,
@@ -88,7 +113,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business professional actively engaged in community, social and organisational activities. He contributes his experience and dedication to community development through his involvement with UMAA and GMSO.",
     areaOfResponsibility: "Member coordination, communication, publications and support in the planning and implementation of the Foundation's activities.",
     photo: "/members/H_monoj.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "B+",
+    ageCategory: "General Member",
+    contact: "98640-00008",
   },
   {
     id: 9,
@@ -98,7 +126,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A private sector employee with an interest in community service and social development. He actively supports the objectives and activities of Leimarembi Foundation.",
     areaOfResponsibility: "Member coordination, programme support and participation in the Foundation's community and developmental activities.",
     photo: "/members/abhishek_Singh.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "O-",
+    ageCategory: "Young Member",
+    contact: "98640-00009",
   },
   {
     id: 10,
@@ -108,7 +139,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired Army personnel actively engaged in community service, social welfare and local development. He contributes his experience and leadership to various community organisations and initiatives.",
     areaOfResponsibility: "Community outreach, member coordination, local development initiatives and support for the Foundation's social welfare activities.",
     photo: "/members/Moni_Mohan_singha.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "A+",
+    ageCategory: "Senior Member",
+    contact: "98640-00010",
   },
   {
     id: 11,
@@ -118,7 +152,10 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively involved in community service and the promotion of cultural activities within the Manipuri community. He contributes to social and cultural initiatives through his active association with UMAA.",
     areaOfResponsibility: "Cultural activities, community outreach, member engagement and support for the Foundation's social and cultural initiatives.",
     photo: "/members/sarakkhaibam.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "B-",
+    ageCategory: "General Member",
+    contact: "98640-00011",
   },
   {
     id: 12,
@@ -128,6 +165,49 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively engaged in community affairs and social development. He supports the Foundation's objectives and contributes to its community-oriented initiatives.",
     areaOfResponsibility: "Member engagement, programme support and participation in the Foundation's social and developmental activities.",
     photo: "/members/nagangbam.jpg",
-    category: "Executive"
+    category: "Executive",
+    bloodGroup: "O+",
+    ageCategory: "General Member",
+    contact: "98640-00012",
+  },
+  {
+    id: 13,
+    name: "Angom Bidyut Singha",
+    role: "Executive Member",
+    subtitle: "Business Owner / Proprietor",
+    shortProfile: "A business professional engaged in community affairs and social development. He is committed to supporting the objectives and activities of the Leimarembi Foundation and contributes to its community-oriented initiatives.",
+    areaOfResponsibility: "Member engagement, programme coordination and support, and participation in the Foundation's social, cultural and developmental activities.",
+    photo: "/members/angom_bidyut_singha.jpeg",
+    category: "Executive",
+    bloodGroup: "Not provided",
+    ageCategory: "Not provided",
+    contact: "Not provided",
+  },
+  {
+    id: 14,
+    name: "Sengam Bablu Singha",
+    role: "Executive Member",
+    subtitle: "Business Owner / Proprietor",
+    shortProfile: "A business professional engaged in community affairs and social development. He is committed to supporting the objectives and activities of the Leimarembi Foundation and contributes to its community-oriented initiatives.",
+    areaOfResponsibility: "Member engagement, programme coordination and support, and participation in the Foundation's social, cultural and developmental activities.",
+    photo: "/members/sengam_bablu_singha.jpeg",
+    category: "Executive",
+    bloodGroup: "Not provided",
+    ageCategory: "Not provided",
+    contact: "Not provided",
+  },
+  {
+    id: 15,
+    name: "Paunam Bidyamani Singha",
+    role: "Executive Member",
+    subtitle: "Private Sector Employee",
+    shortProfile: "A private sector professional who supports community affairs and social development. He contributes his time and professional experience to the objectives and activities of the Leimarembi Foundation.",
+    areaOfResponsibility: "Member engagement, programme support and participation in the Foundation's social, cultural and developmental activities.",
+    photo: null,
+    category: "Executive",
+    bloodGroup: "B+",
+    ageCategory: "Non-Senior Citizen",
+    contact: "86389-64997",
+    email: "bidyasingha86@gmail.com",
   }
 ];

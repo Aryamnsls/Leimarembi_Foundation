@@ -21,23 +21,30 @@ enum Status {
 }
 
 model User {
-  id                 String     @id @default(uuid())
-  email              String     @unique
+  id                 String       @id @default(uuid())
+  email              String       @unique
   password           String?
   name               String
-  role               Role       @default(MEMBER)
-  status             Status     @default(ACTIVE)
-  membershipNo       String?    @unique
+  role               Role         @default(MEMBER)
+  status             Status       @default(ACTIVE)
+  membershipNo       String?      @unique
   phone              String?
   address            String?
   bloodGroup         String?
-  isSeniorCitizen    Boolean    @default(false)
-  familyMembersCount Int        @default(1)
-  authProvider       String     @default("LOCAL")
-  googleId           String?    @unique
+  isSeniorCitizen    Boolean      @default(false)
+  familyMembersCount Int          @default(1)
+  designation        String?
+  profilePhoto       String?
+  bio                String?
+  authProvider       String       @default("LOCAL")
+  googleId           String?      @unique
+  deletedAt          DateTime?
   donations          Donation[]
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  newsArticles       News[]
+  auditLogs          AuditLog[]       @relation("ActorAuditLogs")
+  welfareRequests    WelfareRequest[] @relation("WelfareRequester")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
 }
 
 model Donation {
@@ -96,18 +103,18 @@ model Meeting {
 }
 
 model Grant {
-  id                            String   @id @default(uuid())
-  title                         String
-  schemeName                    String
-  department                    String
-  amountRequested               Float
-  amountSanctioned              Float    @default(0)
-  status                        String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
-  pfmsReference                 String?
-  applicationDate               DateTime @default(now())
+  id                           String   @id @default(uuid())
+  title                        String
+  schemeName                   String
+  department                   String
+  amountRequested              Float
+  amountSanctioned             Float    @default(0)
+  status                       String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
+  pfmsReference                String?
+  applicationDate              DateTime @default(now())
   utilizationCertificateStatus String   @default("PENDING") // PENDING, SUBMITTED, VERIFIED
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @updatedAt
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
 }
 
 model CulturalItem {
@@ -134,13 +141,100 @@ model HealthRecord {
 }
 
 model Document {
-  id           String   @id @default(uuid())
-  title        String
-  documentType String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, REPORT, NOTIFICATION
-  category     String   @default("GOVERNANCE")
-  fileUrl      String
-  fileSize     String   @default("1.2 MB")
-  description  String
-  isPublic     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id            String   @id @default(uuid())
+  title         String
+  documentType  String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, REPORT, NOTIFICATION
+  category      String   @default("GOVERNANCE")
+  fileUrl       String
+  fileSize      String   @default("1.2 MB")
+  description   String
+  isPublic      Boolean  @default(true)
+  accessLevel   String   @default("PUBLIC") // PUBLIC, MEMBER, STAFF, TRUSTEE, ADMIN
+  downloadCount Int      @default(0)
+  uploadedById  String?
+  deletedAt     DateTime?
+  createdAt     DateTime @default(now())
+}
+
+model News {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String
+  imageUrl    String?
+  category    String    @default("GENERAL") // GENERAL, HEALTH, CULTURE, WELFARE, FINANCE
+  status      String    @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  isPublic    Boolean   @default(true)
+  viewCount   Int       @default(0)
+  publishedAt DateTime?
+  deletedAt   DateTime?
+  authorId    String?
+  author      User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ContactMessage {
+  id          String    @id @default(uuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  status      String    @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
+  adminReply  String?
+  repliedAt   DateTime?
+  ipAddress   String?
+  createdAt   DateTime  @default(now())
+}
+
+model AuditLog {
+  id         String    @id @default(uuid())
+  actorId    String?
+  actor      User?     @relation("ActorAuditLogs", fields: [actorId], references: [id], onDelete: SetNull)
+  action     String
+  resource   String
+  resourceId String?
+  ipAddress  String?
+  userAgent  String?
+  success    Boolean   @default(true)
+  metadata   String?
+  createdAt  DateTime  @default(now())
+}
+
+model FoundationSetting {
+  id            String    @id @default(uuid())
+  key           String    @unique
+  value         String
+  description   String?
+  updatedById   String?
+  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime  @default(now())
+}
+
+model WelfareRequest {
+  id              String    @id @default(uuid())
+  memberId        String    @default("")
+  requesterId     String?
+  requester       User?     @relation("WelfareRequester", fields: [requesterId], references: [id], onDelete: SetNull)
+  requesterName   String    @default("")
+  requesterPhone  String?
+  requesterEmail  String?
+  type            String    @default("MEDICAL") // MEDICAL, FINANCIAL, EDUCATIONAL, EMERGENCY, OTHER
+  description     String
+  amount          Float?
+  amountRequested Float?    @default(0)
+  amountApproved  Float?    @default(0)
+  priority        String    @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  status          String    @default("PENDING") // PENDING, SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, DISBURSED, CLOSED
+  remarks         String?
+  adminNotes      String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  approvedAt      DateTime?
+  disbursedAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

@@ -15,6 +15,7 @@ export const env = {
   DATABASE_URL: process.env.DATABASE_URL || 'file:./dev.db',
   JWT_SECRET: JWT_SECRET || 'DEV_ONLY_INSECURE_SECRET_REPLACE_IN_PRODUCTION',
   JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || '',
   NODE_ENV: process.env.NODE_ENV || 'development',
   // CORS: comma-separated list of allowed origins, e.g. "http://localhost:3000,https://yourdomain.com"
   CORS_ORIGINS: process.env.CORS_ORIGINS || 'http://localhost:3000',

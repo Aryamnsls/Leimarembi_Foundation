@@ -6,7 +6,7 @@ import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth.
 const router = Router();
 
 // ─── List Audit Logs (SUPER_ADMIN only) ───────────────────────────────────────
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN']), async (req: Request, res: Response) => {
+router.get('/', authenticateToken, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   try {
     const { actorId, action, resource, success, page, limit } = req.query;
     const pageNum = Math.max(1, parseInt(String(page || '1'), 10));
@@ -41,7 +41,7 @@ router.get('/', authenticateToken, requireRole(['SUPER_ADMIN']), async (req: Req
 });
 
 // ─── List Actions Performed by a Specific User ────────────────────────────────
-router.get('/user/:userId', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN']), async (req: Request, res: Response) => {
+router.get('/user/:userId', authenticateToken, requireRole(['ADMIN']), async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
     const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
@@ -67,3 +67,4 @@ router.get('/user/:userId', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMI
 });
 
 export default router;
+

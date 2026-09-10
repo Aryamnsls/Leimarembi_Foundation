@@ -7,8 +7,10 @@ import { sendSuccess, sendError } from "../utils/response.js";
 import { authenticateToken, AuthRequest } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimit.js";
 import { logAudit } from "../middleware/audit.js";
+import { OAuth2Client } from 'google-auth-library';
 
 const router = Router();
+const googleClient = new OAuth2Client();
 
 // Register new member / user
 router.post("/register", authLimiter, async (req: Request, res: Response) => {
@@ -107,7 +109,6 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
       await logAudit({ actorId: user.id, action: "LOGIN_FAILED_INACTIVE_ACCOUNT", resource: "User", resourceId: user.id, ip: req.ip, userAgent: req.headers["user-agent"], success: false, metadata: JSON.stringify({ status: user.status }) });
       const statusMessages: Record<string, string> = {
         INACTIVE: "This account has been deactivated. Please contact the Foundation.",
-        SUSPENDED: "This account has been suspended. Please contact the Foundation administrator.",
         PENDING: "This account is pending approval. Please wait for confirmation.",
       };
       return sendError(res, statusMessages[user.status] || "Account access is restricted.", 403);
@@ -163,49 +164,46 @@ router.get("/me", authenticateToken, async (req: AuthRequest, res: Response) => 
   }
 });
 
-import { OAuth2Client } from 'google-auth-library';
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+// Google sign-in only links to a pre-provisioned account. It must never create
+// a user or derive a role from Google identity data.
+router.post('/google', authLimiter, async (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (!token) {
+    return sendError(res, 'Google token is required', 400);
+  }
+  if (!env.GOOGLE_CLIENT_ID) {
+    return sendError(res, 'Google authentication is not configured', 503);
+  }
 
-// Google Sign-In / Register
-router.post('/google', async (req: Request, res: Response) => {
+  let payload;
   try {
-    const { token } = req.body;
-    if (!token) {
-      return sendError(res, 'Google token is required', 400);
-    }
-
-    // Verify token
-    const ticket = await client.verifyIdToken({
+    const ticket = await googleClient.verifyIdToken({
       idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: env.GOOGLE_CLIENT_ID,
     });
-    const payload = ticket.getPayload();
-    if (!payload || !payload.email) {
-      return sendError(res, 'Invalid Google token', 400);
-    }
+    payload = ticket.getPayload();
+  } catch {
+    return sendError(res, 'Invalid Google token', 401);
+  }
 
-    const { email, name, sub: googleId } = payload;
+  if (!payload || !payload.email || payload.email_verified !== true || !payload.sub) {
+    return sendError(res, 'Invalid Google token', 401);
+  }
 
-    // Find existing user
+  try {
+    const { email, sub: googleId } = payload;
+
+    // Google identity proves authentication only. Authorization comes solely
+    // from the existing database account and its server-side role/permissions.
     let user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
-      // Create new user via Google
-      const count = await prisma.user.count();
-      const membershipNo = `LF-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
-
-      user = await prisma.user.create({
-        data: {
-          email,
-          name: name || 'Google User',
-          authProvider: 'GOOGLE',
-          googleId,
-          membershipNo,
-          role: 'MEMBER',
-          password: null, // No password for Google auth
-        },
-      });
+      await logAudit({ actorId: null, action: 'LOGIN_FAILED_UNPROVISIONED_GOOGLE_ACCOUNT', resource: 'User', resourceId: null, ip: req.ip, userAgent: req.headers['user-agent'], success: false });
+      return sendError(res, 'This Google account has not been provisioned. Please contact the Foundation.', 403);
     } else {
+      if (user.status !== 'ACTIVE') {
+        return sendError(res, 'Account access is restricted.', 403);
+      }
       // Update existing user to link Google account if needed
       if (!user.googleId) {
         user = await prisma.user.update({
@@ -223,9 +221,10 @@ router.post('/google', async (req: Request, res: Response) => {
 
     const { password: _, ...userWithoutPassword } = user;
     return sendSuccess(res, 'Google authentication successful', { user: userWithoutPassword, token: jwtToken }, 200);
-  } catch (error: any) {
-    return sendError(res, error.message || 'Google authentication failed', 500);
+  } catch {
+    return sendError(res, 'Google authentication failed', 500);
   }
 });
 
 export default router;
+

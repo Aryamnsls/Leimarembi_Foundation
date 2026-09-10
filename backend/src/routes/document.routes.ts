@@ -8,21 +8,17 @@ const router = Router();
 
 const ROLE_HIERARCHY: Record<string, number> = {
   PUBLIC: 0,
-  REGISTERED_USER: 1,
-  MEMBER: 2,
-  VOLUNTEER: 2,
-  CORE_MEMBER: 3,
-  STAFF: 4,
-  TRUSTEE: 5,
-  ADMIN: 6,
-  SUPER_ADMIN: 7,
+  MEMBER: 1,
+  STAFF: 2,
+  TRUSTEE: 3,
+  ADMIN: 4,
 };
 
 // ─── Get Public / Accessible Digital Library Documents ───────────────────────
 router.get('/', async (req: Request, res: Response) => {
   try {
     const { category, type, accessLevel } = req.query;
-    const where: any = { isPublic: true, deletedAt: null };
+    const where: Record<string, unknown> = { isPublic: true };
     if (category) where.category = String(category);
     if (type) where.documentType = String(type);
     if (accessLevel) where.accessLevel = String(accessLevel);
@@ -122,7 +118,7 @@ router.get('/:id/serve', async (req: Request, res: Response) => {
 });
 
 // ─── Upload / Create Document Record (ADMIN/TRUSTEE/STAFF) ────────────────────
-router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: AuthRequest, res: Response) => {
   try {
     const { title, documentType, category, fileUrl, fileSize, description, isPublic, accessLevel } = req.body;
 
@@ -161,3 +157,4 @@ router.post('/', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTE
 });
 
 export default router;
+

@@ -4,7 +4,7 @@ import { env } from '../config/env.js';
 import { prisma } from '../utils/prisma.js';
 import { sendError } from '../utils/response.js';
 
-export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'CORE_MEMBER' | 'TRUSTEE' | 'STAFF' | 'VOLUNTEER' | 'MEMBER' | 'REGISTERED_USER';
+export type UserRole = 'ADMIN' | 'TRUSTEE' | 'STAFF' | 'MEMBER';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -22,25 +22,31 @@ export interface AuthRequest extends Request {
  */
 export const authenticateToken = async (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const [scheme, token] = authHeader?.split(' ') ?? [];
 
-  if (!token) {
+  if (scheme !== 'Bearer' || !token) {
     return sendError(res, 'Access token missing or invalid', 401);
   }
 
+  let decoded: { id: string; email?: string };
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string; email: string };
-    if (!decoded || !decoded.id) {
+    const payload = jwt.verify(token, env.JWT_SECRET);
+    if (typeof payload === 'string' || !payload.id || typeof payload.id !== 'string') {
       return sendError(res, 'Invalid authentication token payload', 401);
     }
+    decoded = { id: payload.id, email: typeof payload.email === 'string' ? payload.email : undefined };
+  } catch {
+    return sendError(res, 'Invalid or expired authentication token', 401);
+  }
 
-    // Live database check — ensures account is active and role is current
+  try {
+    // Live database check ensures account status and role changes take effect immediately.
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
-      select: { id: true, email: true, role: true, status: true, deletedAt: true },
+      select: { id: true, email: true, role: true, status: true },
     });
 
-    if (!user || user.deletedAt) {
+    if (!user) {
       return sendError(res, 'User account no longer exists', 401);
     }
 
@@ -57,14 +63,14 @@ export const authenticateToken = async (req: AuthRequest, res: Response, next: N
     };
 
     next();
-  } catch (err) {
-    return sendError(res, 'Invalid or expired authentication token', 401);
+  } catch {
+    return sendError(res, 'Authentication service unavailable', 503);
   }
 };
 
 /**
  * requireRole enforces role-based access control.
- * SUPER_ADMIN is automatically permitted on administrative checks.
+ * ADMIN is the highest role defined by the Prisma schema and is permitted on administrative checks.
  */
 export const requireRole = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -72,7 +78,7 @@ export const requireRole = (allowedRoles: UserRole[]) => {
       return sendError(res, 'Unauthorized: authentication required', 401);
     }
 
-    if (req.user.role === 'SUPER_ADMIN' || allowedRoles.includes(req.user.role)) {
+    if (req.user.role === 'ADMIN' || allowedRoles.includes(req.user.role)) {
       return next();
     }
 
@@ -81,8 +87,8 @@ export const requireRole = (allowedRoles: UserRole[]) => {
 };
 
 /**
- * requirePermission checks granular permission strings (e.g. 'members:read', 'welfare:approve').
- * SUPER_ADMIN automatically bypasses granular checks.
+ * Granular permissions are not part of the current Prisma role model. Fail closed
+ * until a permission store and route policy are implemented.
  */
 export const requirePermission = (permissionName: string) => {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -90,37 +96,6 @@ export const requirePermission = (permissionName: string) => {
       return sendError(res, 'Unauthorized: authentication required', 401);
     }
 
-    // SUPER_ADMIN has full system privileges
-    if (req.user.role === 'SUPER_ADMIN') {
-      return next();
-    }
-
-    try {
-      const permission = await prisma.permission.findUnique({
-        where: { name: permissionName },
-      });
-
-      if (!permission) {
-        // Fallback: if permission record is not explicitly in DB, rely on role check
-        return next();
-      }
-
-      const rolePermission = await prisma.rolePermission.findUnique({
-        where: {
-          role_permissionId: {
-            role: req.user.role as any,
-            permissionId: permission.id,
-          },
-        },
-      });
-
-      if (!rolePermission) {
-        return sendError(res, `Forbidden: missing required permission '${permissionName}'`, 403);
-      }
-
-      next();
-    } catch (error) {
-      return sendError(res, 'Permission verification error', 500);
-    }
+    return sendError(res, `Forbidden: permission '${permissionName}' is not configured`, 403);
   };
 };
