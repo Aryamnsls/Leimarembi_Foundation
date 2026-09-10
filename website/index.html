@@ -15,7 +15,7 @@
 
     <link rel="icon" href="/website/public/leimarembi_official_logo.png" type="image/png">
     
-    <!-- QR Code Generator Library -->
+    <!-- QR Code Generator Library & Lucide Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -32,17 +32,39 @@
             padding: 1.5rem;
             overflow-x: hidden;
         }
+        
+        /* CARD CONTAINERS */
         .gateway-card {
             background: linear-gradient(145deg, #0F172A 0%, #1E293B 100%);
             border: 2px solid rgba(245, 158, 11, 0.4);
             border-radius: 28px;
             padding: 2.5rem 2rem;
-            max-width: 500px;
+            max-width: 520px;
             width: 100%;
             text-align: center;
             box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.2);
             position: relative;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        .welcome-card {
+            display: none;
+            background: #1E293B;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 28px;
+            padding: 2.5rem 2rem;
+            max-width: 640px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            animation: fadeInWarp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInWarp {
+            0% { opacity: 0; transform: scale(0.92); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
         .header-badge {
             display: inline-flex;
             align-items: center;
@@ -54,6 +76,7 @@
             text-transform: uppercase;
             margin-bottom: 1.25rem;
         }
+
         .title {
             font-size: 1.75rem;
             font-weight: 900;
@@ -61,12 +84,14 @@
             margin-bottom: 0.35rem;
             letter-spacing: 0.5px;
         }
+
         .subtitle-script {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             color: #94A3B8;
             margin-bottom: 1.5rem;
             font-weight: 500;
         }
+
         .qr-box {
             position: relative;
             background: #FFFFFF;
@@ -79,9 +104,8 @@
             cursor: pointer;
             transition: transform 0.3s ease;
         }
-        .qr-box:hover {
-            transform: scale(1.02);
-        }
+        .qr-box:hover { transform: scale(1.03); }
+
         .scan-beam {
             position: absolute;
             top: 0; left: 0; right: 0;
@@ -95,6 +119,7 @@
             50% { top: 90%; opacity: 1; }
             100% { top: 5%; opacity: 0.3; }
         }
+
         .emblem-overlay {
             position: absolute;
             top: 50%; left: 50%;
@@ -109,17 +134,20 @@
         .emblem-overlay img {
             width: 38px; height: 38px; border-radius: 50%; object-fit: contain;
         }
+
         .verified-tag {
             font-size: 0.78rem;
             color: #CBD5E1;
             margin-bottom: 1.5rem;
             font-weight: 700;
         }
+
         .btn-stack {
             display: flex;
             flex-direction: column;
             gap: 0.85rem;
         }
+
         .btn {
             width: 100%;
             padding: 0.85rem 1.5rem;
@@ -135,12 +163,14 @@
             text-decoration: none;
             transition: all 0.2s ease;
         }
+
         .btn-gold {
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
             color: #000000;
             box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
         }
         .btn-gold:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
         .btn-blue {
             background: rgba(14, 165, 233, 0.15);
             border: 1px solid rgba(14, 165, 233, 0.4);
@@ -149,11 +179,13 @@
             border-radius: 30px;
             padding: 0.7rem 1.25rem;
         }
+
         .btn-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 0.75rem;
         }
+
         .btn-green {
             background: rgba(37, 211, 102, 0.15);
             border: 1px solid rgba(37, 211, 102, 0.4);
@@ -162,6 +194,7 @@
             border-radius: 30px;
             padding: 0.65rem 1rem;
         }
+
         .btn-outline {
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -170,11 +203,51 @@
             border-radius: 30px;
             padding: 0.65rem 1rem;
         }
+
+        /* PLATFORM GOVERNANCE NAV GRID */
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.85rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        .nav-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            color: #FFFFFF;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.25 ease;
+        }
+
+        .nav-card:hover {
+            border-color: #38BDF8;
+            background: rgba(56, 189, 248, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .nav-card-title {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: #F8FAFC;
+        }
+
+        .nav-card-desc {
+            font-size: 0.75rem;
+            color: #94A3B8;
+        }
     </style>
 </head>
 <body>
 
-    <div class="gateway-card">
+    <!-- STEP 1: EXECUTIVE QR CODE GATEWAY CARD -->
+    <div class="gateway-card" id="qrGatewayCard">
         <div class="header-badge">
             <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
             OFFICIAL EXECUTIVE QR GATEWAY
@@ -183,8 +256,7 @@
         <h1 class="title">Leimarembi Foundation</h1>
         <div class="subtitle-script">ꯂꯩꯃꯔꯦꯝꯕꯤ ꯐꯥꯎꯟꯗꯦꯁꯟ</div>
 
-        <!-- DYNAMIC QR DISPLAY -->
-        <div class="qr-box" id="qrContainer" onclick="proceedToPortal()">
+        <div class="qr-box" id="qrContainer" onclick="unlockPlatform()">
             <div class="scan-beam"></div>
             <div id="qrcode"></div>
             <div class="emblem-overlay">
@@ -193,11 +265,11 @@
         </div>
 
         <div class="verified-tag">
-            🔒 Verified Digital Gateway • Tap QR Code or Button to Enter
+            🔒 Verified Digital Gateway • Tap QR Code or Button to Enter Platform
         </div>
 
         <div class="btn-stack">
-            <button onclick="proceedToPortal()" class="btn btn-gold">
+            <button onclick="unlockPlatform()" class="btn btn-gold">
                 <i data-lucide="qr-code" style="width:20px;height:20px;"></i>
                 Scan & Enter Official Platform →
             </button>
@@ -218,6 +290,88 @@
         </div>
     </div>
 
+    <!-- STEP 2: UNLOCKED WELCOME PLATFORM HUB -->
+    <div class="welcome-card" id="welcomeCard">
+        <div style="margin-bottom:1rem;">
+            <img src="/website/public/leimarembi_official_logo.png" alt="Foundation Logo" style="width:90px;height:90px;border-radius:16px;object-fit:contain;" onerror="this.style.display='none';">
+        </div>
+
+        <span style="font-size:0.8rem;font-weight:900;color:#F59E0B;letter-spacing:2px;text-transform:uppercase;">
+            OFFICIAL DIGITAL GOVERNANCE PORTAL
+        </span>
+
+        <h1 style="font-size:1.8rem;font-weight:900;margin:0.5rem 0 0.2rem 0;color:#FFFFFF;">
+            WELCOME TO LEIMAREMBI FOUNDATION
+        </h1>
+        <div style="font-size:1.35rem;color:#94A3B8;margin-bottom:1rem;font-weight:500;">
+            ꯂꯩꯃꯔꯦꯝꯕꯤ ꯐꯥꯎꯟꯗꯦꯁꯟ
+        </div>
+
+        <p style="color:#CBD5E1;font-size:0.95rem;line-height:1.6;margin-bottom:1.5rem;max-width:520px;margin-inline:auto;">
+            Empowering communities through digital governance, rural health welfare, indigenous culture preservation, and transparent grant tracking in Northeast India.
+        </p>
+
+        <div style="font-size:0.85rem;font-weight:800;color:#38BDF8;text-transform:uppercase;letter-spacing:1.5px;text-align:left;margin-top:1rem;">
+            Select Governance Module to Launch:
+        </div>
+
+        <div class="nav-grid">
+            <a href="http://localhost:3000/meetings" id="navMeetings" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#F59E0B;">
+                    <i data-lucide="video" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">Meeting Suite</span>
+                </div>
+                <div class="nav-card-desc">Live Video Calls & Resolutions</div>
+            </a>
+
+            <a href="http://localhost:3000/documents" id="navDocs" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#10B981;">
+                    <i data-lucide="file-text" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">Governance Vault</span>
+                </div>
+                <div class="nav-card-desc">Executive Signed Documents</div>
+            </a>
+
+            <a href="http://localhost:3000/members" id="navMembers" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#38BDF8;">
+                    <i data-lucide="users" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">Executive Board</span>
+                </div>
+                <div class="nav-card-desc">15 Official Member Profiles</div>
+            </a>
+
+            <a href="http://localhost:3000/news" id="navNews" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#EC4899;">
+                    <i data-lucide="newspaper" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">News Hub</span>
+                </div>
+                <div class="nav-card-desc">Local, Manipuri & Assamese News</div>
+            </a>
+
+            <a href="http://localhost:3000/portal" id="navPortal" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#8B5CF6;">
+                    <i data-lucide="layout-grid" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">Services Portal</span>
+                </div>
+                <div class="nav-card-desc">8 Governance Modules</div>
+            </a>
+
+            <a href="http://localhost:3000/culture" id="navCulture" class="nav-card">
+                <div style="display:flex;align-items:center;gap:8px;color:#F59E0B;">
+                    <i data-lucide="book-open" style="width:18px;height:18px;"></i>
+                    <span class="nav-card-title">Cultural Heritage</span>
+                </div>
+                <div class="nav-card-desc">Meetei Mayek & Archives</div>
+            </a>
+        </div>
+
+        <div style="margin-top:2rem;">
+            <button onclick="lockQR()" class="btn btn-outline" style="max-width:240px;margin:0 auto;border-radius:30px;font-size:0.85rem;">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Return to QR Gateway
+            </button>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
         const portalUrl = window.location.origin;
@@ -232,8 +386,23 @@
             correctLevel : QRCode.CorrectLevel.H
         });
 
-        function proceedToPortal() {
-            window.location.href = portalUrl + "/website/";
+        // Set dynamic href links based on current origin
+        document.getElementById("navMeetings").href = portalUrl + "/meetings";
+        document.getElementById("navDocs").href = portalUrl + "/documents";
+        document.getElementById("navMembers").href = portalUrl + "/members";
+        document.getElementById("navNews").href = portalUrl + "/news";
+        document.getElementById("navPortal").href = portalUrl + "/portal";
+        document.getElementById("navCulture").href = portalUrl + "/culture";
+
+        function unlockPlatform() {
+            document.getElementById("qrGatewayCard").style.display = "none";
+            document.getElementById("welcomeCard").style.display = "block";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function lockQR() {
+            document.getElementById("welcomeCard").style.display = "none";
+            document.getElementById("qrGatewayCard").style.display = "block";
         }
 
         function shareWhatsApp() {
