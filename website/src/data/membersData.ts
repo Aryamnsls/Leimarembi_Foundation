@@ -129,5 +129,35 @@ export const MEMBERS_DATA: Member[] = [
     areaOfResponsibility: "Member engagement, programme support and participation in the Foundation's social and developmental activities.",
     photo: "/members/nagangbam.jpg",
     category: "Executive"
+  },
+  {
+    id: 13,
+    name: "Angom Bidyut Singha",
+    role: "Executive Member",
+    subtitle: "Business Owner / Proprietor",
+    shortProfile: "A business professional engaged in community affairs and social development. He is committed to supporting the objectives and activities of the Leimarembi Foundation and contributes to its community-oriented initiatives.",
+    areaOfResponsibility: "Member engagement, programme coordination and support, and participation in the Foundation’s social, cultural and developmental activities.",
+    photo: "/members/angom_bidyut_singha.jpeg",
+    category: "Executive"
+  },
+  {
+    id: 14,
+    name: "Sengam Bablu Singha",
+    role: "Executive Member",
+    subtitle: "Business Owner / Proprietor",
+    shortProfile: "A business professional engaged in community affairs and social development. He is committed to supporting the objectives and activities of the Leimarembi Foundation and contributes to its community-oriented initiatives.",
+    areaOfResponsibility: "Member engagement, programme coordination and support, and participation in the Foundation’s social, cultural and developmental activities.",
+    photo: "/members/sengam_bablu_singha.jpeg",
+    category: "Executive"
+  },
+  {
+    id: 15,
+    name: "Paunam Bidyamani Singha",
+    role: "Executive Member",
+    subtitle: "Private Sector Employee",
+    shortProfile: "A private sector employee with an interest in community service and social development. He actively supports the objectives and activities of Leimarembi Foundation.",
+    areaOfResponsibility: "Member coordination, programme support and participation in the Foundation's community and developmental activities.",
+    photo: "/members/paunam_bidyamani_singha.jpeg",
+    category: "Executive"
   }
 ];

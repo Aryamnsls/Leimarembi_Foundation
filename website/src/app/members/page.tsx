@@ -107,14 +107,14 @@ export default function MembersPage() {
             className={selectedCategory === 'Leadership' ? 'btn btn-primary' : 'btn btn-outline'}
             style={{ padding: '0.5rem 1.1rem', fontSize: '0.875rem', gap: '6px' }}
           >
-            <Shield size={16} /> Executive Officers (5)
+            <Shield size={16} /> Executive Officers ({MEMBERS_DATA.filter(m => m.category === 'Leadership').length})
           </button>
           <button
             onClick={() => setSelectedCategory('Executive')}
             className={selectedCategory === 'Executive' ? 'btn btn-primary' : 'btn btn-outline'}
             style={{ padding: '0.5rem 1.1rem', fontSize: '0.875rem', gap: '6px' }}
           >
-            <Briefcase size={16} /> Executive Members (7)
+            <Briefcase size={16} /> Executive Members ({MEMBERS_DATA.filter(m => m.category === 'Executive').length})
           </button>
         </div>
 

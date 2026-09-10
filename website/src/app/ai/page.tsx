@@ -38,7 +38,7 @@ const GRANT_SECTORS = [
 const INITIAL_CHAT: ChatMessage[] = [
   {
     role: "assistant",
-    text: "Khurumjari! 🙏 I am the **LFA AI Assistant** for the Leimarembi Foundation.\n\nI can help you with:\n• Information about our 12 executive committee members\n• Foundation programs: Health, Culture, Grants, Management\n• How to navigate this digital platform\n• General questions about our community initiatives\n\nHow can I assist you today?",
+    text: "Khurumjari! 🙏 I am the **LFA AI Assistant** powered by the Leimarembi Foundation AI Engine.\n\nI am fully equipped to answer **anything**!\n\nI can help you with:\n• **Foundation Directives**: Instructions on what members must do and must NOT do\n• **Executive Roster**: Information about our 12 executive committee members & legal signatories\n• **Programs & Services**: 80G tax exemptions, rural health camps, culture archives, governance vault & meetings\n• **General Knowledge**: Any general, technical, historical, or everyday questions!\n\nHow can I assist you today?",
   },
 ];
 
@@ -392,7 +392,7 @@ export default function AIPage() {
               <div>
                 <div style={{ fontWeight: 700, fontSize: "0.95rem" }}>LFA AI Assistant</div>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-secondary)" }}>
-                  Powered by Google Gemini • Foundation Knowledge Base
+                  POWERED BY Leimarembi Foundation • Foundation Knowledge Base
                 </div>
               </div>
               <button
@@ -709,7 +709,7 @@ export default function AIPage() {
                 padding: "4px 14px", fontSize: "0.75rem", fontWeight: 700,
                 color: "#E9D5FF", letterSpacing: "1px", textTransform: "uppercase",
               }}>
-                Powered by Google Gemini
+                POWERED BY Leimarembi Foundation
               </span>
             </div>
             <h1 style={{ color: "#fff", fontSize: "2.2rem", margin: "0 0 8px", fontWeight: 900, lineHeight: 1.2 }}>

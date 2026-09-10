@@ -26,8 +26,23 @@ import {
   Search,
   Building2,
   Lock,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  Key,
+  X,
+  UserCheck,
+  LogOut
 } from "lucide-react";
+
+// Authorized 6 Executive Officers (Verification Matrix - Hidden from UI in Production)
+const AUTHORIZED_OFFICERS = [
+  { name: "Dr. Puritsabam Birmani", email: "ichemma@yahoo.com", phone: "98640-44123", rawPhone: "9864044123", passcode: "98640" },
+  { name: "K. Ajit Singh", email: "kajitsingh9@gmail.com", phone: "98648-01906", rawPhone: "9864801906", passcode: "98648" },
+  { name: "Y. Thambal Singha", email: "thambal.singha@gmail.com", phone: "94350-87852", rawPhone: "9435087852", passcode: "94350" },
+  { name: "M. Bina Babu Singha", email: "binababu.singha@yahoo.com", phone: "76370-87931", rawPhone: "7637087931", passcode: "76370" },
+  { name: "Ng. Baldev Singha", email: "731baldevsingha@gmail.com", phone: "94351-94989", rawPhone: "9435194989", passcode: "94351" },
+  { name: "Aryaman M Singha", email: "aryamansingha60@gmail.com", phone: "7099659804", rawPhone: "7099659804", passcode: "70996" }
+];
 
 export default function MeetingsPage() {
   const [activeTab, setActiveTab] = useState<"notices" | "agendas" | "attendance" | "mom" | "resolutions">("notices");
@@ -37,6 +52,62 @@ export default function MeetingsPage() {
   const [camActive, setCamActive] = useState(true);
   const [newNoticeModal, setNewNoticeModal] = useState(false);
 
+  // Authentication State for 6 Official Members
+  const [authenticatedOfficer, setAuthenticatedOfficer] = useState<{ name: string; email: string } | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [loginInput, setLoginInput] = useState("");
+  const [passcode, setPasscode] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [actionNotice, setActionNotice] = useState<string>("");
+
+  // Helper function to enforce 6 Officer Clearance on actions
+  const requireOfficerClearance = (actionCallback: () => void, actionDescription?: string) => {
+    if (authenticatedOfficer) {
+      actionCallback();
+    } else {
+      setPendingAction(() => actionCallback);
+      setActionNotice(actionDescription || "Access Restricted to Official Members");
+      setAuthError("");
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleAuthenticate = (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError("");
+
+    const cleanInput = loginInput.trim().toLowerCase();
+    const cleanPasscode = passcode.trim();
+
+    const officer = AUTHORIZED_OFFICERS.find((o) => {
+      const matchEmail = o.email.toLowerCase() === cleanInput;
+      const matchPhone = o.phone.includes(cleanInput) || o.rawPhone.includes(cleanInput.replace(/\D/g, ""));
+      const matchPass = o.passcode === cleanPasscode;
+      return (matchEmail || matchPhone) && matchPass;
+    });
+
+    if (officer) {
+      setAuthenticatedOfficer({ name: officer.name, email: officer.email });
+      setShowAuthModal(false);
+      setLoginInput("");
+      setPasscode("");
+      
+      // Execute the pending action if one was triggered
+      if (pendingAction) {
+        pendingAction();
+        setPendingAction(null);
+      }
+    } else {
+      setAuthError("Access Denied: This feature is strictly reserved for the 6 Authorized Executive Officers of Leimarembi Foundation. Invalid Officer Email/Phone or Clearance Passcode.");
+    }
+  };
+
+  const handleLogoutOfficer = () => {
+    setAuthenticatedOfficer(null);
+    setIsLiveMeetingOpen(false);
+  };
+
   // Mock data for 5 Meeting Management pillars
   const meetingNotices = [
     {
@@ -45,7 +116,7 @@ export default function MeetingsPage() {
       date: "14 Sept 2026",
       time: "10:30 AM IST",
       location: "Foundation Board Room & Online Google Meet",
-      issuedBy: "Dr. N. Tombi Singh (President)",
+      issuedBy: "Dr. Puritsabam Birmani (President)",
       status: "UPCOMING",
       category: "Executive Body"
     },
@@ -55,7 +126,7 @@ export default function MeetingsPage() {
       date: "05 Sept 2026",
       time: "02:00 PM IST",
       location: "Google Meet Virtual Room",
-      issuedBy: "S. Pramodini Devi (Treasurer)",
+      issuedBy: "M. Bina Babu Singha (Treasurer)",
       status: "COMPLETED",
       category: "Finance & Audit"
     },
@@ -65,7 +136,7 @@ export default function MeetingsPage() {
       date: "28 Aug 2026",
       time: "11:00 AM IST",
       location: "Imphal Resource Center",
-      issuedBy: "K. Ibomcha Meitei (Gen. Secretary)",
+      issuedBy: "K. Ajit Singh (Gen. Secretary)",
       status: "COMPLETED",
       category: "Cultural Heritage"
     }
@@ -76,20 +147,21 @@ export default function MeetingsPage() {
       meetingRef: "MN-2026-09",
       title: "Agenda for Rural Health Grants & Medical Camp Expansion",
       items: [
-        { itemNo: "1.0", topic: "Welcome Address & Roll Call of Executive Signatories", lead: "Dr. N. Tombi Singh" },
-        { itemNo: "2.0", topic: "Review of Lakhipur Rural Health Camp & Blood Registry Budget", lead: "S. Pramodini Devi" },
-        { itemNo: "3.0", topic: "Approval of Govt Scheme Proposals & PFMS Integration", lead: "M. Ningthemba Sharma" },
-        { itemNo: "4.0", topic: "Passing of Binding Resolutions & Closing Remarks", lead: "Adv. Rajen Singh" }
+        { itemNo: "1.0", topic: "Welcome Address & Roll Call of Executive Signatories", lead: "Dr. Puritsabam Birmani" },
+        { itemNo: "2.0", topic: "Review of Lakhipur Rural Health Camp & Blood Registry Budget", lead: "M. Bina Babu Singha" },
+        { itemNo: "3.0", topic: "Approval of Govt Scheme Proposals & PFMS Integration", lead: "Y. Thambal Singha" },
+        { itemNo: "4.0", topic: "Passing of Binding Resolutions & Closing Remarks", lead: "Ng. Baldev Singha" }
       ]
     }
   ];
 
   const attendanceRecords = [
-    { member: "Dr. N. Tombi Singh", role: "President & Legal Trustee", status: "PRESENT", time: "10:28 AM", verification: "Digital Signature Verified" },
-    { member: "K. Ibomcha Meitei", role: "General Secretary", status: "PRESENT", time: "10:29 AM", verification: "Digital Signature Verified" },
-    { member: "S. Pramodini Devi", role: "Treasurer", status: "PRESENT", time: "10:30 AM", verification: "Digital Signature Verified" },
-    { member: "M. Ningthemba Sharma", role: "Trustee Board Chairman", status: "PRESENT", time: "10:31 AM", verification: "Digital Signature Verified" },
-    { member: "Adv. Rajen Singh", role: "Legal Standing Counsel", status: "EXCUSED", time: "-", verification: "Prior Leave Submitted" }
+    { member: "Dr. Puritsabam Birmani", role: "President & Legal Trustee", status: "PRESENT", time: "10:28 AM", verification: "Digital Signature Verified" },
+    { member: "K. Ajit Singh", role: "General Secretary", status: "PRESENT", time: "10:29 AM", verification: "Digital Signature Verified" },
+    { member: "Y. Thambal Singha", role: "Executive Member", status: "PRESENT", time: "10:30 AM", verification: "Digital Signature Verified" },
+    { member: "M. Bina Babu Singha", role: "Treasurer & Executive Member", status: "PRESENT", time: "10:31 AM", verification: "Digital Signature Verified" },
+    { member: "Ng. Baldev Singha", role: "Executive Member", status: "PRESENT", time: "10:32 AM", verification: "Digital Signature Verified" },
+    { member: "Aryaman M Singha", role: "Executive Officer", status: "PRESENT", time: "10:33 AM", verification: "Digital Signature Verified" }
   ];
 
   const momList = [
@@ -102,7 +174,7 @@ export default function MeetingsPage() {
         "Allocated ₹2.5 Lakhs for Meetei Mayek script digital learning guide production.",
         "Authorized General Secretary to sign MoU with state health department."
       ],
-      recorder: "K. Ibomcha Meitei (Gen. Secretary)"
+      recorder: "K. Ajit Singh (Gen. Secretary)"
     }
   ];
 
@@ -110,9 +182,9 @@ export default function MeetingsPage() {
     {
       id: "RES-2026-04",
       title: "Resolution on Digitalization of Foundation Governance Archives",
-      proposedBy: "Dr. N. Tombi Singh",
-      secondedBy: "S. Pramodini Devi",
-      votesFor: 5,
+      proposedBy: "Dr. Puritsabam Birmani",
+      secondedBy: "M. Bina Babu Singha",
+      votesFor: 6,
       votesAgainst: 0,
       status: "PASSED UNANIMOUSLY",
       effectiveDate: "01 Sept 2026"
@@ -120,9 +192,9 @@ export default function MeetingsPage() {
     {
       id: "RES-2026-03",
       title: "Resolution Establishing Emergency Medical Relief Fund in Cachar District",
-      proposedBy: "K. Ibomcha Meitei",
-      secondedBy: "M. Ningthemba Sharma",
-      votesFor: 5,
+      proposedBy: "K. Ajit Singh",
+      secondedBy: "Y. Thambal Singha",
+      votesFor: 6,
       votesAgainst: 0,
       status: "PASSED UNANIMOUSLY",
       effectiveDate: "15 Aug 2026"
@@ -132,15 +204,42 @@ export default function MeetingsPage() {
   const roomLink = "https://meet.jit.si/Leimarembi_Executive_Meeting_2026";
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(roomLink);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
+    requireOfficerClearance(() => {
+      navigator.clipboard.writeText(roomLink);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }, "Copy Meeting Invite Link");
+  };
+
+  const handleLaunchGoogleMeet = () => {
+    requireOfficerClearance(() => {
+      window.open("https://meet.google.com/new", "_blank", "noopener,noreferrer");
+    }, "Launch Instant Google Meet Room");
+  };
+
+  const handleToggleLiveMeeting = () => {
+    requireOfficerClearance(() => {
+      setIsLiveMeetingOpen(!isLiveMeetingOpen);
+    }, "Access HD Embedded Live Meeting Suite");
+  };
+
+  const handleIssueNoticeClick = () => {
+    requireOfficerClearance(() => {
+      setNewNoticeModal(true);
+    }, "Issue & Broadcast Executive Meeting Notice");
+  };
+
+  const handleJoinSessionClick = () => {
+    requireOfficerClearance(() => {
+      setIsLiveMeetingOpen(true);
+      window.scrollTo({ top: 350, behavior: "smooth" });
+    }, "Join Active Executive Video Meeting");
   };
 
   return (
     <div className="animate-fade-in" style={{ padding: "2.5rem 0 6rem", maxWidth: "1280px", margin: "0 auto" }}>
       {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+      <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
         <div 
           className="glass-panel" 
           style={{ 
@@ -164,9 +263,66 @@ export default function MeetingsPage() {
           Meeting Management
         </h1>
         
-        <p style={{ color: "var(--text-secondary)", maxWidth: "760px", margin: "0 auto 2rem", fontSize: "1.15rem", lineHeight: 1.6 }}>
+        <p style={{ color: "var(--text-secondary)", maxWidth: "760px", margin: "0 auto 1.5rem", fontSize: "1.15rem", lineHeight: 1.6 }}>
           Complete digital governance suite for instant video conferencing, meeting notices, agenda preparation, attendance roll calls, minutes, and binding resolution registers.
         </p>
+
+        {/* Officer Status Badge Bar */}
+        {authenticatedOfficer ? (
+          <div 
+            style={{ 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "12px", 
+              background: "rgba(16, 185, 129, 0.12)", 
+              border: "1px solid rgba(16, 185, 129, 0.3)", 
+              padding: "0.6rem 1.25rem", 
+              borderRadius: "50px",
+              color: "#10B981"
+            }}
+          >
+            <UserCheck size={18} />
+            <span style={{ fontSize: "0.9rem", fontWeight: 800 }}>
+              Official Member Clearance Granted: {authenticatedOfficer.name}
+            </span>
+            <button 
+              onClick={handleLogoutOfficer}
+              style={{
+                background: "rgba(220, 38, 38, 0.15)",
+                border: "none",
+                color: "#DC2626",
+                padding: "3px 10px",
+                borderRadius: "20px",
+                fontSize: "0.75rem",
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
+              }}
+            >
+              <LogOut size={12} /> Lock Clearance
+            </button>
+          </div>
+        ) : (
+          <div 
+            style={{ 
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "8px", 
+              background: "rgba(245, 158, 11, 0.1)", 
+              border: "1px solid rgba(245, 158, 11, 0.3)", 
+              padding: "0.5rem 1.25rem", 
+              borderRadius: "50px",
+              color: "#D97706",
+              fontSize: "0.875rem",
+              fontWeight: 700
+            }}
+          >
+            <Lock size={15} />
+            <span>Public Viewing Mode Active • Official Member Credentials Required to Host/Arrange Meetings</span>
+          </div>
+        )}
       </div>
 
       {/* INSTANT MEETING LAUNCHER BANNER */}
@@ -214,11 +370,11 @@ export default function MeetingsPage() {
               </div>
             </div>
 
-            {/* Quick Action Buttons */}
+            {/* Quick Action Buttons - Wrapped with Official Member Authorization Checks */}
             <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
               {/* Button 1: Embedded Live Meeting Room Toggle */}
               <button
-                onClick={() => setIsLiveMeetingOpen(!isLiveMeetingOpen)}
+                onClick={handleToggleLiveMeeting}
                 style={{
                   background: isLiveMeetingOpen ? "#DC2626" : "linear-gradient(135deg, #10B981, #059669)",
                   color: "#FFFFFF",
@@ -239,10 +395,8 @@ export default function MeetingsPage() {
               </button>
 
               {/* Button 2: Direct Google Meet Launch */}
-              <a
-                href="https://meet.google.com/new"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={handleLaunchGoogleMeet}
                 style={{
                   background: "#4285F4",
                   color: "#FFFFFF",
@@ -250,7 +404,8 @@ export default function MeetingsPage() {
                   borderRadius: "50px",
                   fontWeight: 800,
                   fontSize: "1rem",
-                  textDecoration: "none",
+                  border: "none",
+                  cursor: "pointer",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "8px",
@@ -258,7 +413,7 @@ export default function MeetingsPage() {
                 }}
               >
                 Google Meet Instant Link <ExternalLink size={18} />
-              </a>
+              </button>
 
               {/* Button 3: Copy Invite Link */}
               <button
@@ -284,7 +439,7 @@ export default function MeetingsPage() {
           </div>
 
           {/* EMBEDDED LIVE VIDEO MEETING FRAME */}
-          {isLiveMeetingOpen && (
+          {isLiveMeetingOpen && authenticatedOfficer && (
             <div 
               className="animate-fade-in"
               style={{
@@ -301,7 +456,7 @@ export default function MeetingsPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                   <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#10B981", boxShadow: "0 0 10px #10B981" }} />
                   <span style={{ fontWeight: 800, fontSize: "0.9rem", color: "#FFFFFF" }}>
-                    Room: Leimarembi Executive Video Conference
+                    Room: Leimarembi Executive Video Conference • Host: {authenticatedOfficer.name}
                   </span>
                 </div>
 
@@ -345,7 +500,7 @@ export default function MeetingsPage() {
         </div>
       </div>
 
-      {/* 5 MEETING MANAGEMENT PILLARS TABS BAR (Matching user spec) */}
+      {/* 5 MEETING MANAGEMENT PILLARS TABS BAR */}
       <div 
         style={{ 
           display: "flex", 
@@ -471,7 +626,7 @@ export default function MeetingsPage() {
               Official Meeting Circulars & Notices
             </h2>
             <button 
-              onClick={() => setNewNoticeModal(true)}
+              onClick={handleIssueNoticeClick}
               className="btn btn-primary" 
               style={{ borderRadius: "30px", gap: "6px", fontWeight: 800 }}
             >
@@ -516,7 +671,7 @@ export default function MeetingsPage() {
 
                 <div style={{ borderTop: "1px solid var(--border-color)", paddingTop: "1rem", display: "flex", gap: "8px" }}>
                   <button 
-                    onClick={() => setIsLiveMeetingOpen(true)}
+                    onClick={handleJoinSessionClick}
                     className="btn btn-primary" 
                     style={{ flex: 1, justifyContent: "center", borderRadius: "20px", fontSize: "0.85rem", fontWeight: 800 }}
                   >
@@ -581,7 +736,7 @@ export default function MeetingsPage() {
               </p>
             </div>
             <div style={{ background: "rgba(16, 185, 129, 0.1)", padding: "0.5rem 1.25rem", borderRadius: "30px", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10B981", fontWeight: 800, fontSize: "0.9rem" }}>
-              Quorum Status: 80% Present (Valid Meeting Quorum)
+              Quorum Status: 100% Present (Valid Executive Quorum)
             </div>
           </div>
 
@@ -678,8 +833,187 @@ export default function MeetingsPage() {
         </div>
       )}
 
-      {/* ISSUE NEW NOTICE MODAL */}
-      {newNoticeModal && (
+      {/* OFFICIAL MEMBER AUTHORIZATION POPUP MODAL */}
+      {showAuthModal && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(15, 23, 42, 0.8)",
+            backdropFilter: "blur(8px)",
+            zIndex: 3000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1.5rem"
+          }}
+          onClick={() => setShowAuthModal(false)}
+        >
+          <div 
+            style={{
+              background: "var(--surface-color)",
+              width: "100%",
+              maxWidth: "480px",
+              borderRadius: "28px",
+              padding: "2.25rem",
+              border: "1px solid var(--border-color)",
+              boxShadow: "0 25px 60px rgba(0, 0, 0, 0.35)",
+              position: "relative"
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowAuthModal(false)}
+              style={{
+                position: "absolute",
+                top: "1.25rem",
+                right: "1.25rem",
+                background: "var(--bg-color)",
+                border: "none",
+                borderRadius: "50%",
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                color: "var(--text-secondary)"
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+              <div 
+                style={{ 
+                  width: "60px", 
+                  height: "60px", 
+                  borderRadius: "20px", 
+                  background: "linear-gradient(135deg, #1B2A57, #2563EB)", 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  justifyContent: "center",
+                  color: "#FFFFFF",
+                  boxShadow: "0 10px 20px rgba(37, 99, 235, 0.3)",
+                  marginBottom: "1rem"
+                }}
+              >
+                <Lock size={28} />
+              </div>
+              <h3 style={{ fontSize: "1.4rem", fontWeight: 900, margin: "0 0 0.5rem 0", color: "var(--primary-color)" }}>
+                Official Member Clearance Required
+              </h3>
+              <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+                This feature is restricted to Authorized Official Members only.
+              </p>
+              {actionNotice && (
+                <div style={{ marginTop: "0.75rem", fontSize: "0.8rem", fontWeight: 800, color: "var(--primary-color)", background: "rgba(14, 165, 233, 0.1)", padding: "6px 12px", borderRadius: "12px", display: "inline-block" }}>
+                  Attempted Action: {actionNotice}
+                </div>
+              )}
+            </div>
+
+            {authError && (
+              <div 
+                style={{ 
+                  background: "rgba(220, 38, 38, 0.1)", 
+                  border: "1px solid rgba(220, 38, 38, 0.3)", 
+                  color: "#DC2626", 
+                  padding: "0.85rem 1rem", 
+                  borderRadius: "14px", 
+                  fontSize: "0.825rem", 
+                  lineHeight: 1.4,
+                  marginBottom: "1.25rem",
+                  display: "flex",
+                  gap: "8px",
+                  alignItems: "flex-start"
+                }}
+              >
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
+                <div>{authError}</div>
+              </div>
+            )}
+
+            <form onSubmit={handleAuthenticate} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+              <div>
+                <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "block", marginBottom: "6px", color: "var(--text-primary)" }}>
+                  Registered Officer Email / Phone Number *
+                </label>
+                <input 
+                  type="text" 
+                  required 
+                  value={loginInput}
+                  onChange={(e) => setLoginInput(e.target.value)}
+                  placeholder="e.g., ichemma@yahoo.com or 98640-44123" 
+                  style={{ 
+                    width: "100%", 
+                    padding: "0.85rem 1rem", 
+                    borderRadius: "14px", 
+                    border: "1px solid var(--border-color)", 
+                    background: "var(--bg-color)",
+                    fontSize: "0.95rem",
+                    color: "var(--text-primary)"
+                  }} 
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "block", marginBottom: "6px", color: "var(--text-primary)" }}>
+                  5-Digit Officer Clearance Passcode *
+                </label>
+                <input 
+                  type="password" 
+                  required 
+                  value={passcode}
+                  onChange={(e) => setPasscode(e.target.value)}
+                  placeholder="Enter 5-digit passcode (e.g. 98640)" 
+                  style={{ 
+                    width: "100%", 
+                    padding: "0.85rem 1rem", 
+                    borderRadius: "14px", 
+                    border: "1px solid var(--border-color)", 
+                    background: "var(--bg-color)",
+                    fontSize: "0.95rem",
+                    color: "var(--text-primary)"
+                  }} 
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                style={{ 
+                  width: "100%", 
+                  justifyContent: "center", 
+                  padding: "0.9rem", 
+                  borderRadius: "50px", 
+                  fontSize: "1rem", 
+                  fontWeight: 800,
+                  marginTop: "0.5rem",
+                  gap: "8px"
+                }}
+              >
+                <ShieldCheck size={18} /> Authenticate & Proceed
+              </button>
+
+              <button 
+                type="button" 
+                onClick={() => setShowAuthModal(false)}
+                className="btn btn-outline" 
+                style={{ width: "100%", justifyContent: "center", borderRadius: "50px", fontSize: "0.9rem" }}
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ISSUE NEW NOTICE MODAL (Officer Only) */}
+      {newNoticeModal && authenticatedOfficer && (
         <div 
           style={{
             position: "fixed",
@@ -709,9 +1043,12 @@ export default function MeetingsPage() {
             }}
             onClick={e => e.stopPropagation()}
           >
-            <h3 style={{ fontSize: "1.4rem", fontWeight: 900, margin: "0 0 1rem 0", color: "var(--primary-color)" }}>
+            <h3 style={{ fontSize: "1.4rem", fontWeight: 900, margin: "0 0 0.5rem 0", color: "var(--primary-color)" }}>
               Issue Executive Meeting Notice
             </h3>
+            <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "1.25rem" }}>
+              Authorized Publisher: <strong>{authenticatedOfficer.name}</strong>
+            </p>
             
             <form onSubmit={e => { e.preventDefault(); setNewNoticeModal(false); }} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>

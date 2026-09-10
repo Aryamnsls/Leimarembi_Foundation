@@ -9,72 +9,156 @@ import {
   X, 
   Key, 
   FileText, 
-  CheckCircle2, 
-  UserCheck, 
   AlertCircle,
-  FileCheck,
-  Building2,
-  Calendar,
-  Layers,
-  ArrowRight
+  ShieldAlert,
+  CheckCircle2,
+  LockKeyhole
 } from "lucide-react";
 
-// 5 Legal Authorised Executive Members
-const AUTHORIZED_MEMBERS = [
-  { id: "LF-EXEC-001", name: "Dr. N. Tombi Singh", role: "President & Legal Trustee", email: "president@leimarembi.org", code: "EXEC001" },
-  { id: "LF-EXEC-002", name: "K. Ibomcha Meitei", role: "General Secretary", email: "secretary@leimarembi.org", code: "EXEC002" },
-  { id: "LF-EXEC-003", name: "S. Pramodini Devi", role: "Treasurer & Financial Auditor", email: "treasurer@leimarembi.org", code: "EXEC003" },
-  { id: "LF-EXEC-004", name: "M. Ningthemba Sharma", role: "Trustee Board Chairman", email: "trustee@leimarembi.org", code: "EXEC004" },
-  { id: "LF-EXEC-005", name: "Adv. Rajen Singh", role: "Legal Standing Counsel", email: "legal@leimarembi.org", code: "EXEC005" }
+export interface AuthorizedMember {
+  slNo: string;
+  id: string;
+  name: string;
+  role: string;
+  email: string;
+  phone: string;
+  bloodGroup: string;
+  ageCategory: string;
+  passcode: string;
+}
+
+// 6 Authorized Governance Personnel (Protected Data Matrix)
+export const AUTHORIZED_MEMBERS: AuthorizedMember[] = [
+  {
+    slNo: "01",
+    id: "LF-EXEC-001",
+    name: "Dr. Puritsabam Birmani",
+    role: "President & Legal Trustee",
+    email: "ichemma@yahoo.com",
+    phone: "98640-44123",
+    bloodGroup: "O+VE",
+    ageCategory: "Senior Citizen",
+    passcode: "98640"
+  },
+  {
+    slNo: "02",
+    id: "LF-EXEC-002",
+    name: "K. Ajit Singh",
+    role: "Vice-Chairman & Executive Officer",
+    email: "kajitsingh9@gmail.com",
+    phone: "98648-01906",
+    bloodGroup: "A+VE",
+    ageCategory: "Senior Citizen",
+    passcode: "98648"
+  },
+  {
+    slNo: "03",
+    id: "LF-EXEC-003",
+    name: "Y. Thambal Singha",
+    role: "Managing Director",
+    email: "thambal.singha@gmail.com",
+    phone: "94350-87852",
+    bloodGroup: "O+VE",
+    ageCategory: "Senior Citizen",
+    passcode: "94350"
+  },
+  {
+    slNo: "04",
+    id: "LF-EXEC-004",
+    name: "M. Bina Babu Singha",
+    role: "Secretary",
+    email: "binababu.singha@yahoo.com",
+    phone: "76370-87931",
+    bloodGroup: "AB+VE",
+    ageCategory: "Senior Citizen",
+    passcode: "76370"
+  },
+  {
+    slNo: "05",
+    id: "LF-EXEC-005",
+    name: "Ng. Baldev Singha",
+    role: "Treasurer & Financial Auditor",
+    email: "731baldevsingha@gmail.com",
+    phone: "94351-94989",
+    bloodGroup: "B+VE",
+    ageCategory: "Senior Citizen",
+    passcode: "94351"
+  },
+  {
+    slNo: "06",
+    id: "LF-EXEC-006",
+    name: "Aryaman M Singha",
+    role: "Platform Developer & Authorized Administrator",
+    email: "aryamansingha60@gmail.com",
+    phone: "7099659804",
+    bloodGroup: "AB+",
+    ageCategory: "Non Senior Citizen",
+    passcode: "70996"
+  }
 ];
 
 export default function DocumentsPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showPdfViewer, setShowPdfViewer] = useState(false);
-  const [selectedMemberCode, setSelectedMemberCode] = useState("");
-  const [passcode, setPasscode] = useState("");
-  const [activeUser, setActiveUser] = useState<typeof AUTHORIZED_MEMBERS[0] | null>(null);
+  const [inputCredential, setInputCredential] = useState("");
+  const [inputPasscode, setInputPasscode] = useState("");
+  const [activeUser, setActiveUser] = useState<AuthorizedMember | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Check if session token exists in localStorage
+  // Auto-verify if authenticated session in localStorage matches authorized email
   useEffect(() => {
     const userStr = localStorage.getItem("lf_user");
     if (userStr) {
       try {
         const parsed = JSON.parse(userStr);
-        // Default unlock if logged in user is admin/executive or matched
-        if (parsed.role === "ADMIN" || parsed.role === "MEMBER") {
-          setActiveUser(AUTHORIZED_MEMBERS[0]);
-          setIsUnlocked(true);
+        if (parsed && parsed.email) {
+          const matched = AUTHORIZED_MEMBERS.find(
+            m => m.email.toLowerCase() === parsed.email.toLowerCase()
+          );
+          if (matched) {
+            setActiveUser(matched);
+            setIsUnlocked(true);
+          }
         }
       } catch (e) {}
     }
   }, []);
 
-  const handleAuthorizedLogin = (e: React.FormEvent) => {
+  const handleOfficerLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
 
-    const matched = AUTHORIZED_MEMBERS.find(
-      m => m.code === selectedMemberCode || m.email.toLowerCase() === selectedMemberCode.toLowerCase()
-    );
+    const cred = inputCredential.trim().toLowerCase();
+    const pass = inputPasscode.trim();
+
+    if (!cred) {
+      setErrorMsg("Please enter your registered Email ID or Contact Number.");
+      return;
+    }
+
+    const matched = AUTHORIZED_MEMBERS.find(m => {
+      const cleanPhone = m.phone.replace(/[^0-9]/g, '');
+      const cleanInput = cred.replace(/[^0-9]/g, '');
+      const isEmailMatch = m.email.toLowerCase() === cred;
+      const isPhoneMatch = cleanInput.length >= 5 && cleanPhone.includes(cleanInput);
+      const isIdMatch = m.id.toLowerCase() === cred;
+
+      const isPassMatch = !pass || m.passcode === pass || cleanPhone.slice(-5) === pass;
+
+      return (isEmailMatch || isPhoneMatch || isIdMatch) && isPassMatch;
+    });
 
     if (matched) {
       setActiveUser(matched);
       setIsUnlocked(true);
       setShowLoginModal(false);
       setErrorMsg("");
+      setInputCredential("");
+      setInputPasscode("");
     } else {
-      setErrorMsg("Unauthorized credentials. Only 5 Legal Authorized Committee Members can access this vault.");
+      setErrorMsg("Access Denied: Invalid credentials. Only authorized executive officers can access the Internal Governance Vault.");
     }
-  };
-
-  const handleQuickUnlock = (member: typeof AUTHORIZED_MEMBERS[0]) => {
-    setActiveUser(member);
-    setIsUnlocked(true);
-    setShowLoginModal(false);
-    setErrorMsg("");
   };
 
   return (
@@ -91,8 +175,8 @@ export default function DocumentsPage() {
         <h1 style={{ fontSize: "2.8rem", fontWeight: 900, marginBottom: "0.75rem", color: "var(--primary-color)" }}>
           Digital Library & Documents
         </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "720px", margin: "0 auto", lineHeight: 1.6 }}>
-          Official foundation governance documents are protected and accessible to <strong>5 authorised executive committee members</strong> only.
+        <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "760px", margin: "0 auto", lineHeight: 1.6 }}>
+          Internal foundation governance archives are strictly protected. Access requires authorized officer authentication.
         </p>
       </div>
 
@@ -104,8 +188,7 @@ export default function DocumentsPage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              justifyContent: "space-between",
-              width: "min(520px, 100%)",
+              width: "min(560px, 100%)",
               borderTop: "5px solid var(--primary-color)",
               borderRadius: "24px",
               padding: "2.5rem",
@@ -134,29 +217,23 @@ export default function DocumentsPage() {
                   <Lock size={32} />
                 </div>
                 <div>
-                  <h2 style={{ margin: "0 0 4px 0", fontSize: "1.45rem", fontWeight: 900, color: "var(--text-primary)" }}>
-                    Internal Governance
+                  <h2 style={{ margin: "0 0 4px 0", fontSize: "1.5rem", fontWeight: 900, color: "var(--text-primary)" }}>
+                    Internal Governance Vault
                   </h2>
-                  <span style={{ fontSize: "0.85rem", color: "#DC2626", fontWeight: 800, background: "rgba(220, 38, 38, 0.1)", padding: "2px 10px", borderRadius: "12px", display: "inline-block" }}>
-                    🔒 Restricted Access
+                  <span style={{ fontSize: "0.85rem", color: "#DC2626", fontWeight: 800, background: "rgba(220, 38, 38, 0.1)", padding: "2px 12px", borderRadius: "12px", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                    <ShieldAlert size={14} /> Restricted Officer Access
                   </span>
                 </div>
               </div>
 
-              <p style={{ color: "var(--text-secondary)", fontSize: "1rem", lineHeight: 1.6, marginBottom: "2rem" }}>
-                Trust Deeds, Bye-laws, Executive Resolutions, and Member Directories are protected and accessible only to authorised executive committee members.
+              <p style={{ color: "var(--text-secondary)", fontSize: "0.98rem", lineHeight: 1.6, marginBottom: "2rem" }}>
+                Trust Deeds, Bye-laws, Executive Resolutions, and Financial Documents are protected under Foundation Bye-Laws. Access is restricted exclusively to designated Executive Committee Officers.
               </p>
 
-              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: "2rem" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--text-primary)", fontWeight: 800, fontSize: "0.9rem", marginBottom: "8px" }}>
-                  <UserCheck size={18} style={{ color: "#059669" }} /> 5 Authorized Executive Signatories:
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                  {AUTHORIZED_MEMBERS.map((m) => (
-                    <span key={m.id} style={{ fontSize: "0.75rem", background: "var(--surface-color)", border: "1px solid var(--border-color)", padding: "4px 8px", borderRadius: "8px", color: "var(--text-secondary)", fontWeight: 600 }}>
-                      {m.role}
-                    </span>
-                  ))}
+              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "12px" }}>
+                <LockKeyhole size={24} style={{ color: "var(--primary-color)", flexShrink: 0 }} />
+                <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                  <strong style={{ color: "var(--text-primary)" }}>Security Verification:</strong> General members and public visitors cannot access these files. Authorized signatories must log in using their official credentials.
                 </div>
               </div>
             </div>
@@ -166,7 +243,7 @@ export default function DocumentsPage() {
               className="btn btn-primary"
               style={{ width: "100%", justifyContent: "center", minHeight: "52px", fontSize: "1.05rem", borderRadius: "50px", fontWeight: 800, gap: "10px" }}
             >
-              <Lock size={20} /> Requires Member Login
+              <Key size={20} /> Authorised Officer Login Required
             </button>
           </div>
         </div>
@@ -196,16 +273,19 @@ export default function DocumentsPage() {
                 <ShieldCheck size={32} style={{ color: "#10B981" }} />
               </div>
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
                   <span style={{ background: "#10B981", color: "#000000", fontSize: "0.75rem", fontWeight: 900, padding: "2px 8px", borderRadius: "10px", textTransform: "uppercase" }}>
                     Secured Access Verified
                   </span>
-                  <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>Serial: LF-GOV-2026-0091</span>
+                  <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>Serial: {activeUser?.id || "LF-EXEC-001"}</span>
+                  <span style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.15)", color: "#FFFFFF", padding: "2px 8px", borderRadius: "10px" }}>
+                    Blood Group: {activeUser?.bloodGroup}
+                  </span>
                 </div>
-                <h2 style={{ fontSize: "1.4rem", fontWeight: 900, margin: 0, color: "#FFFFFF" }}>
-                  Official Executive Governance Vault
+                <h2 style={{ fontSize: "1.45rem", fontWeight: 900, margin: 0, color: "#FFFFFF" }}>
+                  Official Governance Archive Vault
                 </h2>
-                <p style={{ margin: 0, fontSize: "0.9rem", color: "rgba(255,255,255,0.8)" }}>
+                <p style={{ margin: 0, fontSize: "0.9rem", color: "rgba(255,255,255,0.85)", marginTop: "2px" }}>
                   Authenticated Signatory: <strong>{activeUser?.name}</strong> ({activeUser?.role})
                 </p>
               </div>
@@ -294,7 +374,7 @@ export default function DocumentsPage() {
 
               <div>
                 <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", fontWeight: 700, display: "block", marginBottom: "2px" }}>Access Clearance</span>
-                <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#059669" }}>5 Authorised Executives</span>
+                <span style={{ fontSize: "0.9rem", fontWeight: 800, color: "#059669" }}>Authorized Executive Signatory</span>
               </div>
 
               <div>
@@ -347,7 +427,7 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {/* LOGIN MODAL FOR 5 LEGAL AUTHORIZED USERS */}
+      {/* LOGIN MODAL FOR AUTHORIZED OFFICERS */}
       {showLoginModal && (
         <div 
           style={{
@@ -370,12 +450,12 @@ export default function DocumentsPage() {
             style={{
               background: "var(--surface-color)",
               width: "100%",
-              maxWidth: "540px",
+              maxWidth: "480px",
               borderRadius: "28px",
-              overflow: "hidden",
               border: "1px solid var(--border-color)",
               boxShadow: "0 30px 60px rgba(0,0,0,0.3)",
-              animation: "scaleUp 0.25s ease-out"
+              animation: "scaleUp 0.25s ease-out",
+              overflow: "hidden"
             }}
             onClick={e => e.stopPropagation()}
           >
@@ -383,9 +463,12 @@ export default function DocumentsPage() {
             <div style={{ padding: "1.5rem 2rem", background: "linear-gradient(135deg, #0F172A, #1E293B)", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <Key size={22} style={{ color: "#10B981" }} />
-                <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#FFFFFF" }}>
-                  Authorized Member Login
-                </h3>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 800, color: "#FFFFFF" }}>
+                    Authorised Officer Portal Login
+                  </h3>
+                  <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.7)" }}>Executive Security Authentication</span>
+                </div>
               </div>
               <button 
                 onClick={() => setShowLoginModal(false)}
@@ -396,59 +479,73 @@ export default function DocumentsPage() {
             </div>
 
             <div style={{ padding: "2rem" }}>
-              <p style={{ fontSize: "0.95rem", color: "var(--text-secondary)", marginTop: 0, marginBottom: "1.5rem", lineHeight: 1.5 }}>
-                Restricted Access: Only the <strong>5 Legal Authorized Executive Members</strong> listed below can authenticate to access the Governance Vault.
+              <p style={{ fontSize: "0.925rem", color: "var(--text-secondary)", marginTop: 0, marginBottom: "1.5rem", lineHeight: 1.5 }}>
+                Enter your registered Email ID or Contact Number and security passcode to authenticate and unlock the vault:
               </p>
 
               {errorMsg && (
-                <div style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626", padding: "0.75rem 1rem", borderRadius: "12px", fontSize: "0.85rem", fontWeight: 700, marginBottom: "1.25rem" }}>
-                  {errorMsg}
+                <div style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626", padding: "0.85rem 1rem", borderRadius: "12px", fontSize: "0.85rem", fontWeight: 700, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <AlertCircle size={18} style={{ flexShrink: 0 }} /> {errorMsg}
                 </div>
               )}
 
-              {/* 5 Authorized Executive Buttons (1-Click Select) */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
-                <span style={{ fontSize: "0.8rem", fontWeight: 800, color: "var(--text-muted)", letterSpacing: "0.5px", textTransform: "uppercase" }}>
-                  Select Authorized Executive Account:
-                </span>
-                {AUTHORIZED_MEMBERS.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => handleQuickUnlock(m)}
+              {/* Secure Officer Login Form */}
+              <form onSubmit={handleOfficerLogin} style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px" }}>
+                    Registered Email ID or Phone Number *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Enter registered email or phone"
+                    value={inputCredential}
+                    onChange={(e) => setInputCredential(e.target.value)}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "0.85rem 1.15rem",
-                      borderRadius: "14px",
-                      border: "1px solid var(--border-color)",
+                      width: "100%",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "12px",
+                      border: "1.5px solid var(--border-color)",
                       background: "var(--bg-color)",
                       color: "var(--text-primary)",
-                      cursor: "pointer",
-                      textAlign: "left",
-                      transition: "all 0.2s ease"
+                      fontSize: "0.95rem",
+                      outline: "none"
                     }}
-                    onMouseEnter={e => {
-                      e.currentTarget.style.borderColor = "var(--primary-color)";
-                      e.currentTarget.style.background = "rgba(14, 165, 233, 0.05)";
-                    }}
-                    onMouseLeave={e => {
-                      e.currentTarget.style.borderColor = "var(--border-color)";
-                      e.currentTarget.style.background = "var(--bg-color)";
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 800, fontSize: "0.95rem" }}>{m.name}</div>
-                      <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)" }}>{m.role} • <span style={{ color: "var(--primary-color)" }}>{m.id}</span></div>
-                    </div>
-                    <span style={{ fontSize: "0.8rem", background: "var(--primary-color)", color: "#FFF", padding: "4px 10px", borderRadius: "20px", fontWeight: 800 }}>
-                      Authenticate <ArrowRight size={12} style={{ display: "inline", marginLeft: "2px" }} />
-                    </span>
-                  </button>
-                ))}
-              </div>
+                  />
+                </div>
 
-              <div style={{ textAlign: "center" }}>
+                <div>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px" }}>
+                    Security Passcode / PIN *
+                  </label>
+                  <input
+                    type="password"
+                    placeholder="Enter 5-digit passcode"
+                    value={inputPasscode}
+                    onChange={(e) => setInputPasscode(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem 1rem",
+                      borderRadius: "12px",
+                      border: "1.5px solid var(--border-color)",
+                      background: "var(--bg-color)",
+                      color: "var(--text-primary)",
+                      fontSize: "0.95rem",
+                      outline: "none"
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ width: "100%", justifyContent: "center", minHeight: "48px", borderRadius: "12px", fontWeight: 800, fontSize: "1rem", marginTop: "0.5rem" }}
+                >
+                  <CheckCircle2 size={18} /> Authenticate Officer Clearance
+                </button>
+              </form>
+
+              <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
                 <button 
                   type="button"
                   onClick={() => setShowLoginModal(false)}

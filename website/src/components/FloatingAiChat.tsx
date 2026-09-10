@@ -11,6 +11,65 @@ interface Message {
   timestamp: string;
 }
 
+function renderFormattedMessage(text: string) {
+  const lines = text.split('\n');
+  return (
+    <div style={{ lineHeight: 1.55 }}>
+      {lines.map((line, idx) => {
+        const trimmed = line.trim();
+
+        // Heading ###
+        if (trimmed.startsWith('### ')) {
+          return (
+            <div key={idx} style={{ fontWeight: 800, fontSize: '0.9rem', marginTop: '6px', marginBottom: '4px', color: 'var(--secondary-color)' }}>
+              {trimmed.slice(4)}
+            </div>
+          );
+        }
+        // Heading ##
+        if (trimmed.startsWith('## ')) {
+          return (
+            <div key={idx} style={{ fontWeight: 800, fontSize: '0.95rem', marginTop: '8px', marginBottom: '4px', color: 'var(--primary-color)' }}>
+              {trimmed.slice(3)}
+            </div>
+          );
+        }
+        // Bullets • or - or *
+        if (trimmed.startsWith('• ') || trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const content = trimmed.slice(2);
+          return (
+            <div key={idx} style={{ display: 'flex', gap: '6px', marginBottom: '3px' }}>
+              <span style={{ color: 'var(--secondary-color)', fontWeight: 700, flexShrink: 0 }}>•</span>
+              <span dangerouslySetInnerHTML={{ __html: formatInline(content) }} />
+            </div>
+          );
+        }
+        // Numbered list
+        if (/^\d+\.\s/.test(trimmed)) {
+          return (
+            <div key={idx} style={{ marginBottom: '3px' }} dangerouslySetInnerHTML={{ __html: formatInline(trimmed) }} />
+          );
+        }
+        // Empty line
+        if (!trimmed) {
+          return <div key={idx} style={{ height: '4px' }} />;
+        }
+        // Normal text
+        return (
+          <div key={idx} style={{ marginBottom: '2px' }} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />
+        );
+      })}
+    </div>
+  );
+}
+
+function formatInline(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.06);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:0.8em">$1</code>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>');
+}
+
 export default function FloatingAiChat() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +115,8 @@ export default function FloatingAiChat() {
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const newHistory = [...messages, userMsg];
+    setMessages(newHistory);
     setInput('');
     setLoading(true);
 
@@ -64,11 +124,15 @@ export default function FloatingAiChat() {
       const res = await fetch('/api/gemini', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: query })
+        body: JSON.stringify({
+          prompt: query,
+          feature: 'chat',
+          history: newHistory.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', text: m.text }))
+        })
       });
 
       const data = await res.json();
-      const replyText = res.ok && data.reply ? data.reply : "Leimarembi Foundation is dedicated to digital governance, cultural preservation, and community health welfare across Manipur & Northeast India.";
+      const replyText = data.text || data.reply || "I am here to assist with any information regarding Leimarembi Foundation programs, executive members, 80G tax exemptions, or digital governance services.";
 
       setMessages((prev) => [
         ...prev,
@@ -85,7 +149,7 @@ export default function FloatingAiChat() {
         {
           id: `ai-${prev.length + 1}`,
           sender: 'ai',
-          text: "Leimarembi Foundation operates 8 core governance modules: Services Portal, Member Management, Cultural Archives, Health Camps, Grants & Schemes, News, Public Documents, and AI Assistance.",
+          text: "The Leimarembi Foundation operates 8 digital governance modules: Services Portal, Member Roster, Cultural Archives, Health Camps, Grant Alerts, News Hub, Public Documents, and AI Assistance.",
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -134,8 +198,8 @@ export default function FloatingAiChat() {
             bottom: '84px',
             right: '24px',
             zIndex: 10000,
-            width: 'min(400px, 92vw)',
-            height: '520px',
+            width: 'min(420px, 92vw)',
+            height: '540px',
             borderRadius: '24px',
             background: 'var(--surface-color)',
             border: '1px solid var(--border-color)',
@@ -220,7 +284,7 @@ export default function FloatingAiChat() {
                 key={msg.id}
                 style={{
                   alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '85%',
+                  maxWidth: '88%',
                   padding: '0.75rem 1rem',
                   borderRadius: '16px',
                   background: msg.sender === 'user' ? 'var(--primary-color)' : 'var(--bg-color)',
@@ -230,7 +294,7 @@ export default function FloatingAiChat() {
                   border: msg.sender === 'ai' ? '1px solid var(--border-color)' : 'none'
                 }}
               >
-                {msg.text}
+                {msg.sender === 'ai' ? renderFormattedMessage(msg.text) : msg.text}
               </div>
             ))}
             {loading && (
