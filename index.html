@@ -15,6 +15,17 @@
 
     <link rel="icon" href="/website/public/leimarembi_official_logo.png" type="image/png">
     
+    <!-- Direct Scan Detector: Bypasses Gateway Page when scanned via mobile phone/keyring -->
+    <script>
+        (function() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('direct') || params.has('scan') || params.has('bypass')) {
+                // Direct Mobile Phone QR Scan -> Enter Official Platform Directly!
+                window.location.replace(window.location.origin + "/portal");
+            }
+        })();
+    </script>
+
     <!-- QR Code Generator Library & Lucide Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -247,7 +258,7 @@
 <body>
 
     <!-- STEP 1: EXECUTIVE QR CODE GATEWAY CARD -->
-    <div className="gateway-card" class="gateway-card" id="qrGatewayCard">
+    <div class="gateway-card" id="qrGatewayCard">
         <div class="header-badge">
             <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
             OFFICIAL EXECUTIVE QR GATEWAY
@@ -376,9 +387,9 @@
         lucide.createIcons();
         const portalUrl = window.location.origin;
 
-        // Generate QR Code dynamically
+        // Generate QR Code carrying direct mobile scan parameter (?direct=1)
         new QRCode(document.getElementById("qrcode"), {
-            text: portalUrl + "/?qr=1",
+            text: portalUrl + "/?direct=1",
             width: 190,
             height: 190,
             colorDark : "#0F172A",
@@ -408,14 +419,14 @@
         function shareWhatsApp() {
             const text = encodeURIComponent(
                 "🏛️ *LEIMAREMBI FOUNDATION - OFFICIAL DIGITAL GOVERNANCE PORTAL*\n\n" +
-                "Scan the official QR Code or tap the link below to access Executive Board Meetings, News Hub, Member Roster & Governance Archives:\n\n" +
-                "🔗 " + portalUrl
+                "Scan the official Keyring QR Code to access Executive Board Meetings, News Hub, Member Roster & Governance Archives:\n\n" +
+                "🔗 " + portalUrl + "/?direct=1"
             );
             window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
         }
 
         function copyLink() {
-            navigator.clipboard.writeText(portalUrl);
+            navigator.clipboard.writeText(portalUrl + "/?direct=1");
             const btn = document.getElementById("copyBtn");
             btn.innerHTML = `<i data-lucide="check" style="width:16px;height:16px;color:#10B981;"></i> Copied!`;
             lucide.createIcons();
@@ -426,23 +437,60 @@
         }
 
         function downloadKeyringQR() {
-            const canvas = document.querySelector("#qrcode canvas");
-            if (!canvas) return;
+            // Generate clean high resolution printable PNG with embedded emblem badge matching user specification
             const printCanvas = document.createElement("canvas");
             printCanvas.width = 1000;
             printCanvas.height = 1000;
             const ctx = printCanvas.getContext("2d");
-            ctx.fillStyle = "#FFFFFF";
-            ctx.fillRect(0, 0, 1000, 1000);
-            ctx.strokeStyle = "#F59E0B";
-            ctx.lineWidth = 20;
-            ctx.strokeRect(10, 10, 980, 980);
-            ctx.drawImage(canvas, 100, 100, 800, 800);
             
-            const link = document.createElement("a");
-            link.download = "Leimarembi_Foundation_Keyring_QR_300DPI.png";
-            link.href = printCanvas.toDataURL("image/png");
-            link.click();
+            // Draw rounded white background card with gold border
+            ctx.fillStyle = "#FFFFFF";
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 1000, 1000, 80);
+            ctx.fill();
+            
+            ctx.strokeStyle = "#F59E0B";
+            ctx.lineWidth = 24;
+            ctx.beginPath();
+            ctx.roundRect(12, 12, 976, 976, 75);
+            ctx.stroke();
+
+            // Generate temporary QR code for direct scan URL
+            const tempDiv = document.createElement("div");
+            new QRCode(tempDiv, {
+                text: portalUrl + "/?direct=1",
+                width: 760,
+                height: 760,
+                colorDark: "#0F172A",
+                colorLight: "#FFFFFF",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const qrCanvas = tempDiv.querySelector("canvas");
+                if (qrCanvas) {
+                    ctx.drawImage(qrCanvas, 120, 120, 760, 760);
+
+                    // Draw Central Logo Emblem Badge
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.beginPath();
+                    ctx.arc(500, 500, 100, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.strokeStyle = "#E2E8F0";
+                    ctx.lineWidth = 6;
+                    ctx.stroke();
+
+                    const logoImg = new Image();
+                    logoImg.onload = () => {
+                        ctx.drawImage(logoImg, 420, 420, 160, 160);
+                        const link = document.createElement("a");
+                        link.download = "Leimarembi_Foundation_Keyring_QR_300DPI.png";
+                        link.href = printCanvas.toDataURL("image/png");
+                        link.click();
+                    };
+                    logoImg.src = "/website/public/leimarembi_official_logo.png";
+                }
+            }, 100);
         }
     </script>
 </body>
