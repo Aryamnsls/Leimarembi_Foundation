@@ -16,6 +16,7 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 7. **Meeting Management & Instant Video Suite (`/meetings`)**: Implements 5 core governance pillars (**Meeting Notices, Agenda Preparation, Attendance Records, Minutes of Meetings, Resolution Register**). View mode is open to the public; action capabilities (launching video calls, generating links, issuing circulars) are strictly protected by **6 Authorized Officer clearance modal rules**.
 8. **AI Assistant (`POWERED BY Leimarembi Foundation`)**: Floating intelligent chat assistant integrated across all pages with a comprehensive knowledge base covering Foundation Do's & Don'ts, executive officer contacts, cultural heritage, and general QA.
 9. **Services Portal (`/portal`)**: 8 governance modules including Mobile Application status notification ("Coming Soon" with Phase II technical deployment notice modal).
+10. **Executive QR Code Gateway & WhatsApp Preview**: Interactive holographic QR Code gatekeeper with embedded Foundation logo seal, scanner beam animation, instant WhatsApp share button, and OpenGraph link sharing cards (`og:image`).
 
 ---
 

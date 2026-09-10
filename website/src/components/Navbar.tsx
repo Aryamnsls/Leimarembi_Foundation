@@ -8,7 +8,7 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { 
   Moon, Sun, Menu, X, ArrowRight, Home, LayoutGrid, Info, Activity,
   BookOpen, LogIn, Heart, Users, Newspaper, 
-  ImageIcon, FileText, Video 
+  ImageIcon, FileText, Video, QrCode
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -163,6 +163,34 @@ export default function Navbar() {
             {/* Native Language Switcher */}
             <LanguageSwitcher />
 
+            {/* Official QR Access Card Button */}
+            <button 
+              onClick={() => {
+                sessionStorage.removeItem('welcomeShown');
+                window.location.href = '/?qr=1';
+              }}
+              className="desktop-only-btn"
+              style={{
+                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                color: '#000000',
+                padding: '0.3rem 0.65rem',
+                fontSize: '0.775rem',
+                fontWeight: 900,
+                minHeight: '32px',
+                gap: '5px',
+                borderRadius: '20px',
+                border: 'none',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                whiteSpace: 'nowrap'
+              }}
+              title="Display & Share Executive QR Gateway Card"
+            >
+              <QrCode size={14} /> QR Card
+            </button>
+
             {mounted && isLoggedIn ? (
               <button onClick={handleLogout} className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
                 <LogIn size={13} /> Sign Out
@@ -286,7 +314,32 @@ export default function Navbar() {
         </div>
         
         {/* Drawer Action CTAs */}
-        <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <button 
+            onClick={() => {
+              sessionStorage.removeItem('welcomeShown');
+              closeMenu();
+              window.location.href = '/?qr=1';
+            }}
+            style={{
+              background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+              color: '#000000',
+              padding: '0.65rem 1rem',
+              borderRadius: '30px',
+              fontWeight: 900,
+              fontSize: '0.9rem',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)'
+            }}
+          >
+            <QrCode size={18} /> Executive QR Access Card
+          </button>
+
           {mounted && isLoggedIn ? (
             <button onClick={() => { handleLogout(); closeMenu(); }} className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }}>
               <LogIn size={16} /> Sign Out
