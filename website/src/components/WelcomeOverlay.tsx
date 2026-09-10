@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronRight, QrCode, Share2, Copy, Check, ShieldCheck, Sparkles, X, Smartphone } from 'lucide-react';
+import { ChevronRight, QrCode, Share2, Copy, Check, ShieldCheck, Sparkles, X, Smartphone, Monitor, Lock, CheckCircle2, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 import QRCode from 'react-qr-code';
 
@@ -12,27 +12,68 @@ export default function WelcomeOverlay() {
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [step, setStep] = useState<'qr' | 'welcome'>('qr');
   const [copiedLink, setCopiedLink] = useState(false);
-  const [currentUrl, setCurrentUrl] = useState<string>('https://leimarembi.org');
+  const [currentUrl, setCurrentUrl] = useState<string>('https://leimarembifoundation.org/?direct=1');
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const origin = window.location.origin;
-      setCurrentUrl(`${origin}?qr=1`);
+      const directScanUrl = `${origin}/?direct=1`;
+      setCurrentUrl(directScanUrl);
 
       const searchParams = new URLSearchParams(window.location.search);
-      const isQrScan = searchParams.has('qr');
-      const hasSeenWelcome = sessionStorage.getItem('welcomeShown');
+      const isDirectScanned = searchParams.has('direct') || searchParams.has('scanned') || searchParams.get('qr') === 'direct';
+      const explicitQrModal = searchParams.get('qr') === '1' || searchParams.get('qr') === 'gateway';
+      
+      const mobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+      setIsMobile(mobileDevice);
 
-      if (isQrScan || !hasSeenWelcome) {
-        const timer = setTimeout(() => {
-          setIsVisible(true);
-          setStep('qr');
-          document.documentElement.style.overflow = 'hidden';
-          document.body.style.overflow = 'hidden';
-          document.body.style.touchAction = 'none';
-        }, 0);
-        return () => clearTimeout(timer);
+      // RULE 1: If someone scans the QR code from phone (or clicks direct scan link)
+      // -> Directly enter the platform, DO NOT show the QR modal again!
+      if (isDirectScanned) {
+        sessionStorage.setItem('welcomeShown', 'true');
+        sessionStorage.setItem('qrScannedVerified', 'true');
+        try {
+          localStorage.setItem('phoneQrVerified', 'true');
+        } catch (e) {
+          // ignore storage errors
+        }
+
+        // Silently remove direct/scanned parameters from URL bar
+        if (window.history.replaceState) {
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete('direct');
+          cleanUrl.searchParams.delete('scanned');
+          cleanUrl.searchParams.delete('qr');
+          window.history.replaceState(null, '', cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : '') + cleanUrl.hash);
+        }
+
+        setIsVisible(false);
+        return;
       }
+
+      // Check existing verification status
+      const hasSeenWelcome = sessionStorage.getItem('welcomeShown') === 'true';
+      const isPhoneVerified = sessionStorage.getItem('qrScannedVerified') === 'true' || localStorage.getItem('phoneQrVerified') === 'true';
+
+      // On Mobile: If already verified by scanning previously, don't show unless explicitly asked
+      if (mobileDevice && isPhoneVerified && !explicitQrModal) {
+        setIsVisible(false);
+        return;
+      }
+
+      // On Desktop: If already entered in this session, don't show unless explicitly asked
+      if (!mobileDevice && hasSeenWelcome && !explicitQrModal) {
+        setIsVisible(false);
+        return;
+      }
+
+      // Show the Gateway overlay with device-specific rules
+      setIsVisible(true);
+      setStep('qr');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
     }
   }, []);
 
@@ -186,13 +227,13 @@ export default function WelcomeOverlay() {
         <div 
           className="card animate-fade-in"
           style={{
-            maxWidth: '480px',
+            maxWidth: '500px',
             width: '100%',
             textAlign: 'center',
             padding: '2.25rem 2rem',
             borderRadius: '28px',
             background: 'linear-gradient(145deg, #0F172A 0%, #1E293B 100%)',
-            border: '2px solid rgba(245, 158, 11, 0.4)',
+            border: isMobile ? '2px solid rgba(239, 68, 68, 0.5)' : '2px solid rgba(245, 158, 11, 0.4)',
             boxShadow: '0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.2)',
             position: 'relative',
             color: '#FFFFFF'
@@ -200,35 +241,48 @@ export default function WelcomeOverlay() {
         >
           {/* Top Metallic Security Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1.25rem' }}>
-            <ShieldCheck size={18} style={{ color: '#F59E0B' }} />
-            <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#F59E0B', letterSpacing: '2px', textTransform: 'uppercase' }}>
-              OFFICIAL EXECUTIVE QR GATEWAY
-            </span>
+            {isMobile ? (
+              <>
+                <ShieldAlert size={18} style={{ color: '#EF4444' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#EF4444', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                  MOBILE ACCESS RESTRICTED • SCAN REQUIRED
+                </span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck size={18} style={{ color: '#F59E0B' }} />
+                <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#F59E0B', letterSpacing: '2px', textTransform: 'uppercase' }}>
+                  OFFICIAL EXECUTIVE QR GATEWAY
+                </span>
+              </>
+            )}
           </div>
 
           <h2 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 0.5rem 0', color: '#FFFFFF' }}>
             Leimarembi Foundation
           </h2>
-          <p style={{ fontSize: '0.875rem', color: '#94A3B8', margin: '0 0 1.5rem 0' }}>
-            Scan QR Code or Tap to Enter Digital Governance Suite
+          <p style={{ fontSize: '0.875rem', color: '#94A3B8', margin: '0 0 1.25rem 0' }}>
+            {isMobile 
+              ? 'Scan Physical Keyring QR with Phone Camera to Enter' 
+              : 'Digital Governance Suite & Verified Keyring Access'}
           </p>
 
           {/* DYNAMIC QR CODE DISPLAY BOX WITH EMBEDDED LOGO BADGE */}
           <div 
-            onClick={handleProceedToWelcome}
+            onClick={!isMobile ? handleEnterPlatform : undefined}
             style={{
               position: 'relative',
               background: '#FFFFFF',
               padding: '1.5rem',
               borderRadius: '24px',
               display: 'inline-block',
-              margin: '0 auto 1.5rem',
+              margin: '0 auto 1.25rem',
               boxShadow: '0 15px 35px rgba(0, 0, 0, 0.4)',
-              cursor: 'pointer',
-              border: '4px solid #F59E0B',
+              cursor: !isMobile ? 'pointer' : 'default',
+              border: isMobile ? '4px solid #EF4444' : '4px solid #F59E0B',
               transition: 'transform 0.3s ease, boxShadow 0.3s ease'
             }}
-            title="Click or Scan QR Code to Unlock Platform"
+            title={!isMobile ? "Click to Enter Official Platform" : "Scan with Phone Camera"}
           >
             {/* Holographic Laser Scan Line */}
             <div 
@@ -281,32 +335,101 @@ export default function WelcomeOverlay() {
             </div>
           </div>
 
-          <div style={{ fontSize: '0.78rem', color: '#CBD5E1', marginBottom: '1.5rem', fontWeight: 700 }}>
-            🔒 Verified Digital Gateway • Click QR Code or Button to Unlock
-          </div>
+          {/* INSTRUCTIONS CARD: DESKTOP VS MOBILE RULES */}
+          {!isMobile ? (
+            <div 
+              style={{ 
+                background: 'rgba(15, 23, 42, 0.75)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
+                borderRadius: '16px',
+                padding: '0.85rem 1rem',
+                marginBottom: '1.25rem',
+                textAlign: 'left',
+                fontSize: '0.82rem',
+                lineHeight: '1.5'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#38BDF8', fontWeight: 800 }}>
+                <Monitor size={16} /> Desktop Access Instruction:
+              </div>
+              <div style={{ color: '#E2E8F0', marginBottom: '8px', paddingLeft: '24px' }}>
+                You are on Desktop. Click <strong>"Enter Official Platform"</strong> below to enter directly.
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#F59E0B', fontWeight: 800 }}>
+                <Smartphone size={16} /> Mobile Phone Rule:
+              </div>
+              <div style={{ color: '#94A3B8', paddingLeft: '24px' }}>
+                To enter on a smartphone, users must scan this official Keyring QR Code using their phone camera.
+              </div>
+            </div>
+          ) : (
+            <div 
+              style={{ 
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '16px',
+                padding: '0.85rem 1rem',
+                marginBottom: '1.25rem',
+                textAlign: 'left',
+                fontSize: '0.82rem',
+                lineHeight: '1.5'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', color: '#F87171', fontWeight: 800 }}>
+                <Lock size={16} /> Mobile Scan Rule:
+              </div>
+              <div style={{ color: '#FEE2E2', paddingLeft: '24px', marginBottom: '6px' }}>
+                To enter the platform on your phone, you must scan the physical <strong>Keyring QR Code</strong> using your phone camera. Direct entry on mobile is restricted.
+              </div>
+              <div style={{ color: '#FCA5A5', paddingLeft: '24px', fontSize: '0.78rem' }}>
+                ✨ Once scanned with your camera, your phone will bypass this gateway and open the platform directly!
+              </div>
+            </div>
+          )}
 
           {/* ACTION BUTTONS */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            <button 
-              onClick={handleProceedToWelcome}
-              style={{
-                background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-                color: '#000000',
-                padding: '0.85rem 1.5rem',
-                borderRadius: '50px',
-                fontWeight: 900,
-                fontSize: '1rem',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 10px 25px rgba(245, 158, 11, 0.4)'
-              }}
-            >
-              <QrCode size={20} /> Scan & Enter Official Platform <ChevronRight size={18} />
-            </button>
+            {!isMobile ? (
+              <button 
+                onClick={handleEnterPlatform}
+                style={{
+                  background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+                  color: '#000000',
+                  padding: '0.9rem 1.5rem',
+                  borderRadius: '50px',
+                  fontWeight: 900,
+                  fontSize: '1rem',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 10px 25px rgba(245, 158, 11, 0.4)',
+                  transition: 'transform 0.2s ease'
+                }}
+              >
+                <CheckCircle2 size={20} /> Enter Official Platform <ChevronRight size={18} />
+              </button>
+            ) : (
+              <div 
+                style={{
+                  background: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid #F59E0B',
+                  color: '#FCD34D',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '16px',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Smartphone size={18} /> Point phone camera at Keyring QR to Enter
+              </div>
+            )}
 
             <button
               onClick={handleDownloadKeyringQR}
@@ -370,6 +493,12 @@ export default function WelcomeOverlay() {
                 {copiedLink ? "Link Copied!" : "Copy Portal Link"}
               </button>
             </div>
+
+            {isMobile && (
+              <p style={{ fontSize: '0.75rem', color: '#64748B', margin: '0.25rem 0 0 0' }}>
+                🖥️ Desktop computers can enter directly via browser.
+              </p>
+            )}
           </div>
         </div>
       )}
