@@ -1,16 +1,12 @@
-﻿export interface Member {
+export interface Member {
   id: number;
   name: string;
-  role: string;
-  subtitle: string;
+  role: string; // Official NGO Role e.g., President, Managing Director
+  subtitle: string; // External background e.g., Senior Journalist | President, Manipuri Sahitya Parishad
   shortProfile: string;
   areaOfResponsibility: string;
   photo: string | null;
   category: 'Leadership' | 'Executive';
-  bloodGroup: string;
-  email: string | null;
-  ageCategory: 'Senior Citizen' | 'Non-Senior Citizen';
-  contact: string;
 }
 
 export const MEMBERS_DATA: Member[] = [
@@ -22,11 +18,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A senior journalist and literary personality with active involvement in community, cultural and social development. He provides leadership and guidance to Leimarembi Foundation towards its vision, objectives and community-oriented initiatives.",
     areaOfResponsibility: "Overall leadership, strategic guidance, organisational development and coordination of major activities of the Foundation.",
     photo: "/members/Dr_phuritsabam.jpg",
-    category: "Leadership",
-    bloodGroup: "O+VE",
-    email: "ichemma@yahoo.com",
-    ageCategory: "Senior Citizen",
-    contact: "98640-44123"
+    category: "Leadership"
   },
   {
     id: 2,
@@ -36,11 +28,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government employee actively involved in sports, particularly Kabaddi, with a strong interest in promoting sports and youth development.",
     areaOfResponsibility: "Sports development, youth engagement and coordination of sports-related activities of the Foundation.",
     photo: "/members/ajit_singh.jpg",
-    category: "Leadership",
-    bloodGroup: "A+VE",
-    email: "kajitsingh9@gmail.com",
-    ageCategory: "Senior Citizen",
-    contact: "98648-01906"
+    category: "Leadership"
   },
   {
     id: 3,
@@ -50,11 +38,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public service and organisational affairs. He is actively engaged in community, social and cultural activities, contributing to the welfare and development of society.",
     areaOfResponsibility: "Organisational administration, programme coordination, community engagement and implementation of the Foundation's initiatives.",
     photo: "/members/thambal_singha.jpg",
-    category: "Leadership",
-    bloodGroup: "O+VE",
-    email: "thambal.singha@gmail.com",
-    ageCategory: "Senior Citizen",
-    contact: "94350-87852"
+    category: "Leadership"
   },
   {
     id: 4,
@@ -64,11 +48,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public administration and organisational affairs. He is actively engaged in community service and contributes to social and developmental initiatives through his association with UMAA.",
     areaOfResponsibility: "Administration, official correspondence, documentation, coordination and effective implementation of the Foundation's programmes.",
     photo: "/members/bina_babu_singha.jpg",
-    category: "Leadership",
-    bloodGroup: "AB+VE",
-    email: "binababu.singha@yahoo.com",
-    ageCategory: "Senior Citizen",
-    contact: "76370-87931"
+    category: "Leadership"
   },
   {
     id: 5,
@@ -78,11 +58,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired government officer with experience in public service and community affairs. He is actively involved in community development and serves as the Working President of UMAA and Vice-President of GMSO.",
     areaOfResponsibility: "Financial management, accounts, budgeting, record-keeping and financial coordination of the Foundation.",
     photo: "/members/NG_BALDEV_SINGHA.jpg",
-    category: "Leadership",
-    bloodGroup: "B+VE",
-    email: "731baldevsingha@gmail.com",
-    ageCategory: "Senior Citizen",
-    contact: "94351-94989"
+    category: "Leadership"
   },
   {
     id: 6,
@@ -91,12 +67,8 @@ export const MEMBERS_DATA: Member[] = [
     subtitle: "Retired Army Personnel | Executive Member, UMAA (Central) | Executive Member, GMSO",
     shortProfile: "A retired Army personnel with a strong commitment to community service and social welfare. He actively participates in community initiatives through his association with UMAA and GMSO.",
     areaOfResponsibility: "Supports the Foundation's programmes, community outreach, member coordination and implementation of social and welfare initiatives.",
-    photo: null,
-    category: "Executive",
-    bloodGroup: "B+VE",
-    email: null,
-    ageCategory: "Senior Citizen",
-    contact: "70862-42310"
+    photo: "/members/K_Braja_Babu_Singha.jpg",
+    category: "Executive"
   },
   {
     id: 7,
@@ -106,11 +78,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively engaged in community service and organisational activities. He contributes his experience and commitment to community development through his involvement with UMAA and GMSO.",
     areaOfResponsibility: "Member coordination, community outreach, programme support and assistance in the Foundation's organisational and developmental activities.",
     photo: "/members/L_Madan_chand.jpg",
-    category: "Executive",
-    bloodGroup: "A+VE",
-    email: "hanumantravels123@gmail.com",
-    ageCategory: "Non-Senior Citizen",
-    contact: "70027-49229"
+    category: "Executive"
   },
   {
     id: 8,
@@ -120,11 +88,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business professional actively engaged in community, social and organisational activities. He contributes his experience and dedication to community development through his involvement with UMAA and GMSO.",
     areaOfResponsibility: "Member coordination, communication, publications and support in the planning and implementation of the Foundation's activities.",
     photo: "/members/H_monoj.jpg",
-    category: "Executive",
-    bloodGroup: "O+VE",
-    email: "satabditravel183@gmail.com",
-    ageCategory: "Non-Senior Citizen",
-    contact: "86384-51576"
+    category: "Executive"
   },
   {
     id: 9,
@@ -134,11 +98,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A private sector employee with an interest in community service and social development. He actively supports the objectives and activities of Leimarembi Foundation.",
     areaOfResponsibility: "Member coordination, programme support and participation in the Foundation's community and developmental activities.",
     photo: "/members/abhishek_Singh.jpg",
-    category: "Executive",
-    bloodGroup: "B+VE",
-    email: "y.abhisheksingh@gmail.com",
-    ageCategory: "Non-Senior Citizen",
-    contact: "89749-02685"
+    category: "Executive"
   },
   {
     id: 10,
@@ -148,11 +108,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A retired Army personnel actively engaged in community service, social welfare and local development. He contributes his experience and leadership to various community organisations and initiatives.",
     areaOfResponsibility: "Community outreach, member coordination, local development initiatives and support for the Foundation's social welfare activities.",
     photo: "/members/Moni_Mohan_singha.jpg",
-    category: "Executive",
-    bloodGroup: "B+VE",
-    email: null,
-    ageCategory: "Senior Citizen",
-    contact: "94361-18112"
+    category: "Executive"
   },
   {
     id: 11,
@@ -162,11 +118,7 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively involved in community service and the promotion of cultural activities within the Manipuri community. He contributes to social and cultural initiatives through his active association with UMAA.",
     areaOfResponsibility: "Cultural activities, community outreach, member engagement and support for the Foundation's social and cultural initiatives.",
     photo: "/members/sarakkhaibam.jpg",
-    category: "Executive",
-    bloodGroup: "O+VE",
-    email: "panthoibielectronics@gmail.com",
-    ageCategory: "Non-Senior Citizen",
-    contact: "98640-80354"
+    category: "Executive"
   },
   {
     id: 12,
@@ -176,10 +128,6 @@ export const MEMBERS_DATA: Member[] = [
     shortProfile: "A business owner actively engaged in community affairs and social development. He supports the Foundation's objectives and contributes to its community-oriented initiatives.",
     areaOfResponsibility: "Member engagement, programme support and participation in the Foundation's social and developmental activities.",
     photo: "/members/nagangbam.jpg",
-    category: "Executive",
-    bloodGroup: "B+VE",
-    email: "ngbinoy@gmail.com",
-    ageCategory: "Non-Senior Citizen",
-    contact: "70020-66014"
+    category: "Executive"
   }
 ];

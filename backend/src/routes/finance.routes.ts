@@ -11,7 +11,7 @@ const manualUpiProvider = new ManualUpiProvider();
 // 1. Create Checkout Session (Server-Validated)
 router.post('/donations/create', async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, phone, amount, location, purpose, paymentMethod } = req.body;
+    const { firstName, lastName, email, phone, amount, purpose, paymentMethod } = req.body;
 
     // Server-side validation
     if (!firstName || typeof firstName !== 'string' || firstName.trim().length < 2 || firstName.trim().length > 50) {
@@ -60,8 +60,6 @@ router.post('/donations/create', async (req: Request, res: Response) => {
         purpose: purpose || 'General Foundation Fund',
         status: 'CREATED',
         expiresAt,
-        metadata: location ? JSON.stringify({ location: String(location).trim() }) : null,
-        notes: location ? `Location: ${String(location).trim()}` : null,
       },
     });
 
@@ -94,7 +92,7 @@ router.get('/donations/status/:publicDonationId', async (req: Request, res: Resp
     const { publicDonationId } = req.params;
 
     const donation = await prisma.donation.findUnique({
-      where: { publicDonationId: String(publicDonationId) },
+      where: { publicDonationId: publicDonationId as string },
     });
 
     if (!donation) {
@@ -205,7 +203,7 @@ router.post('/payments/webhook', async (req: Request, res: Response) => {
 });
 
 // 5. Admin List & Metrics Endpoint
-router.get('/donations/admin/all', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
+router.get('/donations/admin/all', authenticateToken, requireRole(['ADMIN', 'TRUSTEE', 'STAFF']), async (req: Request, res: Response) => {
   try {
     const { status, search } = req.query;
 
@@ -265,7 +263,7 @@ router.get('/donations/admin/all', authenticateToken, requireRole(['SUPER_ADMIN'
 });
 
 // 6. Admin Update Status (Manual Verification)
-router.patch('/donations/admin/:id/status', authenticateToken, requireRole(['SUPER_ADMIN', 'ADMIN', 'TRUSTEE']), async (req: Request, res: Response) => {
+router.patch('/donations/admin/:id/status', authenticateToken, requireRole(['ADMIN', 'TRUSTEE']), async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { status, transactionId } = req.body;
@@ -275,7 +273,7 @@ router.patch('/donations/admin/:id/status', authenticateToken, requireRole(['SUP
     }
 
     const updated = await prisma.donation.update({
-      where: { id: String(id) },
+      where: { id: id as string },
       data: {
         status,
         transactionId: transactionId || undefined,

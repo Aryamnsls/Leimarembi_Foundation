@@ -9,6 +9,7 @@ const en = {
     gallery: "Gallery",
     culture: "Culture",
     documents: "Documents",
+    meetings: "Meetings",
     donate: "Donate Now",
     login: "Login / Register",
     aiHub: "AI Heritage Hub",

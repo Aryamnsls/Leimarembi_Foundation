@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
+import Providers from "@/components/Providers";
 import "./globals.css";
 import { LanguageProvider } from "@/i18n/LanguageContext";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import GlobalBackground from "@/components/GlobalBackground";
 import WelcomeOverlay from "@/components/WelcomeOverlay";
-import LayoutWrapper from "@/components/LayoutWrapper";
+import Breadcrumb from "@/components/Breadcrumb";
+import FloatingAiChat from "@/components/FloatingAiChat";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "Leimarembi Foundation | Digital Governance & Community Development",
@@ -19,13 +24,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <LanguageProvider>
-          <GlobalBackground />
-          <WelcomeOverlay />
-          <LayoutWrapper>
-            {children}
-          </LayoutWrapper>
-        </LanguageProvider>
+        <Providers>
+          <LanguageProvider>
+            <GlobalBackground />
+            <WelcomeOverlay />
+            <Navbar />
+            <main className="container" style={{ minHeight: 'calc(100dvh - 160px)', paddingTop: '0.5rem' }}>
+              <Breadcrumb />
+              {children}
+            </main>
+            <ScrollToTop />
+            <FloatingAiChat />
+            <Footer />
+          </LanguageProvider>
+        </Providers>
       </body>
     </html>
   );

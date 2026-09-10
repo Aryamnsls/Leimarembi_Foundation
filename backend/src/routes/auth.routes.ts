@@ -92,6 +92,10 @@ router.post("/login", authLimiter, async (req: Request, res: Response) => {
       return sendError(res, "Invalid email or password", 401);
     }
 
+    if (!user.password) {
+      return sendError(res, 'Invalid credentials. Please login with your Google account.', 401);
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       await logAudit({ actorId: user.id, action: "LOGIN_FAILED_WRONG_PASSWORD", resource: "User", resourceId: user.id, ip: req.ip, userAgent: req.headers["user-agent"], success: false });
@@ -156,6 +160,71 @@ router.get("/me", authenticateToken, async (req: AuthRequest, res: Response) => 
     return sendSuccess(res, "User profile retrieved", user);
   } catch (error: any) {
     return sendError(res, "Failed to fetch user profile", 500);
+  }
+});
+
+import { OAuth2Client } from 'google-auth-library';
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Google Sign-In / Register
+router.post('/google', async (req: Request, res: Response) => {
+  try {
+    const { token } = req.body;
+    if (!token) {
+      return sendError(res, 'Google token is required', 400);
+    }
+
+    // Verify token
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    if (!payload || !payload.email) {
+      return sendError(res, 'Invalid Google token', 400);
+    }
+
+    const { email, name, sub: googleId } = payload;
+
+    // Find existing user
+    let user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      // Create new user via Google
+      const count = await prisma.user.count();
+      const membershipNo = `LF-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
+
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name || 'Google User',
+          authProvider: 'GOOGLE',
+          googleId,
+          membershipNo,
+          role: 'MEMBER',
+          password: null, // No password for Google auth
+        },
+      });
+    } else {
+      // Update existing user to link Google account if needed
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, authProvider: 'GOOGLE' },
+        });
+      }
+    }
+
+    const jwtToken = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      env.JWT_SECRET,
+      { expiresIn: env.JWT_EXPIRES_IN as any }
+    );
+
+    const { password: _, ...userWithoutPassword } = user;
+    return sendSuccess(res, 'Google authentication successful', { user: userWithoutPassword, token: jwtToken }, 200);
+  } catch (error: any) {
+    return sendError(res, error.message || 'Google authentication failed', 500);
   }
 });
 

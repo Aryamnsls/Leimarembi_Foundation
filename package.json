@@ -1,0 +1,14 @@
+{
+  "name": "leimarembi-foundation",
+  "version": "1.0.0",
+  "description": "Leimarembi Foundation monorepo – run both frontend and backend together",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix website\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix website"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

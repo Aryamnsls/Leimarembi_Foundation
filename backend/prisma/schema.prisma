@@ -7,32 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
 enum Role {
-  SUPER_ADMIN     // Full system access, can manage everything including roles
-  ADMIN           // Foundation administrator, full operational access
-  CORE_MEMBER     // Trusted senior member — access to welfare, internal docs
-  TRUSTEE         // Board trustee — finance approval, governance
-  STAFF           // Operations staff — data entry, content management
-  VOLUNTEER       // Registered volunteer — limited task-based access
-  MEMBER          // Registered general member
-  REGISTERED_USER // Registered portal user (pending full membership validation)
+  ADMIN
+  TRUSTEE
+  STAFF
+  MEMBER
 }
 
 enum Status {
   ACTIVE
   INACTIVE
-  SUSPENDED
   PENDING
 }
-
-// ─── Users / Members ──────────────────────────────────────────────────────────
 
 model User {
   id                 String     @id @default(uuid())
   email              String     @unique
-  password           String
+  password           String?
   name               String
   role               Role       @default(MEMBER)
   status             Status     @default(ACTIVE)
@@ -42,21 +33,12 @@ model User {
   bloodGroup         String?
   isSeniorCitizen    Boolean    @default(false)
   familyMembersCount Int        @default(1)
-  profilePhoto       String?    // URL to profile image
-  designation        String?    // e.g. "Founding Trustee", "Cultural Secretary"
-  bio                String?
-  // Relations
+  authProvider       String     @default("LOCAL")
+  googleId           String?    @unique
   donations          Donation[]
-  auditLogsAsActor   AuditLog[] @relation("AuditActor")
-  welfareRequests    WelfareRequest[]
-  emergencyContacts  EmergencyContact[]
-  // Timestamps
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
-  deletedAt          DateTime?  // Soft delete
 }
-
-// ─── Financial ────────────────────────────────────────────────────────────────
 
 model Donation {
   id                String    @id @default(uuid())
@@ -79,85 +61,66 @@ model Donation {
   expiresAt         DateTime?
   paidAt            DateTime?
   metadata          String?
-  notes             String?   // Admin notes
   userId            String?
   user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  deletedAt         DateTime? // Soft delete — financial records are never hard-deleted
 }
-
-// ─── Projects ─────────────────────────────────────────────────────────────────
 
 model Project {
   id                 String    @id @default(uuid())
   title              String
   category           String    @default("Community Development")
   description        String
-  status             String    @default("ONGOING") // PLANNING, ONGOING, COMPLETED, ON_HOLD
+  status             String    @default("ONGOING") // PLANNING, ONGOING, COMPLETED
   budget             Float     @default(0)
   spent              Float     @default(0)
   startDate          DateTime
   endDate            DateTime?
   location           String
   beneficiariesCount Int       @default(0)
-  imageUrl           String?
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
-  deletedAt          DateTime?
 }
-
-// ─── Governance ───────────────────────────────────────────────────────────────
 
 model Meeting {
   id        String   @id @default(uuid())
   title     String
-  type      String   @default("GENERAL") // GENERAL, EXECUTIVE, TRUSTEE, ANNUAL
+  type      String   @default("GENERAL") // GENERAL, EXECUTIVE, TRUSTEE
   date      DateTime
   location  String
   agenda    String
   minutes   String?
   status    String   @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
-  isPublic  Boolean  @default(false) // Whether to show on public website
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
 }
 
 model Grant {
-  id                           String   @id @default(uuid())
-  title                        String
-  schemeName                   String
-  department                   String
-  amountRequested              Float
-  amountSanctioned             Float    @default(0)
-  status                       String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
-  pfmsReference                String?
-  applicationDate              DateTime @default(now())
+  id                            String   @id @default(uuid())
+  title                         String
+  schemeName                    String
+  department                    String
+  amountRequested               Float
+  amountSanctioned              Float    @default(0)
+  status                        String   @default("SUBMITTED") // DRAFT, SUBMITTED, APPROVED, SANCTIONED, REJECTED
+  pfmsReference                 String?
+  applicationDate               DateTime @default(now())
   utilizationCertificateStatus String   @default("PENDING") // PENDING, SUBMITTED, VERIFIED
-  createdAt                    DateTime @default(now())
-  updatedAt                    DateTime @updatedAt
-  deletedAt                    DateTime?
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
 }
-
-// ─── Cultural Archive ─────────────────────────────────────────────────────────
 
 model CulturalItem {
   id          String   @id @default(uuid())
   title       String
-  category    String   @default("HERITAGE") // HERITAGE, MUSIC, DANCE, RECIPE, FOLKLORE, CRAFT, FESTIVAL
+  category    String   @default("HERITAGE") // HERITAGE, MUSIC, DANCE, RECIPE, FOLKLORE
   description String
   mediaUrl    String?
   archiveType String   @default("DOCUMENT") // DOCUMENT, AUDIO, VIDEO, IMAGE
   region      String   @default("Manipur")
   language    String   @default("Manipuri / Meiteilon")
-  isPublic    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
 }
-
-// ─── Health Camps ─────────────────────────────────────────────────────────────
 
 model HealthRecord {
   id             String   @id @default(uuid())
@@ -167,205 +130,17 @@ model HealthRecord {
   patientsServed Int      @default(0)
   doctorsCount   Int      @default(1)
   details        String
-  specializations String? // Comma-separated list of specializations
-  imageUrl       String?
-  isPublic       Boolean  @default(true)
   createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
 }
-
-// ─── Documents (Digital Library) ─────────────────────────────────────────────
 
 model Document {
   id           String   @id @default(uuid())
   title        String
-  documentType String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, ANNUAL_REPORT, NOTIFICATION, FORM, MINUTES
-  category     String   @default("GOVERNANCE") // GOVERNANCE, FINANCE, HEALTH, CULTURE, LEGAL, ADMIN
+  documentType String   @default("TRUST_DEED") // TRUST_DEED, BYE_LAWS, CIRCULAR, REPORT, NOTIFICATION
+  category     String   @default("GOVERNANCE")
   fileUrl      String
   fileSize     String   @default("1.2 MB")
   description  String
   isPublic     Boolean  @default(true)
-  // Access level: who can view this document (enforced server-side)
-  // PUBLIC < REGISTERED_USER < MEMBER < CORE_MEMBER < TRUSTEE < ADMIN < SUPER_ADMIN
-  accessLevel  String   @default("PUBLIC") // PUBLIC, REGISTERED_USER, MEMBER, CORE_MEMBER, TRUSTEE, ADMIN, SUPER_ADMIN
-  uploadedById String?  // Track who uploaded it
-  downloadCount Int     @default(0)
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
-}
-
-// ─── Audit Logs ───────────────────────────────────────────────────────────────
-
-model AuditLog {
-  id         String   @id @default(uuid())
-  actorId    String?  // The user who performed the action (null for system/anonymous)
-  actor      User?    @relation("AuditActor", fields: [actorId], references: [id], onDelete: SetNull)
-  action     String   // e.g. LOGIN_SUCCESS, LOGIN_FAILED, USER_ROLE_CHANGED, DONATION_APPROVED
-  resource   String   // e.g. User, Donation, Document
-  resourceId String?  // The ID of the affected resource
-  ipAddress  String?
-  userAgent  String?
-  success    Boolean  @default(true)
-  metadata   String?  // JSON string for additional context
-  createdAt  DateTime @default(now())
-
-  @@index([actorId])
-  @@index([action])
-  @@index([createdAt])
-}
-
-// ─── Welfare Assistance ───────────────────────────────────────────────────────
-
-model WelfareRequest {
-  id                String   @id @default(uuid())
-  requesterId       String?
-  requester         User?    @relation(fields: [requesterId], references: [id], onDelete: SetNull)
-  requesterName     String   // Stored separately in case requester is anonymous
-  requesterPhone    String?
-  requesterEmail    String?
-  type              String   // MEDICAL, FINANCIAL, EDUCATION, FOOD, EMERGENCY
-  description       String
-  amountRequested   Float?
-  amountApproved    Float?
-  status            String   @default("SUBMITTED") // SUBMITTED, UNDER_REVIEW, APPROVED, DISBURSED, REJECTED, CLOSED
-  priority          String   @default("NORMAL") // URGENT, HIGH, NORMAL, LOW
-  adminNotes        String?
-  reviewedById      String?
-  approvedAt        DateTime?
-  disbursedAt       DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
-}
-
-// ─── Emergency Contacts ───────────────────────────────────────────────────────
-
-model EmergencyContact {
-  id          String   @id @default(uuid())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  name        String
-  relation    String   // e.g. Spouse, Son, Daughter
-  phone       String
-  altPhone    String?
-  address     String?
-  isPrimary   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-// ─── News & Events ────────────────────────────────────────────────────────────
-
-model News {
-  id          String   @id @default(uuid())
-  title       String
-  slug        String   @unique
-  content     String
-  excerpt     String?
-  imageUrl    String?
-  category    String   @default("GENERAL") // GENERAL, HEALTH, CULTURE, GOVERNANCE, ACHIEVEMENT, ANNOUNCEMENT
-  status      String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
-  publishedAt DateTime?
-  authorId    String?
-  isPublic    Boolean  @default(true)
-  viewCount   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deletedAt   DateTime?
-}
-
-model Event {
-  id           String   @id @default(uuid())
-  title        String
-  description  String
-  imageUrl     String?
-  location     String?
-  eventDate    DateTime
-  endDate      DateTime?
-  category     String   @default("GENERAL") // GENERAL, HEALTH, CULTURE, ANNUAL, MEETING
-  status       String   @default("UPCOMING") // UPCOMING, ONGOING, COMPLETED, CANCELLED
-  isPublic     Boolean  @default(true)
-  registrationRequired Boolean @default(false)
-  maxAttendees Int?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  deletedAt    DateTime?
-}
-
-// ─── Gallery ──────────────────────────────────────────────────────────────────
-
-model GalleryAlbum {
-  id          String        @id @default(uuid())
-  title       String
-  description String?
-  coverImage  String?
-  isPublic    Boolean       @default(true)
-  category    String        @default("GENERAL") // GENERAL, HEALTH, CULTURE, MEETING, EVENT
-  photos      GalleryPhoto[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
-}
-
-model GalleryPhoto {
-  id          String       @id @default(uuid())
-  albumId     String
-  album       GalleryAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
-  url         String
-  caption     String?
-  uploadedById String?
-  sortOrder   Int          @default(0)
-  createdAt   DateTime     @default(now())
-  deletedAt   DateTime?
-}
-
-// ─── Contact / Feedback ───────────────────────────────────────────────────────
-
-model ContactMessage {
-  id           String   @id @default(uuid())
-  name         String
-  email        String
-  phone        String?
-  subject      String?
-  message      String
-  status       String   @default("UNREAD") // UNREAD, READ, REPLIED, ARCHIVED
-  adminReply   String?
-  repliedAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// ─── Foundation Settings (CMS Config) ────────────────────────────────────────
-
-model FoundationSetting {
-  id          String   @id @default(uuid())
-  key         String   @unique // e.g. "site.name", "contact.phone", "social.facebook"
-  value       String   // Always stored as string (JSON for complex values)
-  description String?  // Human-readable explanation of the setting
-  updatedById String?
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-}
-
-// ─── Granular Permissions & RBAC ─────────────────────────────────────────────
-
-model Permission {
-  id          String           @id @default(uuid())
-  name        String           @unique // e.g. "members:read", "members:update", "welfare:approve"
-  description String?
-  module      String           @default("GENERAL") // MEMBERS, FINANCE, WELFARE, DOCUMENTS, SETTINGS, AUDIT
-  roles       RolePermission[]
-  createdAt   DateTime         @default(now())
-}
-
-model RolePermission {
-  id           String     @id @default(uuid())
-  role         Role
-  permissionId String
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
-
-  @@unique([role, permissionId])
 }
