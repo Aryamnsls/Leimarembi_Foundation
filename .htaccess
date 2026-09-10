@@ -5,11 +5,26 @@ DirectoryIndex index.html index.php
     RewriteEngine On
     RewriteBase /
 
-    # If request is not for a file or directory inside root, route into website/out or website
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^$ website/out/index.html [L]
+    # Ensure query string (like ?qr=1) is passed through
+    RewriteCond %{QUERY_STRING} (^|&)qr= [NC]
+    RewriteRule ^$ index.html [QSA,L]
+
+    # Handle static files and existing directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all incoming requests to index.html with QSA
+    RewriteRule ^ index.html [QSA,L]
 </IfModule>
 
-# Options -Indexes disables directory browsing safely while index.html handles requests
-Options -Indexes
+# Security: Prevent directory listing safely
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
