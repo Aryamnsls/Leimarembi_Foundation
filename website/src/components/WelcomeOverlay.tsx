@@ -65,13 +65,37 @@ export default function WelcomeOverlay() {
     }
   };
 
-  const handleWhatsAppShare = () => {
-    const text = encodeURIComponent(
-      `🏛️ *LEIMAREMBI FOUNDATION - OFFICIAL DIGITAL GOVERNANCE PORTAL*\n\n` +
-      `Scan the official QR Code or tap the link below to access Executive Board Meetings, News Hub, Member Roster & Governance Archives:\n\n` +
-      `🔗 ${currentUrl}`
-    );
-    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+  const handleDownloadKeyringQR = () => {
+    if (typeof window !== 'undefined') {
+      const svg = document.getElementById('foundation-qr-code-svg');
+      if (!svg) return;
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        canvas.width = 1000;
+        canvas.height = 1000;
+        if (ctx) {
+          // Draw high resolution white background with gold border for physical keyring print
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, 1000, 1000);
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 20;
+          ctx.strokeRect(10, 10, 980, 980);
+          
+          ctx.drawImage(img, 100, 100, 800, 800);
+          const pngUrl = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = 'Leimarembi_Foundation_Keyring_QR_300DPI.png';
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        }
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }
   };
 
   // Handle Escape key
@@ -174,6 +198,7 @@ export default function WelcomeOverlay() {
             />
 
             <QRCode 
+              id="foundation-qr-code-svg"
               value={currentUrl} 
               size={200}
               level="H"
@@ -234,6 +259,26 @@ export default function WelcomeOverlay() {
               }}
             >
               <QrCode size={20} /> Scan & Enter Official Platform <ChevronRight size={18} />
+            </button>
+
+            <button
+              onClick={handleDownloadKeyringQR}
+              style={{
+                background: 'rgba(14, 165, 233, 0.15)',
+                border: '1px solid rgba(14, 165, 233, 0.4)',
+                color: '#38BDF8',
+                padding: '0.7rem 1.25rem',
+                borderRadius: '30px',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <Smartphone size={16} /> 🖨️ Download Printable Keyring QR (300 DPI)
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
