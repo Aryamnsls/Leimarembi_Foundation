@@ -78,6 +78,16 @@ export default function WelcomeOverlay() {
     }
   };
 
+  const [preloadedLogo, setPreloadedLogo] = useState<HTMLImageElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const img = new window.Image();
+      img.onload = () => setPreloadedLogo(img);
+      img.src = EMBLEM_LOGO_BASE64;
+    }
+  }, []);
+
   const handleDownloadKeyringQR = () => {
     if (typeof window !== 'undefined') {
       const svg = document.getElementById('foundation-qr-code-svg');
@@ -112,31 +122,23 @@ export default function WelcomeOverlay() {
           ctx.arc(500, 500, 110, 0, 2 * Math.PI);
           ctx.fill();
 
-          // 5. Draw Official Production Emblem Logo Badge
-          const logoImg = document.createElement('img');
-          let downloaded = false;
-          const triggerDownload = () => {
-            if (downloaded) return;
-            downloaded = true;
-            try {
-              ctx.drawImage(logoImg, 390, 390, 220, 220);
-            } catch (e) {
-              console.error('Logo draw error:', e);
-            }
-            const pngUrl = canvas.toDataURL('image/png');
-            const downloadLink = document.createElement('a');
-            downloadLink.href = pngUrl;
-            downloadLink.download = 'Leimarembi_Foundation_Keyring_QR_300DPI.png';
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-            document.body.removeChild(downloadLink);
-          };
-
-          logoImg.onload = triggerDownload;
-          logoImg.src = EMBLEM_LOGO_BASE64;
-          if (logoImg.complete) {
-            triggerDownload();
+          // 5. Draw Official Production Emblem Logo Badge SYNCHRONOUSLY
+          if (preloadedLogo) {
+            ctx.drawImage(preloadedLogo, 390, 390, 220, 220);
+          } else {
+            const fallbackImg = new window.Image();
+            fallbackImg.src = EMBLEM_LOGO_BASE64;
+            ctx.drawImage(fallbackImg, 390, 390, 220, 220);
           }
+
+          // 6. Trigger PNG Download SYNCHRONOUSLY
+          const pngUrl = canvas.toDataURL('image/png');
+          const downloadLink = document.createElement('a');
+          downloadLink.href = pngUrl;
+          downloadLink.download = 'Leimarembi_Foundation_Keyring_QR_300DPI.png';
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
         }
       };
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
