@@ -3,40 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leimarembi Foundation | Digital Governance Platform</title>
-    <meta http-equiv="refresh" content="0; url=/website/">
-    <script>
-        window.location.href = "/website/";
-    </script>
+    <title>Leimarembi Foundation | Official Digital Governance & QR Portal</title>
+    <meta name="description" content="Official Digital Governance & Community Development Platform for Leimarembi Foundation in Northeast India.">
+    
+    <!-- OpenGraph & WhatsApp Sharing Cards -->
+    <meta property="og:title" content="Leimarembi Foundation | Official Digital Governance & QR Portal">
+    <meta property="og:description" content="Scan the Executive QR Gateway Code or click to access Official Governance, Executive Board Meetings, and Health Welfare.">
+    <meta property="og:image" content="/website/public/leimarembi_qr_preview.jpg">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="icon" href="/website/public/leimarembi_official_logo.png" type="image/png">
+    
+    <!-- QR Code Generator Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background: #0F172A;
             color: #FFFFFF;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            margin: 0;
+            padding: 1.5rem;
+            overflow-x: hidden;
+        }
+        .gateway-card {
+            background: linear-gradient(145deg, #0F172A 0%, #1E293B 100%);
+            border: 2px solid rgba(245, 158, 11, 0.4);
+            border-radius: 28px;
+            padding: 2.5rem 2rem;
+            max-width: 500px;
+            width: 100%;
             text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 158, 11, 0.2);
+            position: relative;
         }
-        .container {
-            padding: 2rem;
-            background: rgba(30, 41, 59, 0.8);
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #F59E0B;
+            font-size: 0.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 1.25rem;
         }
-        h1 { font-size: 1.8rem; color: #38BDF8; margin-bottom: 0.5rem; }
-        p { color: #94A3B8; font-size: 1rem; }
-        a { color: #10B981; font-weight: bold; text-decoration: none; }
+        .title {
+            font-size: 1.75rem;
+            font-weight: 900;
+            color: #FFFFFF;
+            margin-bottom: 0.35rem;
+            letter-spacing: 0.5px;
+        }
+        .subtitle-script {
+            font-size: 1.25rem;
+            color: #94A3B8;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .qr-box {
+            position: relative;
+            background: #FFFFFF;
+            padding: 1.5rem;
+            border-radius: 24px;
+            display: inline-block;
+            margin: 0 auto 1.5rem;
+            border: 4px solid #F59E0B;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .qr-box:hover {
+            transform: scale(1.02);
+        }
+        .scan-beam {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #06B6D4, #F59E0B, transparent);
+            box-shadow: 0 0 12px #06B6D4;
+            animation: scanBeam 2.5s infinite ease-in-out;
+        }
+        @keyframes scanBeam {
+            0% { top: 5%; opacity: 0.3; }
+            50% { top: 90%; opacity: 1; }
+            100% { top: 5%; opacity: 0.3; }
+        }
+        .emblem-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: #FFFFFF;
+            border-radius: 50%;
+            padding: 4px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 48px; height: 48px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .emblem-overlay img {
+            width: 38px; height: 38px; border-radius: 50%; object-fit: contain;
+        }
+        .verified-tag {
+            font-size: 0.78rem;
+            color: #CBD5E1;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+        .btn-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        .btn {
+            width: 100%;
+            padding: 0.85rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 900;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+            color: #000000;
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+        }
+        .btn-gold:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .btn-blue {
+            background: rgba(14, 165, 233, 0.15);
+            border: 1px solid rgba(14, 165, 233, 0.4);
+            color: #38BDF8;
+            font-size: 0.85rem;
+            border-radius: 30px;
+            padding: 0.7rem 1.25rem;
+        }
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        .btn-green {
+            background: rgba(37, 211, 102, 0.15);
+            border: 1px solid rgba(37, 211, 102, 0.4);
+            color: #25D366;
+            font-size: 0.85rem;
+            border-radius: 30px;
+            padding: 0.65rem 1rem;
+        }
+        .btn-outline {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #FFFFFF;
+            font-size: 0.85rem;
+            border-radius: 30px;
+            padding: 0.65rem 1rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Leimarembi Foundation Platform</h1>
-        <p>Redirecting to official digital governance portal...</p>
-        <p>If you are not redirected automatically, <a href="/website/">click here to proceed to Website Portal</a>.</p>
+
+    <div class="gateway-card">
+        <div class="header-badge">
+            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+            OFFICIAL EXECUTIVE QR GATEWAY
+        </div>
+
+        <h1 class="title">Leimarembi Foundation</h1>
+        <div class="subtitle-script">ꯂꯩꯃꯔꯦꯝꯕꯤ ꯐꯥꯎꯟꯗꯦꯁꯟ</div>
+
+        <!-- DYNAMIC QR DISPLAY -->
+        <div className="qr-box" class="qr-box" id="qrContainer" onclick="proceedToPortal()">
+            <div class="scan-beam"></div>
+            <div id="qrcode"></div>
+            <div class="emblem-overlay">
+                <img src="/website/public/leimarembi_official_logo.png" alt="Foundation Seal" onerror="this.src='/website/public/members/angom_bidyut_singha.jpeg'; this.onerror=null;">
+            </div>
+        </div>
+
+        <div class="verified-tag">
+            🔒 Verified Digital Gateway • Tap QR Code or Button to Enter
+        </div>
+
+        <div class="btn-stack">
+            <button onclick="proceedToPortal()" class="btn btn-gold">
+                <i data-lucide="qr-code" style="width:20px;height:20px;"></i>
+                Scan & Enter Official Platform →
+            </button>
+
+            <button onclick="downloadKeyringQR()" class="btn btn-blue">
+                <i data-lucide="smartphone" style="width:16px;height:16px;"></i>
+                🖨️ Download Printable Keyring QR (300 DPI)
+            </button>
+
+            <div class="btn-grid">
+                <button onclick="shareWhatsApp()" class="btn btn-green">
+                    <i data-lucide="share-2" style="width:16px;height:16px;"></i> WhatsApp
+                </button>
+                <button onclick="copyLink()" class="btn btn-outline" id="copyBtn">
+                    <i data-lucide="copy" style="width:16px;height:16px;"></i> Copy Link
+                </button>
+            </div>
+        </div>
     </div>
+
+    <script>
+        lucide.createIcons();
+        const portalUrl = window.location.origin;
+
+        // Generate QR Code dynamically
+        new QRCode(document.getElementById("qrcode"), {
+            text: portalUrl + "/?qr=1",
+            width: 190,
+            height: 190,
+            colorDark : "#0F172A",
+            colorLight : "#FFFFFF",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        function proceedToPortal() {
+            window.location.href = portalUrl + "/website/";
+        }
+
+        function shareWhatsApp() {
+            const text = encodeURIComponent(
+                "🏛️ *LEIMAREMBI FOUNDATION - OFFICIAL DIGITAL GOVERNANCE PORTAL*\n\n" +
+                "Scan the official QR Code or tap the link below to access Executive Board Meetings, News Hub, Member Roster & Governance Archives:\n\n" +
+                "🔗 " + portalUrl
+            );
+            window.open("https://api.whatsapp.com/send?text=" + text, "_blank");
+        }
+
+        function copyLink() {
+            navigator.clipboard.writeText(portalUrl);
+            const btn = document.getElementById("copyBtn");
+            btn.innerHTML = `<i data-lucide="check" style="width:16px;height:16px;color:#10B981;"></i> Copied!`;
+            lucide.createIcons();
+            setTimeout(() => {
+                btn.innerHTML = `<i data-lucide="copy" style="width:16px;height:16px;"></i> Copy Link`;
+                lucide.createIcons();
+            }, 2500);
+        }
+
+        function downloadKeyringQR() {
+            const canvas = document.querySelector("#qrcode canvas");
+            if (!canvas) return;
+            const printCanvas = document.createElement("canvas");
+            printCanvas.width = 1000;
+            printCanvas.height = 1000;
+            const ctx = printCanvas.getContext("2d");
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(0, 0, 1000, 1000);
+            ctx.strokeStyle = "#F59E0B";
+            ctx.lineWidth = 20;
+            ctx.strokeRect(10, 10, 980, 980);
+            ctx.drawImage(canvas, 100, 100, 800, 800);
+            
+            const link = document.createElement("a");
+            link.download = "Leimarembi_Foundation_Keyring_QR_300DPI.png";
+            link.href = printCanvas.toDataURL("image/png");
+            link.click();
+        }
+    </script>
 </body>
 </html>
