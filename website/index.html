@@ -481,6 +481,7 @@
                     ctx.stroke();
 
                     const logoImg = new Image();
+                    logoImg.crossOrigin = "anonymous";
                     logoImg.onload = () => {
                         ctx.drawImage(logoImg, 420, 420, 160, 160);
                         const link = document.createElement("a");
@@ -488,7 +489,23 @@
                         link.href = printCanvas.toDataURL("image/png");
                         link.click();
                     };
-                    logoImg.src = "/website/public/leimarembi_official_logo.png";
+                    logoImg.onerror = () => {
+                        // Draw fallback emblem green leaf/hands symbol if image path fails
+                        ctx.fillStyle = "#10B981";
+                        ctx.beginPath();
+                        ctx.arc(500, 480, 40, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = "#1B2A57";
+                        ctx.font = "bold 24px sans-serif";
+                        ctx.textAlign = "center";
+                        ctx.fillText("LEIMAREMBI", 500, 550);
+
+                        const link = document.createElement("a");
+                        link.download = "Leimarembi_Foundation_Keyring_QR_300DPI.png";
+                        link.href = printCanvas.toDataURL("image/png");
+                        link.click();
+                    };
+                    logoImg.src = "/leimarembi_official_logo.png";
                 }
             }, 100);
         }

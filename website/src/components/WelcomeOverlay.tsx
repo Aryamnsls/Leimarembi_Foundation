@@ -88,21 +88,46 @@ export default function WelcomeOverlay() {
         canvas.width = 1000;
         canvas.height = 1000;
         if (ctx) {
-          // Draw high resolution white background with gold border for physical keyring print
+          // 1. Draw rounded white card background
           ctx.fillStyle = '#FFFFFF';
-          ctx.fillRect(0, 0, 1000, 1000);
-          ctx.strokeStyle = '#F59E0B';
-          ctx.lineWidth = 20;
-          ctx.strokeRect(10, 10, 980, 980);
+          ctx.beginPath();
+          ctx.roundRect(0, 0, 1000, 1000, 80);
+          ctx.fill();
           
-          ctx.drawImage(img, 100, 100, 800, 800);
-          const pngUrl = canvas.toDataURL('image/png');
-          const downloadLink = document.createElement('a');
-          downloadLink.href = pngUrl;
-          downloadLink.download = 'Leimarembi_Foundation_Keyring_QR_300DPI.png';
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          document.body.removeChild(downloadLink);
+          // 2. Draw gold rounded border matching user screenshot
+          ctx.strokeStyle = '#F59E0B';
+          ctx.lineWidth = 24;
+          ctx.beginPath();
+          ctx.roundRect(12, 12, 976, 976, 75);
+          ctx.stroke();
+          
+          // 3. Draw QR Code matrix
+          ctx.drawImage(img, 120, 120, 760, 760);
+
+          // 4. Draw Central White Circle Badge
+          ctx.fillStyle = '#FFFFFF';
+          ctx.beginPath();
+          ctx.arc(500, 500, 100, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.strokeStyle = '#E2E8F0';
+          ctx.lineWidth = 6;
+          ctx.stroke();
+
+          // 5. Draw Emblem Logo Symbol inside Central Badge
+          const logoImg = document.createElement('img');
+          logoImg.onload = () => {
+            ctx.drawImage(logoImg, 420, 420, 160, 160);
+
+            // 6. Trigger PNG download
+            const pngUrl = canvas.toDataURL('image/png');
+            const downloadLink = document.createElement('a');
+            downloadLink.href = pngUrl;
+            downloadLink.download = 'Leimarembi_Foundation_Keyring_QR_300DPI.png';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+          };
+          logoImg.src = '/leimarembi_official_logo.png';
         }
       };
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
