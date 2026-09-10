@@ -5,6 +5,10 @@ DirectoryIndex index.html index.php
     RewriteEngine On
     RewriteBase /
 
+    # Rewrite /website or /website/ directly to root index.html with QSA
+    RewriteRule ^website/?$ /index.html [QSA,L]
+    RewriteRule ^website/(.*)$ /$1 [QSA,L]
+
     # Ensure query string (like ?qr=1) is passed through
     RewriteCond %{QUERY_STRING} (^|&)qr= [NC]
     RewriteRule ^$ index.html [QSA,L]
