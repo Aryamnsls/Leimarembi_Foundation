@@ -130,16 +130,25 @@ export default function WelcomeOverlay() {
             triggerDownload();
           };
           logoImg.onerror = () => {
-            // Fallback emblem draw if image path fails
-            ctx.fillStyle = '#10B981';
-            ctx.beginPath();
-            ctx.arc(500, 480, 40, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#1E293B';
-            ctx.font = 'bold 24px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('LEIMAREMBI', 500, 550);
-            triggerDownload();
+            // Retry alternate logo path
+            const retryImg = document.createElement('img');
+            retryImg.crossOrigin = 'anonymous';
+            retryImg.onload = () => {
+              ctx.drawImage(retryImg, 420, 420, 160, 160);
+              triggerDownload();
+            };
+            retryImg.onerror = () => {
+              ctx.fillStyle = '#10B981';
+              ctx.beginPath();
+              ctx.arc(500, 480, 40, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = '#1E293B';
+              ctx.font = 'bold 24px sans-serif';
+              ctx.textAlign = 'center';
+              ctx.fillText('LEIMAREMBI', 500, 550);
+              triggerDownload();
+            };
+            retryImg.src = '/website/public/leimarembi_official_logo.png';
           };
           logoImg.src = '/leimarembi_official_logo.png';
         }
