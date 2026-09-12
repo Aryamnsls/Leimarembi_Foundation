@@ -99,6 +99,16 @@ function LoginCard() {
     familyMembersCount: 1,
   });
 
+  // Google Details Completion Popup Modal
+  const [showGoogleDetailsModal, setShowGoogleDetailsModal] = useState(false);
+  const [pendingGoogleAuth, setPendingGoogleAuth] = useState<{ token: string; user: any } | null>(null);
+  const [googleDetailsForm, setGoogleDetailsForm] = useState({
+    bloodGroup: "",
+    isSeniorCitizen: false,
+    phone: "",
+    address: ""
+  });
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -121,6 +131,8 @@ function LoginCard() {
         userEmail: data.data.user.email,
         userPhone: data.data.user.phone,
         membershipNo: data.data.user.membershipNo,
+        bloodGroup: data.data.user.bloodGroup,
+        isSeniorCitizen: data.data.user.isSeniorCitizen,
         provider: "LOCAL",
         details: isSuperAdmin(data.data.user) ? "Super Admin Logged In" : "Member Signed In",
       });
@@ -145,6 +157,11 @@ function LoginCard() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!registerData.bloodGroup) {
+      setError("Please select your Blood Group.");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSuccess("");
@@ -164,8 +181,10 @@ function LoginCard() {
         userEmail: data.data.user.email,
         userPhone: data.data.user.phone,
         membershipNo: data.data.user.membershipNo,
+        bloodGroup: registerData.bloodGroup,
+        isSeniorCitizen: registerData.isSeniorCitizen,
         provider: "LOCAL",
-        details: "New Member Registered via Portal Form",
+        details: `Official Member Registration • ${registerData.isSeniorCitizen ? "Senior Citizen (Health Card Eligible)" : "Non-Senior Citizen"} (${registerData.bloodGroup})`,
       });
 
       setSuccess(`Welcome, ${data.data.user.name}! Your membership ID is ${data.data.user.membershipNo}. Please login.`);
@@ -191,24 +210,61 @@ function LoginCard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Google authentication failed");
 
-      saveSession(data.data.token, data.data.user);
+      const user = data.data.user;
+      const token = data.data.token;
 
-      // Record Google sign-in in live audit feed
+      // If user is Super Admin, whitelist credentials allow direct entry
+      if (isSuperAdmin(user)) {
+        saveSession(token, user);
+        recordActivity({
+          type: "SIGN_IN",
+          userName: user.name,
+          userEmail: user.email,
+          userPhone: user.phone || "7099659804",
+          membershipNo: user.membershipNo || "LF-2026-0001",
+          bloodGroup: user.bloodGroup || (user.email === "binababu.singha@yahoo.com" ? "AB+" : "A+"),
+          isSeniorCitizen: user.email === "binababu.singha@yahoo.com",
+          provider: "GOOGLE",
+          details: "Super Admin Live Sign-In via Google OAuth",
+        });
+        router.push("/superadmin");
+        return;
+      }
+
+      // Mandatory check: If Blood Group or Senior Citizen status is not specified yet, pop up modal!
+      const hasBloodGroup = Boolean(user.bloodGroup && user.bloodGroup.trim());
+      const hasSeniorCitizen = user.isSeniorCitizen !== null && user.isSeniorCitizen !== undefined;
+
+      if (!hasBloodGroup || !hasSeniorCitizen) {
+        setPendingGoogleAuth({ token, user });
+        setGoogleDetailsForm({
+          bloodGroup: user.bloodGroup || "",
+          isSeniorCitizen: Boolean(user.isSeniorCitizen),
+          phone: user.phone || "",
+          address: user.address || ""
+        });
+        setShowGoogleDetailsModal(true);
+        setLoading(false);
+        return;
+      }
+
+      // Existing verified user
+      saveSession(token, user);
       recordActivity({
         type: "SIGN_IN",
-        userName: data.data.user.name,
-        userEmail: data.data.user.email,
-        userPhone: data.data.user.phone,
-        membershipNo: data.data.user.membershipNo,
+        userName: user.name,
+        userEmail: user.email,
+        userPhone: user.phone,
+        membershipNo: user.membershipNo,
+        bloodGroup: user.bloodGroup,
+        isSeniorCitizen: user.isSeniorCitizen,
         provider: "GOOGLE",
-        details: isSuperAdmin(data.data.user) ? "Super Admin Logged In via Google" : "User Authenticated via Google",
+        details: `Member Signed In via Google • ${user.isSeniorCitizen ? "Senior Citizen" : "Non-Senior Citizen"} (${user.bloodGroup})`,
       });
 
       if (redirectTo) {
         router.push(redirectTo);
-      } else if (isSuperAdmin(data.data.user)) {
-        router.push("/superadmin");
-      } else if (data.data.user.role === "ADMIN") {
+      } else if (user.role === "ADMIN") {
         router.push("/management");
       } else {
         router.push("/portal");
@@ -218,6 +274,70 @@ function LoginCard() {
       setError(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCompleteGoogleRegistration = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pendingGoogleAuth) return;
+    if (!googleDetailsForm.bloodGroup) {
+      setError("Please select your Blood Group to complete registration.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    const updatedUser = {
+      ...pendingGoogleAuth.user,
+      bloodGroup: googleDetailsForm.bloodGroup,
+      isSeniorCitizen: Boolean(googleDetailsForm.isSeniorCitizen),
+      phone: googleDetailsForm.phone || pendingGoogleAuth.user.phone || "",
+      address: googleDetailsForm.address || pendingGoogleAuth.user.address || "",
+    };
+
+    try {
+      await fetch(`${API_BASE_URL}/auth/update-profile`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${pendingGoogleAuth.token}`
+        },
+        body: JSON.stringify({
+          bloodGroup: googleDetailsForm.bloodGroup,
+          isSeniorCitizen: googleDetailsForm.isSeniorCitizen,
+          phone: googleDetailsForm.phone,
+          address: googleDetailsForm.address
+        }),
+      }).catch(() => {});
+    } catch {}
+
+    saveSession(pendingGoogleAuth.token, updatedUser);
+
+    // Live update audit feed for Super Admin
+    recordActivity({
+      type: "REGISTER",
+      userName: updatedUser.name,
+      userEmail: updatedUser.email,
+      userPhone: updatedUser.phone,
+      membershipNo: updatedUser.membershipNo,
+      bloodGroup: updatedUser.bloodGroup,
+      isSeniorCitizen: updatedUser.isSeniorCitizen,
+      provider: "GOOGLE",
+      details: `Google Member Registration Completed • ${updatedUser.isSeniorCitizen ? "Senior Citizen (Health Card Eligible)" : "Non-Senior Citizen"} (${updatedUser.bloodGroup})`,
+    });
+
+    setShowGoogleDetailsModal(false);
+    setLoading(false);
+
+    if (redirectTo) {
+      router.push(redirectTo);
+    } else if (isSuperAdmin(updatedUser)) {
+      router.push("/superadmin");
+    } else if (updatedUser.role === "ADMIN") {
+      router.push("/management");
+    } else {
+      router.push("/portal");
     }
   };
 
@@ -605,9 +725,10 @@ function LoginCard() {
 
                 <div>
                   <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.3rem" }}>
-                    Blood Group
+                    Blood Group *
                   </label>
                   <select
+                    required
                     value={registerData.bloodGroup}
                     onChange={(e) => setRegisterData({ ...registerData, bloodGroup: e.target.value })}
                     style={{
@@ -621,7 +742,7 @@ function LoginCard() {
                       outline: "none"
                     }}
                   >
-                    <option value="">Select</option>
+                    <option value="">-- Select --</option>
                     {bloodGroups.map((bg) => (
                       <option key={bg} value={bg}>{bg}</option>
                     ))}
@@ -651,26 +772,43 @@ function LoginCard() {
                 />
               </div>
 
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-color)", padding: "0.6rem 0.85rem", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
-                <label style={{ fontSize: "0.8rem", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
-                  <input
-                    type="checkbox"
-                    checked={registerData.isSeniorCitizen}
-                    onChange={(e) => setRegisterData({ ...registerData, isSeniorCitizen: e.target.checked })}
-                  />
-                  Senior Citizen
+              {/* Age Category: Senior Citizen vs Non-Senior Citizen */}
+              <div style={{ background: "var(--bg-color)", padding: "0.75rem 0.85rem", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.35rem" }}>
+                  Age Category & Health Privilege *
                 </label>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Family:</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="15"
-                    value={registerData.familyMembersCount}
-                    onChange={(e) => setRegisterData({ ...registerData, familyMembersCount: parseInt(e.target.value) || 1 })}
-                    style={{ width: "45px", padding: "0.2rem 0.4rem", borderRadius: "4px", border: "1px solid var(--border-color)", fontSize: "0.85rem" }}
-                  />
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                  <label style={{ fontSize: "0.825rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="ageCategory"
+                      checked={!registerData.isSeniorCitizen}
+                      onChange={() => setRegisterData({ ...registerData, isSeniorCitizen: false })}
+                    />
+                    <span><strong>Non-Senior Citizen</strong> (General Membership)</span>
+                  </label>
+                  <label style={{ fontSize: "0.825rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "#D97706" }}>
+                    <input
+                      type="radio"
+                      name="ageCategory"
+                      checked={registerData.isSeniorCitizen}
+                      onChange={() => setRegisterData({ ...registerData, isSeniorCitizen: true })}
+                    />
+                    <span><strong>Senior Citizen (60+ Years)</strong> — ★ Free Health Card Privilege</span>
+                  </label>
                 </div>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-color)", padding: "0.5rem 0.85rem", borderRadius: "8px", border: "1px solid var(--border-color)" }}>
+                <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)" }}>Family Members Count:</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="15"
+                  value={registerData.familyMembersCount}
+                  onChange={(e) => setRegisterData({ ...registerData, familyMembersCount: parseInt(e.target.value) || 1 })}
+                  style={{ width: "55px", padding: "0.2rem 0.4rem", borderRadius: "4px", border: "1px solid var(--border-color)", fontSize: "0.85rem" }}
+                />
               </div>
 
               <button
@@ -697,6 +835,138 @@ function LoginCard() {
           )}
         </div>
       </div>
+
+      {/* ── GOOGLE REGISTRATION COMPLETION MODAL (DESKTOP & MOBILE RESPONSIVE) ── */}
+      {showGoogleDetailsModal && pendingGoogleAuth && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.75)",
+          backdropFilter: "blur(8px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 99999,
+          padding: "1rem"
+        }}>
+          <div className="card" style={{
+            maxWidth: "480px",
+            width: "100%",
+            borderRadius: "24px",
+            padding: "2rem",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.5)",
+            border: "2px solid var(--secondary-color)"
+          }}>
+            <div style={{ textAlign: "center", marginBottom: "1.25rem" }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "rgba(212, 175, 55, 0.15)", color: "var(--secondary-color)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 0.75rem" }}>
+                <Shield size={28} />
+              </div>
+              <h3 style={{ margin: "0 0 4px", fontSize: "1.3rem", fontWeight: 900, color: "var(--primary-color)" }}>
+                Mandatory Registration Details
+              </h3>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                Welcome, <strong>{pendingGoogleAuth.user.name}</strong>! Under Leimarembi Foundation charter, please specify your <strong>Blood Group</strong> and <strong>Senior / Non-Senior</strong> status to complete registration.
+              </p>
+            </div>
+
+            <form onSubmit={handleCompleteGoogleRegistration} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.3rem" }}>
+                  Google Account Email
+                </label>
+                <input
+                  type="text"
+                  disabled
+                  value={pendingGoogleAuth.user.email}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border-color)", background: "rgba(0,0,0,0.05)", color: "var(--text-muted)", fontSize: "0.85rem" }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.825rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.3rem" }}>
+                  Blood Group * (Required for Health Register)
+                </label>
+                <select
+                  required
+                  value={googleDetailsForm.bloodGroup}
+                  onChange={(e) => setGoogleDetailsForm({ ...googleDetailsForm, bloodGroup: e.target.value })}
+                  style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "8px", border: "1.5px solid var(--primary-color)", background: "var(--bg-color)", color: "var(--text-primary)", fontSize: "0.9rem", fontWeight: 700 }}
+                >
+                  <option value="">-- Select Your Blood Group --</option>
+                  {bloodGroups.map((bg) => (
+                    <option key={bg} value={bg}>{bg}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ background: "var(--bg-color)", padding: "0.85rem", borderRadius: "10px", border: "1px solid var(--border-color)" }}>
+                <label style={{ display: "block", fontSize: "0.825rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
+                  Age Category (Senior Citizen Section) *
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  <label style={{ fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="googleSeniorCategory"
+                      checked={!googleDetailsForm.isSeniorCitizen}
+                      onChange={() => setGoogleDetailsForm({ ...googleDetailsForm, isSeniorCitizen: false })}
+                    />
+                    <span><strong>Non-Senior Citizen</strong> (General Member)</span>
+                  </label>
+                  <label style={{ fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", color: "#D97706" }}>
+                    <input
+                      type="radio"
+                      name="googleSeniorCategory"
+                      checked={googleDetailsForm.isSeniorCitizen}
+                      onChange={() => setGoogleDetailsForm({ ...googleDetailsForm, isSeniorCitizen: true })}
+                    />
+                    <span><strong>Senior Citizen (60+ Years)</strong> — ★ Eligible for Free Health Card</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.3rem" }}>
+                  Primary Contact Phone Number *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="+91 98765 43210"
+                  value={googleDetailsForm.phone}
+                  onChange={(e) => setGoogleDetailsForm({ ...googleDetailsForm, phone: e.target.value })}
+                  style={{ width: "100%", padding: "0.6rem 0.75rem", borderRadius: "8px", border: "1px solid var(--border-color)", background: "var(--bg-color)", color: "var(--text-primary)", fontSize: "0.85rem" }}
+                />
+              </div>
+
+              {error && (
+                <p style={{ color: "#EF4444", fontSize: "0.85rem", margin: 0, fontWeight: 700 }}>
+                  {error}
+                </p>
+              )}
+
+              <div style={{ display: "flex", gap: "8px", marginTop: "0.5rem" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowGoogleDetailsModal(false)}
+                  className="btn btn-outline"
+                  style={{ flex: 1, justifyContent: "center" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="btn btn-primary"
+                  style={{ flex: 2, justifyContent: "center" }}
+                >
+                  {loading ? "Saving Profile..." : "Complete Registration & Enter"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div style={{ marginTop: "2rem", textAlign: "center" }}>
         <Link href="/" style={{ color: "var(--text-secondary)", fontSize: "0.875rem", fontWeight: 600 }}>

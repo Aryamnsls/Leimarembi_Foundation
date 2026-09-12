@@ -117,8 +117,9 @@ export default function SuperAdminPage() {
 
   // Senior Citizen Directory & Health Card preview modals
   const [showSeniorCitizenModal, setShowSeniorCitizenModal] = useState(false);
+  const [showNonSeniorModal, setShowNonSeniorModal] = useState(false);
   const [seniorCitizenHealthCard, setSeniorCitizenHealthCard] = useState<any | null>(null);
-  const [activityFilter, setActivityFilter] = useState<'ALL' | 'SENIOR'>('ALL');
+  const [activityFilter, setActivityFilter] = useState<'ALL' | 'SENIOR' | 'NON_SENIOR'>('ALL');
 
   // Official Senior Citizen members from verified foundation ledger (All 7 Members)
   const seniorCitizenList = useMemo(() => {
@@ -142,10 +143,35 @@ export default function SuperAdminPage() {
     return Array.from(seniorsMap.values());
   }, [activityLogs]);
 
-  // Filtered activity logs (All vs Senior Citizens only)
+  // Official Non-Senior Citizen members from verified foundation ledger (General Members & Directorate)
+  const nonSeniorCitizenList = useMemo(() => {
+    const nonSeniorsMap = new Map<string, any>();
+    activityLogs
+      .filter((l) => l.isSeniorCitizen === false)
+      .forEach((l) => {
+        if (!nonSeniorsMap.has(l.userName)) {
+          nonSeniorsMap.set(l.userName, {
+            name: l.userName,
+            phone: l.userPhone || '',
+            email: l.userEmail || 'Waiting',
+            bloodGroup: l.bloodGroup || 'N/A',
+            membershipNo: l.membershipNo || 'LF-MEMBER',
+            isSeniorCitizen: false,
+            status: 'ACTIVE',
+            category: l.userName === 'Aryaman Singha' ? 'Super Administrator & Directorate' : 'Non-Senior Citizen Member'
+          });
+        }
+      });
+    return Array.from(nonSeniorsMap.values());
+  }, [activityLogs]);
+
+  // Filtered activity logs (All vs Senior Citizens vs Non-Senior Citizens)
   const displayedActivityLogs = useMemo(() => {
     if (activityFilter === 'SENIOR') {
       return activityLogs.filter((l) => l.isSeniorCitizen);
+    }
+    if (activityFilter === 'NON_SENIOR') {
+      return activityLogs.filter((l) => l.isSeniorCitizen === false);
     }
     return activityLogs;
   }, [activityLogs, activityFilter]);
@@ -161,7 +187,7 @@ export default function SuperAdminPage() {
     isSeniorCitizen: false
   });
 
-  // Check Super Admin Authorization
+  // Check Super Admin Authorization & Live Storage Sync
   useEffect(() => {
     const userStr = localStorage.getItem('lf_user');
     let userObj: any = null;
@@ -187,6 +213,13 @@ export default function SuperAdminPage() {
 
     setActivityLogs(getActivityLogs());
     setCheckingAuth(false);
+
+    // Live update listener: when someone registers in another tab/window, live update immediately!
+    const handleStorage = () => {
+      setActivityLogs(getActivityLogs());
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   // Save members to localStorage whenever updated
@@ -562,6 +595,32 @@ export default function SuperAdminPage() {
             <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 800 }}>Open Directory ↗</span>
           </div>
         </div>
+
+        {/* 5. Non-Senior Citizen Members (Live updating Section) */}
+        <div
+          onClick={() => setShowNonSeniorModal(true)}
+          className="card"
+          style={{
+            borderLeft: '4px solid #0EA5E9',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            background: 'linear-gradient(180deg, var(--card-bg) 0%, rgba(14, 165, 233, 0.06) 100%)',
+            boxShadow: '0 4px 14px rgba(14, 165, 233, 0.12)'
+          }}
+          title="Click to view Non-Senior Citizen Members Directory"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Non-Senior Citizen Members</span>
+            <Users size={20} color="#0EA5E9" />
+          </div>
+          <p style={{ fontSize: '2.25rem', fontWeight: 900, margin: '0.5rem 0 0', color: '#0EA5E9' }}>
+            {nonSeniorCitizenList.length}
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: '#0284C7', fontWeight: 800 }}>👥 General & Directorate ({nonSeniorCitizenList.length})</span>
+            <span style={{ fontSize: '0.75rem', color: '#0EA5E9', fontWeight: 800 }}>Open Directory ↗</span>
+          </div>
+        </div>
       </div>
 
       {/* Main Controls & Tabs */}
@@ -635,8 +694,8 @@ export default function SuperAdminPage() {
                 </p>
               </div>
 
-              {/* Quick Filter: All Activity vs Senior Citizens Only */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {/* Quick Filter: All Activity vs Senior Citizens vs Non-Senior Citizens */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Stream Filter:</span>
                 <button
                   onClick={() => setActivityFilter('ALL')}
@@ -666,7 +725,22 @@ export default function SuperAdminPage() {
                     cursor: 'pointer'
                   }}
                 >
-                  ★ Senior Citizens Only ({seniorCitizenList.length})
+                  ★ Senior Citizens ({seniorCitizenList.length})
+                </button>
+                <button
+                  onClick={() => setActivityFilter('NON_SENIOR')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: '1px solid rgba(14, 165, 233, 0.4)',
+                    background: activityFilter === 'NON_SENIOR' ? '#0284C7' : 'rgba(14, 165, 233, 0.1)',
+                    color: activityFilter === 'NON_SENIOR' ? '#FFFFFF' : '#0284C7',
+                    cursor: 'pointer'
+                  }}
+                >
+                  👥 Non-Senior Citizens ({nonSeniorCitizenList.length})
                 </button>
               </div>
             </div>
@@ -1400,6 +1474,162 @@ export default function SuperAdminPage() {
               <button onClick={() => setSeniorCitizenHealthCard(null)} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}>
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: NON-SENIOR CITIZEN MEMBERS DIRECTORY ── */}
+      {showNonSeniorModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div className="card" style={{ maxWidth: '900px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '24px', padding: '2rem', border: '2px solid rgba(14, 165, 233, 0.4)', boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <Users size={24} color="#0EA5E9" />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0284C7', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Foundation General Membership & Directorate
+                  </span>
+                  <span style={{ background: 'rgba(14, 165, 233, 0.15)', color: '#0284C7', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
+                    {nonSeniorCitizenList.length} Active Members
+                  </span>
+                </div>
+                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+                  Non-Senior Citizen Members Directory
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Exclusively accessible by Super Administrators Aryaman Singha & M. Bina Babu Singha.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowNonSeniorModal(false)}
+                className="btn btn-outline"
+                style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Non-Senior Table */}
+            <div className="table-responsive" style={{ marginBottom: '1.5rem' }}>
+              <table>
+                <thead>
+                  <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
+                    <th style={{ padding: '0.8rem 1rem' }}>#</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Member Name</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Contact Phone</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Email Address</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Blood Group</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Category & Role</th>
+                    <th style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>Member ID</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {nonSeniorCitizenList.map((member, idx) => (
+                    <tr key={member.name} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '0.8rem 1rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontWeight: 700 }}>
+                        <div style={{ color: 'var(--text-primary)' }}>{member.name}</div>
+                        <span style={{ fontSize: '0.7rem', color: '#0284C7', fontWeight: 700 }}>
+                          ● Non-Senior Citizen
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontSize: '0.85rem' }}>
+                        📞 <strong>{member.phone}</strong>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontSize: '0.85rem' }}>
+                        {member.email}
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem' }}>
+                        <span style={{
+                          fontSize: '0.8rem',
+                          fontWeight: 800,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(220, 38, 38, 0.12)',
+                          color: '#DC2626'
+                        }}>
+                          {member.bloodGroup}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem' }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.725rem',
+                          fontWeight: 800,
+                          background: member.name === 'Aryaman Singha' ? 'rgba(212, 175, 55, 0.15)' : 'rgba(14, 165, 233, 0.12)',
+                          color: member.name === 'Aryaman Singha' ? 'var(--secondary-color)' : '#0284C7',
+                          display: 'inline-block'
+                        }}>
+                          {member.category}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>
+                        <button
+                          onClick={() => {
+                            setIdCardMember({
+                              id: `MEM-${String(idx + 10).padStart(3, '0')}`,
+                              name: member.name,
+                              email: member.email,
+                              phone: member.phone,
+                              role: member.name === 'Aryaman Singha' ? 'ADMIN' : 'MEMBER',
+                              status: 'ACTIVE',
+                              membershipNo: member.membershipNo,
+                              bloodGroup: member.bloodGroup,
+                              isSeniorCitizen: false,
+                              registeredAt: 'Verified Ledger',
+                              authProvider: 'LOCAL'
+                            });
+                          }}
+                          className="btn btn-outline"
+                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', gap: '4px' }}
+                          title="Generate & View Official Member ID"
+                        >
+                          <Award size={14} color="var(--secondary-color)" /> Digital ID
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <button
+                onClick={() => {
+                  setShowNonSeniorModal(false);
+                  setActiveTab('ACTIVITY');
+                  setActivityFilter('NON_SENIOR');
+                  const el = document.getElementById('main-controls');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="btn btn-outline"
+                style={{ fontSize: '0.85rem', gap: '6px' }}
+              >
+                <Activity size={16} /> Filter in Real-Time Authentication Stream
+              </button>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => window.print()}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.85rem', gap: '6px' }}
+                >
+                  <Download size={16} /> Print Directory
+                </button>
+                <button
+                  onClick={() => setShowNonSeniorModal(false)}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Done
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -137,6 +137,28 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response) => 
   }
 });
 
+// Update user profile (Blood group, Senior status, Phone, etc.)
+router.put('/update-profile', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const { bloodGroup, isSeniorCitizen, phone, address } = req.body;
+    const updateData: any = {};
+    if (bloodGroup !== undefined) updateData.bloodGroup = bloodGroup;
+    if (isSeniorCitizen !== undefined) updateData.isSeniorCitizen = Boolean(isSeniorCitizen);
+    if (phone !== undefined) updateData.phone = phone;
+    if (address !== undefined) updateData.address = address;
+
+    const user = await prisma.user.update({
+      where: { id: req.user?.id },
+      data: updateData,
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    return sendSuccess(res, 'Profile updated successfully', userWithoutPassword);
+  } catch (error: any) {
+    return sendError(res, error.message || 'Failed to update profile', 500);
+  }
+});
+
 import { OAuth2Client } from 'google-auth-library';
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 

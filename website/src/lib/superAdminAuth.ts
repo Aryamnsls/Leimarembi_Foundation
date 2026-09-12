@@ -111,6 +111,7 @@ export const INITIAL_ACTIVITY_LOGS: ActivityEvent[] = [
     userPhone: "7099659804",
     membershipNo: "LF-2026-0001",
     bloodGroup: "A+",
+    isSeniorCitizen: false,
     timestamp: "13 Sep 2026, 02:00:15",
     provider: "GOOGLE",
     details: "Executive Director Super Admin Live Sign-In via Google OAuth",
