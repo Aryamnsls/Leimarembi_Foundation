@@ -84,6 +84,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
     - `/gallery` (Photo & Video Media Gallery with Multi-Step Upload)
     - `/culture` (Manipuri Cultural Heritage, Pena Songs, Classical Dance, Recipes, Folklore PDFs)
     - `/login` (Member Portal Register & Sign In with DB Verification)
+    - `/superadmin` (Super Admin Command Center with 2-Admin Whitelist, Live Activity Stream, and Member Registry)
   - `src/components/Navbar.tsx` - Sticky navbar with language switcher, theme toggle, and Meetings navigation.
   - `src/components/AIAssistant.tsx` - Intelligent assistant widget branded **POWERED BY Leimarembi Foundation**.
   - `src/app/globals.css` - Design system, styling variables, glassmorphism UI framework.
@@ -120,3 +121,35 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 - **Public View Open**: Notices, Agendas, Attendance Roll Call, Minutes (MoM), and Resolutions can be viewed by all users.
 - **Officer Clearance Action Rules**: Clicking any action button (*Launch Embedded Video Room*, *Google Meet*, *Copy Link*, *Issue Notice*, *Join Session*) triggers the **Official Member Clearance Modal** requiring credentials matching one of the 6 Authorized Executive Officers.
 - **Instant Video Suite**: Embedded HD Video Room + Google Meet Instant Launcher.
+
+### 5. 🛡️ Super Admin Command Center (`/superadmin`)
+- **Hidden & Secure Access**: Hidden from public menus; exclusively accessible to **2 Whitelisted Super Administrators**:
+  1. **Aryaman Singha** — Platform Director & Lead Architect (`aryamansingha60@gmail.com` | `7099659804` | Blood Group: `A+`)
+  2. **M. Bina Babu Singha** — Executive Vice President & Chief Overseer (`binababu.singha@yahoo.com` | `76370-87931` | Blood Group: `AB+` | Senior Citizen)
+- **Member Registry (Read • Write • Execute Clearance)**: Restricted strictly to the 2 Super Administrators for maximum operational control. Includes actions to add records, edit, remove, export roster data (CSV), and generate printable Foundation Member Digital Identity Cards.
+- **Live Cross-Tab Sync**: Integrated with browser `storage` event hooks to update dashboard counters and activity records instantly whenever a new registration occurs across any open tab or session.
+
+### 6. 📊 Interactive KPI Analytics & Directory Drill-Down Modals
+- **5 Clickable Live Metric Cards**:
+  - **Total Registered Members (2)**: Instant anchor jump to Member Registry table.
+  - **Logged Activity Events**: Jump to the live sign-in & registration audit trail.
+  - **Active Members (2)**: Direct filter on active administrators in the Member Registry.
+  - **Senior Citizen Members (7)**: Interactive modal opening the **Senior Citizen Health Card Beneficiary Directory** with emergency contacts, blood groups, and printable Digital Health Cards.
+  - **Non-Senior Citizen Members (6)**: Interactive modal opening the **Non-Senior Citizen Active Directory** with member credentials and Digital Foundation ID Cards.
+- **Live Activity Audit Feed**:
+  - Seeded with verified records from `Documents/Memebers List.jpeg` (12 Foundation Members + Super Admins).
+  - Members marked as "Waiting" (K. Braja Babu Singha & Moni Mohan Singha) have their email field safely omitted from DB records and displayed as `Waiting (No Email Registered)`.
+  - **Stream Filter Pills**: 1-click toggles between `All Stream`, `★ Senior Citizens`, and `👥 Non-Senior Citizens`.
+
+### 7. 🩸 Mandatory Blood Group & Age Category Registration Engine (`/login`)
+- **Mandatory Health Parameters**: Registration form strictly enforces selection of:
+  - **Blood Group**: `A+`, `A-`, `B+`, `B-`, `AB+`, `AB-`, `O+`, `O-`.
+  - **Age Category**: `Non-Senior Citizen (< 60 Years)` vs `Senior Citizen (60+ Years)`.
+- Client-side validation blocks submission until all health parameters are provided.
+
+### 8. 🌐 Google OAuth Mandatory Details Pop-Out Modal
+- **Seamless Desktop & Mobile Interceptor**: When a user registers or logs in via Google OAuth without Blood Group or Age Category saved in their profile:
+  - An interactive, responsive pop-out modal appears immediately on both desktop and mobile viewports.
+  - Prevents platform navigation until the member selects their Blood Group, confirms their Senior/Non-Senior status, and provides their phone number.
+  - Data is synchronized via the `PUT /api/auth/update-profile` endpoint and reflected in real time across the Super Admin Dashboard.
+
