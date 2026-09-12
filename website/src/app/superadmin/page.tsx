@@ -42,7 +42,7 @@ const SEED_MEMBERS: MemberRecord[] = [
     role: 'ADMIN',
     status: 'ACTIVE',
     membershipNo: 'LF-2026-0001',
-    bloodGroup: 'O+',
+    bloodGroup: 'A+',
     isSeniorCitizen: false,
     registeredAt: '2026-09-01 10:00 AM',
     lastSignIn: '2026-09-13 01:45 AM',
@@ -61,48 +61,6 @@ const SEED_MEMBERS: MemberRecord[] = [
     registeredAt: '2026-09-01 10:15 AM',
     lastSignIn: '2026-09-12 11:30 PM',
     authProvider: 'LOCAL'
-  },
-  {
-    id: 'MEM-003',
-    name: 'Dr. Phuritsabam Birmani',
-    email: 'birmani@leimarembifoundation.org',
-    phone: '9436012345',
-    role: 'TRUSTEE',
-    status: 'ACTIVE',
-    membershipNo: 'LF-2026-0003',
-    bloodGroup: 'B+',
-    isSeniorCitizen: true,
-    registeredAt: '2026-09-02 02:20 PM',
-    lastSignIn: '2026-09-11 04:10 PM',
-    authProvider: 'LOCAL'
-  },
-  {
-    id: 'MEM-004',
-    name: 'K. Ajit Singh',
-    email: 'ajit.singh@leimarembifoundation.org',
-    phone: '9862054321',
-    role: 'TRUSTEE',
-    status: 'ACTIVE',
-    membershipNo: 'LF-2026-0004',
-    bloodGroup: 'A+',
-    isSeniorCitizen: false,
-    registeredAt: '2026-09-03 09:40 AM',
-    lastSignIn: '2026-09-10 03:00 PM',
-    authProvider: 'LOCAL'
-  },
-  {
-    id: 'MEM-005',
-    name: 'Ng. Baldev Singha',
-    email: 'baldev.singha@leimarembifoundation.org',
-    phone: '9435098765',
-    role: 'TRUSTEE',
-    status: 'ACTIVE',
-    membershipNo: 'LF-2026-0005',
-    bloodGroup: 'O+',
-    isSeniorCitizen: true,
-    registeredAt: '2026-09-04 11:00 AM',
-    lastSignIn: '2026-09-09 06:15 PM',
-    authProvider: 'LOCAL'
   }
 ];
 
@@ -120,12 +78,30 @@ export default function SuperAdminPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
 
-  // Member records state
+  // Member records state - Strictly keep Aryaman Singha and M. Bina Babu Singha
   const [members, setMembers] = useState<MemberRecord[]>(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('lf_superadmin_members');
       if (stored) {
-        try { return JSON.parse(stored); } catch {}
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            const filtered = parsed
+              .filter((m: MemberRecord) =>
+                m.email === 'aryamansingha60@gmail.com' ||
+                m.email === 'binababu.singha@yahoo.com' ||
+                m.phone.replace(/[^0-9]/g, '').endsWith('7099659804') ||
+                m.phone.replace(/[^0-9]/g, '').endsWith('7637087931')
+              )
+              .map((m: MemberRecord) => {
+                if (m.email === 'aryamansingha60@gmail.com' || m.phone.replace(/[^0-9]/g, '').endsWith('7099659804')) {
+                  return { ...m, bloodGroup: 'A+' };
+                }
+                return m;
+              });
+            if (filtered.length >= 2) return filtered;
+          }
+        } catch {}
       }
     }
     return SEED_MEMBERS;
@@ -166,6 +142,12 @@ export default function SuperAdminPage() {
       setAuthorized(true);
     } else {
       setAuthorized(false);
+    }
+
+    // Ensure Member Registry contains only the 2 Super Admins (Aryaman Singha & M. Bina Babu Singha)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lf_superadmin_members', JSON.stringify(SEED_MEMBERS));
+      setMembers(SEED_MEMBERS);
     }
 
     setActivityLogs(getActivityLogs());
@@ -559,8 +541,9 @@ export default function SuperAdminPage() {
                   <thead>
                     <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Event Type</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>User Name</th>
+                      <th style={{ padding: '0.85rem 1.25rem' }}>Member Name</th>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Email / Phone</th>
+                      <th style={{ padding: '0.85rem 1.25rem' }}>Blood Group</th>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Auth Method</th>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Timestamp</th>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Details</th>
@@ -585,10 +568,47 @@ export default function SuperAdminPage() {
                             {log.type}
                           </span>
                         </td>
-                        <td style={{ padding: '0.85rem 1.25rem', fontWeight: 700 }}>{log.userName}</td>
+                        <td style={{ padding: '0.85rem 1.25rem', fontWeight: 700 }}>
+                          <div style={{ color: 'var(--text-primary)' }}>{log.userName}</div>
+                          {log.isSeniorCitizen && (
+                            <span style={{ fontSize: '0.7rem', color: '#D97706', fontWeight: 700, display: 'inline-block', marginTop: '2px' }}>
+                              ★ Senior Citizen
+                            </span>
+                          )}
+                        </td>
                         <td style={{ padding: '0.85rem 1.25rem' }}>
-                          <div>{log.userEmail}</div>
-                          {log.userPhone && <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{log.userPhone}</span>}
+                          {log.userEmail === 'Waiting' ? (
+                            <span style={{
+                              display: 'inline-block',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              background: 'rgba(217, 119, 6, 0.12)',
+                              color: '#D97706',
+                              fontSize: '0.75rem',
+                              fontWeight: 700
+                            }}>
+                              Waiting (No Email Registered)
+                            </span>
+                          ) : (
+                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{log.userEmail}</div>
+                          )}
+                          {log.userPhone && (
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                              📞 {log.userPhone}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.85rem 1.25rem' }}>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            padding: '3px 8px',
+                            borderRadius: '6px',
+                            background: 'rgba(220, 38, 38, 0.1)',
+                            color: '#DC2626'
+                          }}>
+                            {log.bloodGroup || 'N/A'}
+                          </span>
                         </td>
                         <td style={{ padding: '0.85rem 1.25rem' }}>
                           <span style={{
@@ -605,7 +625,7 @@ export default function SuperAdminPage() {
                         <td style={{ padding: '0.85rem 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                           {log.timestamp}
                         </td>
-                        <td style={{ padding: '0.85rem 1.25rem', fontSize: '0.8rem' }}>
+                        <td style={{ padding: '0.85rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                           {log.details}
                         </td>
                       </tr>
