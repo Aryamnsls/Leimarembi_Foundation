@@ -17,6 +17,10 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 8. **AI Assistant (`POWERED BY Leimarembi Foundation`)**: Floating intelligent chat assistant integrated across all pages with a comprehensive knowledge base covering Foundation Do's & Don'ts, executive officer contacts, cultural heritage, and general QA.
 9. **Services Portal (`/portal`)**: 8 governance modules including Mobile Application status notification ("Coming Soon" with Phase II technical deployment notice modal).
 10. **Executive QR Code Gateway & WhatsApp Preview**: Interactive holographic QR Code gatekeeper with embedded Foundation logo seal, scanner beam animation, instant WhatsApp share button, and OpenGraph link sharing cards (`og:image`).
+11. **Super Admin & Executive Officer Dual-View Switcher**: Seamless switching between Super Admin Control Center (`/superadmin`) and Management Portal (`/management`) available exclusively to Aryaman Singha and M. Bina Babu Singha via top banner and compact navbar dual-pill.
+12. **Strict Public Sign In Privacy & Registration Password Verification**: Standard, clean member sign-in fields (`Email Address *` and `Password *`) with validation against member registration passwords. Executive officer Date of Birth (DOB) authentication and visible hint banners are strictly isolated inside `/documents` only.
+13. **Optimized Desktop Navbar & Fluid Layout**: 100% visible "Donate Now" button and Dark/Light Mode toggle across all standard desktop resolutions (1280px–1920px) with zero horizontal clipping.
+14. **Dynamic Live Registration & Senior/Non-Senior Activity Dashboard**: Real-time event tracking on Super Admin and Management portals, automatic Senior/Non-Senior citizen categorization, and Blood Group tracking during registration.
 
 ---
 
@@ -292,3 +296,15 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
    - The `💡 Executive Officers DOB` hint banner and officer DOB links have been **completely removed** from public view on `/login`.
    - Officer DOB guidance is kept **strictly and exclusively** inside the internal [`/documents`](file:///documents) vault.
    - Password entered on Sign In strictly validates the chosen password established during registration.
+
+#### F. Public Member Access vs. Internal Executive Vault Matrix
+
+| Feature | Public Member Sign In (`/login`) | Internal Governance Vault (`/documents`) |
+|---|---|---|
+| **Target Audience** | General public, foundation members, and donors | 6 Authorised Legal Executive Signatories |
+| **Visible Fields** | `Email Address *` & `Password *` | Registered Email/Phone & Security Password (DOB) |
+| **Password Validation** | Validates registered user password created in registration | Validates officer Date of Birth (`DD/MM/YYYY`, `DD-MM-YYYY`, `YYYY-MM-DD`, passcodes) |
+| **Hints & Guidance** | Standard member login hints; **NO DOB mentions** | Prominent `💡 Officer Access Hint: Your login password is your Date of Birth (DOB)` |
+| **Authorized Destination** | Member Portal (`/portal`) or requested protected page | In-Browser PDF Eye Reader & Softcopy Download |
+| **Role Elevation** | Standard Member standing | Executive Signatory clearance with authenticated badge |
+
