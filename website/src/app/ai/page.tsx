@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { generateAiResponse, getLocalAiResponse } from "@/lib/aiEngine";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Feature = "chat" | "minutes" | "grants" | "translate" | "documents";
@@ -197,14 +198,11 @@ export default function AIPage() {
     prompt: string,
     history?: ChatMessage[]
   ): Promise<string> => {
-    const res = await fetch("/api/gemini", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ feature, prompt, history }),
-    });
-    const data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || "Unknown error");
-    return data.text;
+    try {
+      return await generateAiResponse(prompt, feature, history);
+    } catch {
+      return getLocalAiResponse(prompt, feature);
+    }
   }, []);
 
   // ── Chat send ───────────────────────────────────────────────────────────────

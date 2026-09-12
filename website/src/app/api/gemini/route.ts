@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getLocalAiResponse } from '@/lib/aiEngine';
 
 export const dynamic = 'force-static';
 
@@ -430,7 +431,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Smart Knowledge Engine response for key-less mode or offline capability
-    const knowledgeText = getKnowledgeResponse(prompt, feature);
+    const knowledgeText = getLocalAiResponse(prompt, feature);
     return NextResponse.json({
       text: knowledgeText,
       reply: knowledgeText,

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/i18n/LanguageContext';
 import { Sparkles, X, Send, Bot, RefreshCw } from 'lucide-react';
+import { generateAiResponse, getLocalAiResponse } from '@/lib/aiEngine';
 
 interface Message {
   id: string;
@@ -121,18 +122,11 @@ export default function FloatingAiChat() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: query,
-          feature: 'chat',
-          history: newHistory.map(m => ({ role: m.sender === 'user' ? 'user' : 'assistant', text: m.text }))
-        })
-      });
-
-      const data = await res.json();
-      const replyText = data.text || data.reply || "I am here to assist with any information regarding Leimarembi Foundation programs, executive members, 80G tax exemptions, or digital governance services.";
+      const historyItems = newHistory.map(m => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        text: m.text
+      }));
+      const replyText = await generateAiResponse(query, 'chat', historyItems);
 
       setMessages((prev) => [
         ...prev,
@@ -144,12 +138,13 @@ export default function FloatingAiChat() {
         }
       ]);
     } catch {
+      const fallbackText = getLocalAiResponse(query, 'chat');
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${prev.length + 1}`,
           sender: 'ai',
-          text: "The Leimarembi Foundation operates 8 digital governance modules: Services Portal, Member Roster, Cultural Archives, Health Camps, Grant Alerts, News Hub, Public Documents, and AI Assistance.",
+          text: fallbackText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
