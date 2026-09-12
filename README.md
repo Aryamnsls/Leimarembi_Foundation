@@ -308,3 +308,38 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 | **Authorized Destination** | Member Portal (`/portal`) or requested protected page | In-Browser PDF Eye Reader & Softcopy Download |
 | **Role Elevation** | Standard Member standing | Executive Signatory clearance with authenticated badge |
 
+#### G. Executive Admin Dashboard (`/management`) & Super Admin Overpower Architecture
+
+1. **Leadership Admin Clearance**:
+   - **Aryaman Singha** (`aryamansingha60@gmail.com` / `7099659804` / Blood Group: `A+`): Full Super Admin + Admin privileges.
+   - **M. Bina Babu Singha** (`binababu.singha@yahoo.com` / `76370-87931` / Blood Group: `AB+`): Full Super Admin + Admin privileges.
+   - **The 5 Executive Officers**:
+     1. Dr. Phuritsabam Birmani (`ichemma@yahoo.com`)
+     2. K. Ajit Singh (`kajitsingh9@gmail.com`)
+     3. Y. Thambal Singha (`thambal.singha@gmail.com`)
+     4. M. Bina Babu Singha (`binababu.singha@yahoo.com`)
+     5. Ng. Baldev Singha (`731baldevsingha@gmail.com`)
+     - Granted authorized **Admin Dashboard Access (`/management`)** with **Read, Write & Execute** privileges.
+     - **Restricted from Super Admin Dashboard (`/superadmin`)**: Unauthorized attempts are blocked and routed cleanly to `/management`.
+2. **6 Interactive Clickable Overview Cards**:
+   - **Total Members**: Click to view full member directory.
+   - **Active Members**: Click to filter directory to active verified standing.
+   - **Senior Citizens**: Click to filter directory to Senior Citizens (Health Card & diagnostic camp eligible).
+   - **Non-Senior Members**: Click to filter directory to Non-Senior general members & directorate.
+   - **Donations Total**: Click to view verified donations ledger.
+   - **Pending Queue**: Click to view pending bank audit transactions.
+3. **Executive Governance Suite (Read, Write, Execute)**:
+   - Direct toolbar links:
+     - 📄 **Documents Vault (`/documents`)**: Inspect and download governance PDF softcopies.
+     - 📹 **Meeting Suite (`/meetings`)**: Issue circulars, record attendance, and launch instant Google Meet video conferences.
+     - 🖼️ **Media Gallery (`/gallery`)**: Upload and manage foundation multimedia archives.
+     - ➕ **Record Donation Receipt**: Write new official donation voucher.
+     - 📥 **Export Audited CSV**: Execute complete ledger download.
+4. **Super Admin Overpower Privileges**:
+   - Aryaman Singha and M. Bina Babu Singha retain ultimate overpower authority:
+     - Permanent deletion/purging of invalid donation entries (`handleDeleteDonation`).
+     - Real-time status toggling between `SUCCESS` and `PENDING` (`handleToggleStatus`).
+     - One-click dual switch between Super Admin (`/superadmin`) and Admin (`/management`).
+5. **Stealth Administration Secrecy**:
+   - When other Executive Officers access the Admin Dashboard (`/management`), Aryaman Singha is **completely omitted** from visible member directories and officer cards.
+   - Preserves complete operational confidentiality ahead of tomorrow's official Foundation Inauguration.

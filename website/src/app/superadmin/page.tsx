@@ -403,11 +403,14 @@ export default function SuperAdminPage() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Link href="/login" className="btn btn-primary" style={{ justifyContent: 'center', padding: '0.75rem' }}>
+            <Link href="/management" className="btn btn-primary" style={{ justifyContent: 'center', padding: '0.75rem' }}>
+              <ShieldCheck size={18} /> Open Executive Admin Panel (/management)
+            </Link>
+            <Link href="/login" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem' }}>
               <LogIn size={18} /> Sign In with Authorized Super Admin Account
             </Link>
-            <Link href="/" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem' }}>
-              Return to Public Home
+            <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+              ← Return to Public Home
             </Link>
           </div>
         </div>

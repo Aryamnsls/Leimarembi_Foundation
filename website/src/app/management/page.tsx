@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { 
   Users, Search, Landmark, Heart, FileText, CheckCircle2, 
   Clock, XCircle, AlertCircle, X, Plus, Printer, Download, 
-  Trash2, ShieldCheck, ShieldAlert, Sparkles, Phone, Mail, MapPin, Calendar
+  Trash2, ShieldCheck, ShieldAlert, Sparkles, Phone, Mail, MapPin, Calendar,
+  ArrowRight, Lock, LogIn
 } from 'lucide-react';
 import Image from 'next/image';
 import { 
@@ -16,7 +17,13 @@ import {
   OFFICIAL_SEED_DONATIONS 
 } from '@/lib/donationLedger';
 import { isSuperAdmin } from '@/lib/superAdminAuth';
-import { canSwitchRoleMode, EXECUTIVE_OFFICERS } from '@/lib/executiveOfficers';
+import { 
+  canSwitchRoleMode, 
+  EXECUTIVE_OFFICERS, 
+  isExecutiveOfficer, 
+  findOfficer, 
+  verifyOfficerPassword 
+} from '@/lib/executiveOfficers';
 
 interface RegisteredMember {
   id: string;
@@ -54,6 +61,17 @@ export default function Management() {
   const [printDonation, setPrintDonation] = useState<DonationRecord | null>(null);
   const [isSuperAdminUser, setIsSuperAdminUser] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isAuthorizedAdmin, setIsAuthorizedAdmin] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  // Filter states for clickable overview cards
+  const [memberCategoryFilter, setMemberCategoryFilter] = useState<'ALL' | 'ACTIVE' | 'SENIOR' | 'NON_SENIOR'>('ALL');
+  const [donationStatusFilter, setDonationStatusFilter] = useState<'ALL' | 'SUCCESS' | 'PENDING'>('ALL');
+
+  // Officer direct login modal state
+  const [showOfficerLoginModal, setShowOfficerLoginModal] = useState(false);
+  const [officerLoginForm, setOfficerLoginForm] = useState({ credential: '', password: '' });
+  const [officerLoginError, setOfficerLoginError] = useState('');
 
   // Live state for donations
   const [donations, setDonations] = useState<DonationRecord[]>([]);
@@ -76,7 +94,7 @@ export default function Management() {
     phone: ''
   });
 
-  // Load User & Check Super Admin status
+  // Load User & Check Admin / Super Admin status
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userStr = localStorage.getItem('lf_user');
@@ -86,11 +104,45 @@ export default function Management() {
           setCurrentUser(u);
           if (isSuperAdmin(u)) {
             setIsSuperAdminUser(true);
+            setIsAuthorizedAdmin(true);
+          } else if (u.role === 'ADMIN' || u.role === 'SUPER_ADMIN' || isExecutiveOfficer(u)) {
+            setIsAuthorizedAdmin(true);
           }
         } catch {}
       }
+      setCheckingAuth(false);
     }
   }, []);
+
+  // Officer direct clearance login handler
+  const handleOfficerDirectLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setOfficerLoginError('');
+    const officer = findOfficer(officerLoginForm.credential);
+    if (officer && verifyOfficerPassword(officer, officerLoginForm.password)) {
+      const isSuper = officer.email === 'aryamansingha60@gmail.com' || officer.email === 'binababu.singha@yahoo.com';
+      const officerUser = {
+        id: officer.id,
+        name: officer.name,
+        email: officer.email,
+        phone: officer.phone,
+        role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
+        designation: officer.designation,
+        membershipNo: officer.id,
+        bloodGroup: officer.bloodGroup,
+        isSeniorCitizen: officer.isSeniorCitizen,
+        authProvider: 'LOCAL'
+      };
+      localStorage.setItem('lf_token', `lf_tok_exec_${Date.now()}`);
+      localStorage.setItem('lf_user', JSON.stringify(officerUser));
+      setCurrentUser(officerUser);
+      setIsAuthorizedAdmin(true);
+      if (isSuper) setIsSuperAdminUser(true);
+      setShowOfficerLoginModal(false);
+    } else {
+      setOfficerLoginError('Invalid credentials. Please enter your registered Email or Phone and Date of Birth (DOB).');
+    }
+  };
 
   // Synchronize Donations & Members from Storage
   const syncData = useCallback(() => {
@@ -176,28 +228,41 @@ export default function Management() {
     };
   }, [syncData]);
 
-  // Filtered Donations
+  // Filtered Donations (Search Query + Donation Status Filter)
   const filteredDonations = useMemo(() => {
-    return donations.filter(d =>
-      !searchQuery ||
-      d.donorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.publicDonationId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      d.receiptNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (d.email && d.email.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
-  }, [donations, searchQuery]);
+    return donations.filter(d => {
+      const matchesSearch = !searchQuery ||
+        d.donorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.publicDonationId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        d.receiptNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (d.email && d.email.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  // Filtered Members
+      const matchesStatus =
+        donationStatusFilter === 'ALL' || d.status === donationStatusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [donations, searchQuery, donationStatusFilter]);
+
+  // Filtered Members (Search Query + Category Filter)
   const filteredMembers = useMemo(() => {
-    return members.filter(m =>
-      !searchQuery ||
-      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.membershipNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      m.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [members, searchQuery]);
+    return members.filter(m => {
+      const matchesSearch = !searchQuery ||
+        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.membershipNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesCategory =
+        memberCategoryFilter === 'ALL' ||
+        (memberCategoryFilter === 'ACTIVE' && (m.status === 'Active' || m.status === 'ACTIVE')) ||
+        (memberCategoryFilter === 'SENIOR' && m.isSeniorCitizen) ||
+        (memberCategoryFilter === 'NON_SENIOR' && !m.isSeniorCitizen);
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [members, searchQuery, memberCategoryFilter]);
 
   // Metrics (Live Updated)
   const totalSuccessAmount = useMemo(() => {
@@ -209,6 +274,18 @@ export default function Management() {
   const pendingCount = useMemo(() => {
     return donations.filter(d => d.status === 'PENDING').length;
   }, [donations]);
+
+  const activeMembersCount = useMemo(() => {
+    return members.filter(m => m.status === 'Active' || m.status === 'ACTIVE').length;
+  }, [members]);
+
+  const seniorMembersCount = useMemo(() => {
+    return members.filter(m => m.isSeniorCitizen).length;
+  }, [members]);
+
+  const nonSeniorMembersCount = useMemo(() => {
+    return members.filter(m => !m.isSeniorCitizen).length;
+  }, [members]);
 
   // Handle Add Donation
   const handleCreateDonation = (e: React.FormEvent) => {
@@ -302,17 +379,183 @@ export default function Management() {
     document.body.removeChild(link);
   };
 
+  // LOADING STATE
+  if (checkingAuth) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="spin" style={{ width: '44px', height: '44px', border: '4px solid var(--border-color)', borderTopColor: 'var(--secondary-color)', borderRadius: '50%', margin: '0 auto 1.5rem' }} />
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>Authenticating Executive Admin Clearance...</h3>
+        </div>
+      </div>
+    );
+  }
+
+  // ACCESS RESTRICTED SCREEN FOR UNAUTHORIZED USERS
+  if (!isAuthorizedAdmin) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+        <div className="card" style={{ maxWidth: '540px', width: '100%', padding: '3rem 2.5rem', textAlign: 'center', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', border: '1.5px solid var(--border-color)' }}>
+          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--info-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+            <Lock size={36} />
+          </div>
+
+          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary-color)', margin: '0 0 0.5rem' }}>
+            Executive Admin Panel
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+            This governance portal is authorized for <strong>Executive Officers, Trustees, and Platform Leadership</strong> with Read, Write & Execute access.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <button 
+              onClick={() => setShowOfficerLoginModal(true)} 
+              className="btn btn-primary" 
+              style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.95rem' }}
+            >
+              <ShieldCheck size={18} /> Authenticate with Executive Officer Credentials
+            </button>
+            <Link href="/login?redirect=/management" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.95rem' }}>
+              <LogIn size={18} /> Sign In via Member Account
+            </Link>
+            <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+              ← Return to Public Home
+            </Link>
+          </div>
+        </div>
+
+        {/* Officer Clearance Modal */}
+        {showOfficerLoginModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10005,
+            padding: '1rem'
+          }}>
+            <div className="card" style={{ maxWidth: '460px', width: '100%', borderRadius: '20px', padding: '2rem', boxShadow: 'var(--shadow-xl)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ShieldCheck size={20} color="var(--info-color)" /> Officer Admin Clearance
+                </h3>
+                <button onClick={() => setShowOfficerLoginModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{
+                background: 'rgba(2, 132, 199, 0.08)',
+                border: '1px solid rgba(2, 132, 199, 0.25)',
+                borderRadius: '10px',
+                padding: '0.75rem 1rem',
+                fontSize: '0.825rem',
+                color: 'var(--info-color)',
+                fontWeight: 700,
+                marginBottom: '1.25rem'
+              }}>
+                💡 Officer Access Hint: Login with your registered Email or Phone. Your default password is your Date of Birth (DOB).
+              </div>
+
+              {officerLoginError && (
+                <div style={{
+                  background: 'rgba(220, 38, 38, 0.1)',
+                  border: '1px solid rgba(220, 38, 38, 0.3)',
+                  color: '#DC2626',
+                  borderRadius: '8px',
+                  padding: '0.65rem 0.85rem',
+                  fontSize: '0.825rem',
+                  fontWeight: 700,
+                  marginBottom: '1rem'
+                }}>
+                  {officerLoginError}
+                </div>
+              )}
+
+              <form onSubmit={handleOfficerDirectLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                    Registered Email Address or Phone *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. ichemma@yahoo.com or 98640-44123"
+                    value={officerLoginForm.credential}
+                    onChange={(e) => setOfficerLoginForm({ ...officerLoginForm, credential: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-color)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.875rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                    Password (Date of Birth / Passcode) *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter Date of Birth (DOB) or Passcode"
+                    value={officerLoginForm.password}
+                    onChange={(e) => setOfficerLoginForm({ ...officerLoginForm, password: e.target.value })}
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '8px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-color)',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.875rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{ justifyContent: 'center', padding: '0.75rem', marginTop: '0.5rem', fontWeight: 800 }}
+                >
+                  Unlock Admin Dashboard
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // AUTHORIZED ADMIN DASHBOARD
   return (
     <div className="animate-fade-in" style={{ padding: '2.5rem 0 4rem' }}>
       {/* Header Banner */}
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <div className="glass-panel" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.4rem 1.25rem', borderRadius: '30px', marginBottom: '1rem' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
             Module 3: NGO Administration & Governance
           </span>
-          {isSuperAdminUser && (
+          {isSuperAdminUser ? (
             <span style={{ background: '#F59E0B', color: '#000', fontSize: '0.75rem', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
-              ⭐ SUPER ADMIN ACCESS
+              ⭐ SUPER ADMIN (OVERPOWER ACCESS ACTIVE)
+            </span>
+          ) : (
+            <span style={{ background: 'rgba(2, 132, 199, 0.15)', color: 'var(--info-color)', fontSize: '0.75rem', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
+              🛡️ EXECUTIVE ADMIN (READ, WRITE, EXECUTE ACCESS)
             </span>
           )}
           {canSwitchRoleMode(currentUser) && (
@@ -346,81 +589,213 @@ export default function Management() {
         </p>
       </div>
 
-      {/* Live Overview Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
-        {/* Total Registered Members (Live dynamically computed from Super Admin registry & Database) */}
+      {/* Live Overview Cards — All 6 Cards are Fully Clickable with Visual Feedback */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+        {/* 1. Total Registered Members */}
         <div 
-          onClick={() => setActiveTab('MEMBERS')}
+          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('ALL'); }}
           className="card" 
           style={{ 
             background: 'var(--primary-color)', 
             color: 'white', 
             borderTop: '4px solid var(--secondary-color)',
             cursor: 'pointer',
-            transition: 'transform 0.2s ease',
+            transition: 'all 0.2s ease',
+            boxShadow: memberCategoryFilter === 'ALL' && activeTab === 'MEMBERS' ? '0 0 0 2px var(--secondary-color)' : undefined
           }}
-          title="Click to view registered members"
+          title="Click to view all registered members"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ color: '#FFFFFF', fontSize: '1rem', fontWeight: 700, margin: 0 }}>Total Registered Members</h3>
-            <Users size={20} color="var(--secondary-color)" />
+            <h3 style={{ color: '#FFFFFF', fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Total Members</h3>
+            <Users size={18} color="var(--secondary-color)" />
           </div>
-          <p style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0.4rem 0' }}>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, margin: '0.35rem 0' }}>
             {members.length}
           </p>
-          <p style={{ opacity: 0.85, fontSize: '0.85rem', margin: 0 }}>
-            Active Community Roster (Live Synced)
+          <p style={{ opacity: 0.85, fontSize: '0.8rem', margin: 0 }}>
+            ● Full Database Access
           </p>
         </div>
 
-        {/* Verified Donations Total (Live from Official Receipts Ledger) */}
+        {/* 2. Active Members */}
         <div 
-          onClick={() => setActiveTab('DONATIONS')}
+          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('ACTIVE'); }}
+          className="card" 
+          style={{ 
+            borderTop: '4px solid #10B981',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: memberCategoryFilter === 'ACTIVE' && activeTab === 'MEMBERS' ? '0 0 0 2px #10B981' : undefined
+          }}
+          title="Click to filter Active Verified Members"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Active Members</h3>
+            <CheckCircle2 size={18} color="#10B981" />
+          </div>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#10B981', margin: '0.35rem 0' }}>
+            {activeMembersCount}
+          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
+            Verified Standing Credentials
+          </p>
+        </div>
+
+        {/* 3. Senior Citizen Members */}
+        <div 
+          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('SENIOR'); }}
+          className="card" 
+          style={{ 
+            borderTop: '4px solid #D97706',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: memberCategoryFilter === 'SENIOR' && activeTab === 'MEMBERS' ? '0 0 0 2px #D97706' : undefined
+          }}
+          title="Click to view Senior Citizens (Health Card Eligible)"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Senior Citizens</h3>
+            <ShieldCheck size={18} color="#D97706" />
+          </div>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#D97706', margin: '0.35rem 0' }}>
+            {seniorMembersCount}
+          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
+            ★ Health Card Eligible (60+)
+          </p>
+        </div>
+
+        {/* 4. Non-Senior Citizen Members */}
+        <div 
+          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('NON_SENIOR'); }}
+          className="card" 
+          style={{ 
+            borderTop: '4px solid var(--info-color)',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            boxShadow: memberCategoryFilter === 'NON_SENIOR' && activeTab === 'MEMBERS' ? '0 0 0 2px var(--info-color)' : undefined
+          }}
+          title="Click to view Non-Senior Citizens"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Non-Senior Members</h3>
+            <Users size={18} color="var(--info-color)" />
+          </div>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--info-color)', margin: '0.35rem 0' }}>
+            {nonSeniorMembersCount}
+          </p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
+            General Community & Directorate
+          </p>
+        </div>
+
+        {/* 5. Verified Donations Total */}
+        <div 
+          onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('ALL'); }}
           className="card" 
           style={{ 
             background: 'var(--secondary-color)', 
             color: '#111827',
             cursor: 'pointer',
-            transition: 'transform 0.2s ease'
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'ALL' ? '0 0 0 2px #B45309' : undefined
           }}
           title="Click to view verified donations"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ color: '#111827', fontSize: '1rem', fontWeight: 800, margin: 0 }}>Verified Donations Total</h3>
-            <Heart size={20} color="#111827" />
+            <h3 style={{ color: '#111827', fontSize: '0.92rem', fontWeight: 800, margin: 0 }}>Donations Total</h3>
+            <Heart size={18} color="#111827" />
           </div>
-          <p style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0.4rem 0', color: '#111827' }}>
+          <p style={{ fontSize: '2rem', fontWeight: 900, margin: '0.35rem 0', color: '#111827' }}>
             ₹{totalSuccessAmount.toLocaleString('en-IN')}
           </p>
-          <p style={{ opacity: 0.9, fontSize: '0.85rem', color: '#111827', fontWeight: 600, margin: 0 }}>
+          <p style={{ opacity: 0.9, fontSize: '0.8rem', color: '#111827', fontWeight: 600, margin: 0 }}>
             {donations.filter(d => d.status === 'SUCCESS').length} Official Verified Receipts
           </p>
         </div>
 
-        {/* Pending Reconciliations (Live Dynamic Count) */}
+        {/* 6. Pending Reconciliations */}
         <div 
-          onClick={() => setActiveTab('DONATIONS')}
+          onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('PENDING'); }}
           className="card" 
           style={{ 
             borderTop: '4px solid var(--accent-color)',
             cursor: 'pointer',
-            transition: 'transform 0.2s ease'
+            transition: 'all 0.2s ease',
+            boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'PENDING' ? '0 0 0 2px var(--accent-color)' : undefined
           }}
+          title="Click to filter Pending Reconciliations"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Pending Reconciliations</h3>
-            <Clock size={20} color="var(--accent-color)" />
+            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Pending Queue</h3>
+            <Clock size={18} color="var(--accent-color)" />
           </div>
-          <p style={{ fontSize: '2.5rem', fontWeight: 900, color: pendingCount > 0 ? 'var(--accent-color)' : '#10B981', margin: '0.4rem 0' }}>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: pendingCount > 0 ? 'var(--accent-color)' : '#10B981', margin: '0.35rem 0' }}>
             {pendingCount}
           </p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
-            {pendingCount > 0 ? 'Awaiting Bank Reconciliation' : '✓ All Receipts Fully Reconciled'}
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
+            {pendingCount > 0 ? 'Awaiting Bank Audit' : '✓ Fully Reconciled'}
           </p>
         </div>
       </div>
 
-      {/* Main Panel with Tabs & Super Admin Actions */}
+      {/* Executive Quick Action Hub (Read, Write & Execute Privileges) */}
+      <div className="card" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem', borderRadius: '18px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ShieldCheck size={20} color="var(--info-color)" /> Executive Governance Suite (Read, Write & Execute Access)
+            </h3>
+            <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Authorized management clearance across official foundation modules
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <Link 
+              href="/documents" 
+              className="btn btn-outline" 
+              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
+              title="Access & Download Foundation Legal Documents"
+            >
+              <FileText size={14} color="var(--info-color)" /> Documents Vault <ArrowRight size={12} />
+            </Link>
+            <Link 
+              href="/meetings" 
+              className="btn btn-outline" 
+              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
+              title="Issue Circulars & Schedule Video Conferences"
+            >
+              <Users size={14} color="var(--secondary-color)" /> Meeting Suite <ArrowRight size={12} />
+            </Link>
+            <Link 
+              href="/gallery" 
+              className="btn btn-outline" 
+              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
+              title="Upload Photos & Media Records"
+            >
+              <Sparkles size={14} color="#10B981" /> Media Gallery <ArrowRight size={12} />
+            </Link>
+            <button
+              onClick={() => setShowAddDonationModal(true)}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 800 }}
+              title="Record New Official Donation Receipt"
+            >
+              <Plus size={14} /> Record Donation
+            </button>
+            <button
+              onClick={handleExportCSV}
+              className="btn btn-outline"
+              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
+              title="Download Full Audited Ledger CSV"
+            >
+              <Download size={14} /> Export CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Panel with Tabs & Filters */}
       <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: '20px', boxShadow: 'var(--shadow-md)' }}>
         <div style={{ 
           padding: '1.25rem 1.5rem', 
@@ -433,7 +808,7 @@ export default function Management() {
           background: 'rgba(0,0,0,0.02)' 
         }}>
           {/* Tab buttons */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               onClick={() => setActiveTab('DONATIONS')}
               className={activeTab === 'DONATIONS' ? 'btn btn-primary' : 'btn btn-outline'}
@@ -450,9 +825,127 @@ export default function Management() {
             </button>
           </div>
 
+          {/* Filter Pills for Active Tab */}
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {activeTab === 'MEMBERS' && (
+              <>
+                <button
+                  onClick={() => setMemberCategoryFilter('ALL')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--border-color)',
+                    background: memberCategoryFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
+                    color: memberCategoryFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  All ({members.length})
+                </button>
+                <button
+                  onClick={() => setMemberCategoryFilter('ACTIVE')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid #10B981',
+                    background: memberCategoryFilter === 'ACTIVE' ? '#10B981' : 'transparent',
+                    color: memberCategoryFilter === 'ACTIVE' ? '#FFFFFF' : '#10B981',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Active ({activeMembersCount})
+                </button>
+                <button
+                  onClick={() => setMemberCategoryFilter('SENIOR')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid #D97706',
+                    background: memberCategoryFilter === 'SENIOR' ? '#D97706' : 'transparent',
+                    color: memberCategoryFilter === 'SENIOR' ? '#FFFFFF' : '#D97706',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Senior ({seniorMembersCount})
+                </button>
+                <button
+                  onClick={() => setMemberCategoryFilter('NON_SENIOR')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--info-color)',
+                    background: memberCategoryFilter === 'NON_SENIOR' ? 'var(--info-color)' : 'transparent',
+                    color: memberCategoryFilter === 'NON_SENIOR' ? '#FFFFFF' : 'var(--info-color)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Non-Senior ({nonSeniorMembersCount})
+                </button>
+              </>
+            )}
+
+            {activeTab === 'DONATIONS' && (
+              <>
+                <button
+                  onClick={() => setDonationStatusFilter('ALL')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--border-color)',
+                    background: donationStatusFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
+                    color: donationStatusFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  All ({donations.length})
+                </button>
+                <button
+                  onClick={() => setDonationStatusFilter('SUCCESS')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid #10B981',
+                    background: donationStatusFilter === 'SUCCESS' ? '#10B981' : 'transparent',
+                    color: donationStatusFilter === 'SUCCESS' ? '#FFFFFF' : '#10B981',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Verified ({donations.filter(d => d.status === 'SUCCESS').length})
+                </button>
+                <button
+                  onClick={() => setDonationStatusFilter('PENDING')}
+                  style={{
+                    padding: '0.25rem 0.55rem',
+                    borderRadius: '14px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--accent-color)',
+                    background: donationStatusFilter === 'PENDING' ? 'var(--accent-color)' : 'transparent',
+                    color: donationStatusFilter === 'PENDING' ? '#FFFFFF' : 'var(--accent-color)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Pending ({pendingCount})
+                </button>
+              </>
+            )}
+          </div>
+
           {/* Actions & Search */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {/* Super Admin Action Buttons */}
+            {/* Action Buttons */}
             {activeTab === 'DONATIONS' && (
               <>
                 <button
