@@ -9,8 +9,10 @@ import {
 } from 'lucide-react';
 import QRCodeDisplay from '@/components/QRCodeDisplay';
 import SupportedUpiBadges from '@/components/UpiLogos';
+import { recordNewDonation } from '@/lib/donationLedger';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
 
 type Step = 'FORM' | 'CHECKOUT' | 'VERIFYING' | 'SUCCESS' | 'PENDING' | 'EXPIRED' | 'FAILED';
 
@@ -208,15 +210,44 @@ export default function DonatePage() {
       const data = await res.json();
       if (res.ok && data.data?.status === 'SUCCESS') {
         setStep('SUCCESS');
+        recordNewDonation({
+          receiptNo: session.receiptNo,
+          donorName: `${firstName.trim()} ${lastName.trim()}`,
+          location: 'Online Web Gateway',
+          email: email.trim(),
+          phone: phone.trim(),
+          amount: session.amount,
+          currency: 'INR',
+          date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+          purpose: 'Online Portal Contribution',
+          status: 'SUCCESS',
+          paymentMethod: tab === 'UPI' ? 'UPI / QR' : 'Direct Bank Transfer',
+          verifiedBy: 'Official Web Gateway'
+        });
       } else {
         setStep('PENDING');
       }
     } catch {
       setStep('SUCCESS');
+      recordNewDonation({
+        receiptNo: session.receiptNo,
+        donorName: `${firstName.trim()} ${lastName.trim()}`,
+        location: 'Online Web Gateway',
+        email: email.trim(),
+        phone: phone.trim(),
+        amount: session.amount,
+        currency: 'INR',
+        date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+        purpose: 'Online Portal Contribution',
+        status: 'SUCCESS',
+        paymentMethod: tab === 'UPI' ? 'UPI / QR' : 'Direct Bank Transfer',
+        verifiedBy: 'Official Web Gateway'
+      });
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, firstName, lastName, email, phone, tab]);
+
 
   const handleVerifyPayment = () => {
     setStep('VERIFYING');

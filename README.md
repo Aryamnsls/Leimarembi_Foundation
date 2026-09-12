@@ -172,4 +172,36 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 - **Super Admin Clearance**: Aryaman Singha and M. Bina Babu Singha retain full administrative clearance across all routes, including the hidden `/superadmin` Command Center.
 - **Production Sync**: Changes are pre-rendered into `/out/` and pushed to GitHub `master` branch for automated deployment on `https://leimarembifoundation.org/`.
 
+### 10. 💰 Management Portal Live Ledger & Official Donors Directory (`/management`)
+- **Super Admin Full Access Mode**:
+  - Super Administrators (**Aryaman Singha** and **M. Bina Babu Singha**) receive executive clearance with **Read • Write • Add • Print • Delete** capabilities.
+  - Action buttons:
+    - **+ Record Official Donation**: Interactive modal to register new contributions (Donor Name, Location, Amount, Date, Receipt No, Payment Method, Purpose, and Status).
+    - **Print Official Receipt Voucher**: Generates high-resolution, printable Foundation Donation Vouchers featuring the Foundation seal, receipt number, donor details, and authorized signatory blocks.
+    - **Export CSV**: Instant export of all official ledger records.
+- **Replacement of Hardcoded ₹35,000 with Real 12 Official Foundation Donors**:
+  - Seeded strictly from the verified Foundation Ledger document (*Manipuri Rajbari, Guwahati - 781007*):
+    1. **Mr. Dhrubajyoti Saikia** (Mangoldai, Assam) — ₹1,000 (Receipt: 001)
+    2. **Mr. Amarjit Singha** (Survey, Guwahati, Assam) — ₹1,000 (Receipt: 004)
+    3. **S. Nilkumar Singha** (Chandpur, Cachar, Assam) — ₹500 (Receipt: 005)
+    4. **J. A. Choudhury** (Sribhumi, Assam) — ₹1,000 (Receipt: 003)
+    5. **Mr. Ajoy Barman** (Mangoldai) — ₹500 (Receipt: 006)
+    6. **Yendrembam Raju Singha.** (Haflong) — ₹301 (Receipt: 008)
+    7. **Loitangbam Biswajit Singha.** (Cachar, Silchar) — ₹2,000 (Receipt: 009)
+    8. **Khaidem Surjya Kumar Singha.** (Kolasib, Mizoram) — ₹1,000 (Receipt: 010)
+    9. **Sahab Uddin Ahmed , Former MLA Jaleswar LAC.** (Goalpara , Jaleswar) — ₹500 (Receipt: 011)
+    10. **Mutum Nilchandra Singha.** (Hojai) — ₹300 (Receipt: 012)
+    11. **Laisram Pankaj Singha .** (Cachar , Silchar) — ₹1,000 (Receipt: 013)
+    12. **K M Gopal Sana Raj Kumar.** (Cachar , Silchar) — ₹7,000 (Receipt: 014)
+  - **Verified Total**: **₹16,101** (Live dynamically computed from verified receipts).
+  - **Pending Reconciliations**: Live dynamic counter (0 when all verified receipts are reconciled).
+- **Dynamic Registered Members (No Hardcoded 1,245)**:
+  - Replaced the hardcoded count of 1,245.
+  - Dynamically calculates the actual count of registered members from the Super Admin registry and database.
+  - Member Directory tab displays real registered members with their Membership ID, Name, Role, Blood Group, Senior Citizen Status, and Active Standing.
+- **Cross-Platform Live Synchronization**:
+  - Connected via `storage` and `lf_donation_updated` event hooks.
+  - When a donation is made via `/donate` or recorded by an administrator, the Management Portal updates live without page reload.
+
+
 
