@@ -40,20 +40,113 @@ interface RegisteredMember {
   status: string;
 }
 
-// Default Registered Members from Executive Officers Registry (5 Visible Officers)
-const DEFAULT_REGISTERED_MEMBERS: RegisteredMember[] = EXECUTIVE_OFFICERS.map(o => ({
-  id: o.id,
-  name: o.name,
-  email: o.email,
-  phone: o.phone,
-  role: 'ADMIN',
-  type: o.designation,
-  membershipNo: o.id,
-  bloodGroup: o.bloodGroup,
-  isSeniorCitizen: o.isSeniorCitizen,
-  joinDate: '01 Sept 2026',
-  status: 'Active'
-}));
+// Default Registered Members from Executive Officers & Official Ledger (All 5 Officers are Senior Citizens)
+const DEFAULT_REGISTERED_MEMBERS: RegisteredMember[] = [
+  ...EXECUTIVE_OFFICERS.map(o => ({
+    id: o.id,
+    name: o.name,
+    email: o.email,
+    phone: o.phone,
+    role: 'ADMIN',
+    type: o.designation,
+    membershipNo: o.id,
+    bloodGroup: o.bloodGroup,
+    isSeniorCitizen: true, // All 5 Officers are Senior Citizens
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  })),
+  {
+    id: 'LF-MEM-006',
+    name: 'K. Braja Babu Singha',
+    email: 'Waiting',
+    phone: '70862-42310',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-006',
+    bloodGroup: 'B+VE',
+    isSeniorCitizen: true,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-007',
+    name: 'L. Madan Chand Singha',
+    email: 'hanumantravels123@gmail.com',
+    phone: '70027-49229',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-007',
+    bloodGroup: 'A+VE',
+    isSeniorCitizen: false,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-008',
+    name: 'H. Monoj Kumar Singha',
+    email: 'satabditravel183@gmail.com',
+    phone: '86384-51576',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-008',
+    bloodGroup: 'O+VE',
+    isSeniorCitizen: false,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-009',
+    name: 'Y. Abhishek Singh',
+    email: 'y.abhisheksingh@gmail.com',
+    phone: '89749-02685',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-009',
+    bloodGroup: 'B+VE',
+    isSeniorCitizen: false,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-010',
+    name: 'Moni Mohan Singha',
+    email: 'Waiting',
+    phone: '94361-18112',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-010',
+    bloodGroup: 'B+VE',
+    isSeniorCitizen: true,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-011',
+    name: 'S. Amarjit Singha',
+    email: 'panthoibielectronics@gmail.com',
+    phone: '98640-80354',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-011',
+    bloodGroup: 'O+VE',
+    isSeniorCitizen: false,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  },
+  {
+    id: 'LF-MEM-012',
+    name: 'Ng. Binoy Singha',
+    email: 'ngbinoy@gmail.com',
+    phone: '70020-66014',
+    role: 'MEMBER',
+    type: 'Executive Member',
+    membershipNo: 'LF-MEM-012',
+    bloodGroup: 'B+VE',
+    isSeniorCitizen: false,
+    joinDate: '01 Sept 2026',
+    status: 'Active'
+  }
+];
 
 export default function Management() {
   const [activeTab, setActiveTab] = useState<'DONATIONS' | 'MEMBERS' | 'OFFICERS' | 'ACTIVITY'>('DONATIONS');
@@ -135,7 +228,7 @@ export default function Management() {
         designation: officer.designation,
         membershipNo: officer.id,
         bloodGroup: officer.bloodGroup,
-        isSeniorCitizen: officer.isSeniorCitizen,
+        isSeniorCitizen: true, // All 5 Officers are Senior Citizens
         authProvider: 'LOCAL'
       };
       localStorage.setItem('lf_token', `lf_tok_exec_${Date.now()}`);
@@ -157,27 +250,58 @@ export default function Management() {
     const loadedDonations = getDonations();
     setDonations(loadedDonations);
 
-    // 2. Sync Registered Members from Super Admin Registry + Local Registrations
+    // 2. Sync Registered Members: Guarantee all 5 Executive Officers are present as Senior Citizens
     let combinedMembers: RegisteredMember[] = [...DEFAULT_REGISTERED_MEMBERS];
 
+    // Ensure all 5 Executive Officers are strictly present & marked Senior Citizens
+    EXECUTIVE_OFFICERS.forEach(officer => {
+      const existingIdx = combinedMembers.findIndex(
+        m => m.email.toLowerCase() === officer.email.toLowerCase() || m.id === officer.id
+      );
+      if (existingIdx !== -1) {
+        combinedMembers[existingIdx].isSeniorCitizen = true;
+        combinedMembers[existingIdx].type = officer.designation;
+        combinedMembers[existingIdx].bloodGroup = officer.bloodGroup;
+      } else {
+        combinedMembers.unshift({
+          id: officer.id,
+          name: officer.name,
+          email: officer.email,
+          phone: officer.phone,
+          role: 'ADMIN',
+          type: officer.designation,
+          membershipNo: officer.id,
+          bloodGroup: officer.bloodGroup,
+          isSeniorCitizen: true,
+          joinDate: '01 Sept 2026',
+          status: 'Active'
+        });
+      }
+    });
+
     try {
+      // Merge any other members from superadmin registry without overwriting existing
       const superAdminMembersRaw = localStorage.getItem('lf_superadmin_members');
       if (superAdminMembersRaw) {
         const parsed = JSON.parse(superAdminMembersRaw);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          combinedMembers = parsed.map((m: any) => ({
-            id: m.id || m.membershipNo || 'MEM-LF',
-            name: m.name,
-            email: m.email,
-            phone: m.phone,
-            role: m.role || 'MEMBER',
-            type: m.designation || (m.role === 'ADMIN' ? 'Administrator' : 'Verified Member'),
-            membershipNo: m.membershipNo || 'LF-MEMBER',
-            bloodGroup: m.bloodGroup || 'N/A',
-            isSeniorCitizen: Boolean(m.isSeniorCitizen),
-            joinDate: m.registeredAt || 'September 2026',
-            status: m.status || 'Active'
-          }));
+          parsed.forEach((m: any) => {
+            if (!combinedMembers.some(existing => existing.email.toLowerCase() === (m.email || '').toLowerCase())) {
+              combinedMembers.push({
+                id: m.id || m.membershipNo || 'MEM-LF',
+                name: m.name,
+                email: m.email,
+                phone: m.phone,
+                role: m.role || 'MEMBER',
+                type: m.designation || (m.role === 'ADMIN' ? 'Administrator' : 'Verified Member'),
+                membershipNo: m.membershipNo || 'LF-MEMBER',
+                bloodGroup: m.bloodGroup || 'N/A',
+                isSeniorCitizen: Boolean(m.isSeniorCitizen),
+                joinDate: m.registeredAt || 'September 2026',
+                status: m.status || 'Active'
+              });
+            }
+          });
         }
       }
 
@@ -187,7 +311,7 @@ export default function Management() {
         const localParsed = JSON.parse(localUsersRaw);
         if (Array.isArray(localParsed)) {
           localParsed.forEach((lu: any) => {
-            if (!combinedMembers.some(m => m.email.toLowerCase() === lu.email.toLowerCase())) {
+            if (!combinedMembers.some(m => m.email.toLowerCase() === (lu.email || '').toLowerCase())) {
               combinedMembers.push({
                 id: lu.id || `MEM-${Math.floor(100 + Math.random() * 900)}`,
                 name: lu.name,
