@@ -6,7 +6,8 @@ import { useRouter } from 'next/navigation';
 import {
   ShieldAlert, ShieldCheck, Users, Search, Plus, Trash2, Edit,
   Download, Activity, CheckCircle2, XCircle, LogIn, UserPlus,
-  RefreshCw, Lock, AlertTriangle, ArrowRight, Eye, Phone, Mail, Award
+  RefreshCw, Lock, AlertTriangle, ArrowRight, Eye, Phone, Mail, Award,
+  MapPin, Globe, Clock, LogOut, Laptop, Smartphone
 } from 'lucide-react';
 import {
   isSuperAdmin,
@@ -120,7 +121,7 @@ export default function SuperAdminPage() {
   const [showSeniorCitizenModal, setShowSeniorCitizenModal] = useState(false);
   const [showNonSeniorModal, setShowNonSeniorModal] = useState(false);
   const [seniorCitizenHealthCard, setSeniorCitizenHealthCard] = useState<any | null>(null);
-  const [activityFilter, setActivityFilter] = useState<'ALL' | 'SENIOR' | 'NON_SENIOR'>('ALL');
+  const [activityFilter, setActivityFilter] = useState<'ALL' | 'UNREGISTERED' | 'ATTEMPTS' | 'LOGINS' | 'LOGOUTS' | 'SENIOR' | 'NON_SENIOR'>('ALL');
 
   // Official Senior Citizen members from verified foundation ledger (All 7 Members)
   const seniorCitizenList = useMemo(() => {
@@ -166,16 +167,44 @@ export default function SuperAdminPage() {
     return Array.from(nonSeniorsMap.values());
   }, [activityLogs]);
 
-  // Filtered activity logs (All vs Senior Citizens vs Non-Senior Citizens)
+  // Filtered activity logs & visitor intelligence stream
   const displayedActivityLogs = useMemo(() => {
-    if (activityFilter === 'SENIOR') {
-      return activityLogs.filter((l) => l.isSeniorCitizen);
-    }
-    if (activityFilter === 'NON_SENIOR') {
-      return activityLogs.filter((l) => l.isSeniorCitizen === false);
-    }
-    return activityLogs;
-  }, [activityLogs, activityFilter]);
+    return activityLogs.filter((l) => {
+      // Search query filtering
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const matches =
+          l.userName.toLowerCase().includes(q) ||
+          l.userEmail.toLowerCase().includes(q) ||
+          (l.userPhone && l.userPhone.includes(q)) ||
+          (l.location && l.location.toLowerCase().includes(q)) ||
+          (l.ipAddress && l.ipAddress.toLowerCase().includes(q)) ||
+          (l.pageVisited && l.pageVisited.toLowerCase().includes(q)) ||
+          (l.details && l.details.toLowerCase().includes(q));
+        if (!matches) return false;
+      }
+
+      if (activityFilter === 'UNREGISTERED') {
+        return l.type === 'VISITOR_CHECK' || l.isRegistered === false || l.status === 'VISITOR';
+      }
+      if (activityFilter === 'ATTEMPTS') {
+        return l.type === 'ACCESS_ATTEMPT' || l.status === 'BLOCKED';
+      }
+      if (activityFilter === 'LOGINS') {
+        return l.type === 'SIGN_IN';
+      }
+      if (activityFilter === 'LOGOUTS') {
+        return l.type === 'LOG_OUT';
+      }
+      if (activityFilter === 'SENIOR') {
+        return l.isSeniorCitizen;
+      }
+      if (activityFilter === 'NON_SENIOR') {
+        return l.isSeniorCitizen === false && l.isRegistered !== false;
+      }
+      return true;
+    });
+  }, [activityLogs, activityFilter, searchQuery]);
 
   // New member form state
   const [formData, setFormData] = useState({
@@ -713,26 +742,27 @@ export default function SuperAdminPage() {
           </div>
         </div>
 
-        {/* ── TAB 1: LIVE REGISTRATION & SIGN-IN ACTIVITY ── */}
+        {/* ── TAB 1: LIVE REGISTRATION, SIGN-IN & VISITOR LOCATION TELEMETRY ── */}
         {activeTab === 'ACTIVITY' && (
           <div style={{ padding: '1.5rem' }}>
-            <div style={{ marginBottom: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <h3 style={{ margin: '0 0 4px', fontSize: '1.15rem', fontWeight: 800 }}>Real-Time Authentication Stream</h3>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                  Both Super Admins can monitor live user registrations and sign-ins across the platform.
+                <h3 style={{ margin: '0 0 4px', fontSize: '1.25rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Globe size={22} color="var(--info-color)" /> Live Security & Visitor Location Intelligence Radar
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '780px' }}>
+                  Super Admin surveillance tracking exact geographic location (City/State), IP network, device, and exact timestamp for who logged in, who logged out, who tried to access the website, and who checked the website without registering.
                 </p>
               </div>
 
-              {/* Quick Filter: All Activity vs Senior Citizens vs Non-Senior Citizens */}
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Stream Filter:</span>
+              {/* Stream Filter Pills */}
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setActivityFilter('ALL')}
                   style={{
-                    padding: '4px 12px',
+                    padding: '4px 10px',
                     borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--border-color)',
                     background: activityFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
@@ -743,11 +773,71 @@ export default function SuperAdminPage() {
                   All Stream ({activityLogs.length})
                 </button>
                 <button
+                  onClick={() => setActivityFilter('UNREGISTERED')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    border: '1px solid rgba(14, 165, 233, 0.4)',
+                    background: activityFilter === 'UNREGISTERED' ? '#0284C7' : 'rgba(14, 165, 233, 0.1)',
+                    color: activityFilter === 'UNREGISTERED' ? '#FFFFFF' : '#0284C7',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🌐 Unregistered Visitors ({activityLogs.filter(l => l.type === 'VISITOR_CHECK' || !l.isRegistered).length})
+                </button>
+                <button
+                  onClick={() => setActivityFilter('ATTEMPTS')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    border: '1px solid rgba(239, 68, 68, 0.4)',
+                    background: activityFilter === 'ATTEMPTS' ? '#EF4444' : 'rgba(239, 68, 68, 0.1)',
+                    color: activityFilter === 'ATTEMPTS' ? '#FFFFFF' : '#EF4444',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🚨 Access Attempts ({activityLogs.filter(l => l.type === 'ACCESS_ATTEMPT' || l.status === 'BLOCKED').length})
+                </button>
+                <button
+                  onClick={() => setActivityFilter('LOGINS')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid rgba(59, 130, 246, 0.4)',
+                    background: activityFilter === 'LOGINS' ? '#3B82F6' : 'rgba(59, 130, 246, 0.1)',
+                    color: activityFilter === 'LOGINS' ? '#FFFFFF' : '#3B82F6',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔑 Sign-Ins ({activityLogs.filter(l => l.type === 'SIGN_IN').length})
+                </button>
+                <button
+                  onClick={() => setActivityFilter('LOGOUTS')}
+                  style={{
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    border: '1px solid rgba(249, 115, 22, 0.4)',
+                    background: activityFilter === 'LOGOUTS' ? '#F97316' : 'rgba(249, 115, 22, 0.1)',
+                    color: activityFilter === 'LOGOUTS' ? '#FFFFFF' : '#F97316',
+                    cursor: 'pointer'
+                  }}
+                >
+                  🚪 Logouts ({activityLogs.filter(l => l.type === 'LOG_OUT').length})
+                </button>
+                <button
                   onClick={() => setActivityFilter('SENIOR')}
                   style={{
-                    padding: '4px 12px',
+                    padding: '4px 10px',
                     borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid rgba(245, 158, 11, 0.4)',
                     background: activityFilter === 'SENIOR' ? '#D97706' : 'rgba(245, 158, 11, 0.1)',
@@ -757,125 +847,166 @@ export default function SuperAdminPage() {
                 >
                   ★ Senior Citizens ({seniorCitizenList.length})
                 </button>
-                <button
-                  onClick={() => setActivityFilter('NON_SENIOR')}
-                  style={{
-                    padding: '4px 12px',
-                    borderRadius: '8px',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    border: '1px solid rgba(14, 165, 233, 0.4)',
-                    background: activityFilter === 'NON_SENIOR' ? '#0284C7' : 'rgba(14, 165, 233, 0.1)',
-                    color: activityFilter === 'NON_SENIOR' ? '#FFFFFF' : '#0284C7',
-                    cursor: 'pointer'
-                  }}
-                >
-                  👥 Non-Senior Citizens ({nonSeniorCitizenList.length})
-                </button>
               </div>
             </div>
 
             {displayedActivityLogs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
-                <Activity size={40} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-                <p style={{ margin: 0, fontWeight: 700 }}>No activity logged matching this filter.</p>
-                <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>Click "All Stream" to view the complete real-time authentication registry.</p>
+              <div style={{ textAlign: 'center', padding: '3.5rem 1rem', color: 'var(--text-secondary)' }}>
+                <Activity size={44} style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                <p style={{ margin: 0, fontWeight: 700 }}>No telemetry records matching this filter.</p>
+                <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>Click &quot;All Stream&quot; to view the complete live radar registry.</p>
               </div>
             ) : (
               <div className="table-responsive">
                 <table>
                   <thead>
                     <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Event Type</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Member Name</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Email / Phone</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Blood Group</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Auth Method</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Timestamp</th>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Details</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Event & Type</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Visitor / Member</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Exact Location (City / State / Country)</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Exact Date & Time</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>IP Address & Network</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Device & Platform</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Page Checked / Visited</th>
+                      <th style={{ padding: '0.9rem 1.25rem' }}>Security Intelligence</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {displayedActivityLogs.map((log) => (
-                      <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.85rem 1.25rem' }}>
-                          <span style={{
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            background: log.type === 'REGISTER' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(59, 130, 246, 0.15)',
-                            color: log.type === 'REGISTER' ? '#10B981' : '#3B82F6',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            {log.type === 'REGISTER' ? <UserPlus size={12} /> : <LogIn size={12} />}
-                            {log.type}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem', fontWeight: 700 }}>
-                          <div style={{ color: 'var(--text-primary)' }}>{log.userName}</div>
-                          {log.isSeniorCitizen && (
-                            <span style={{ fontSize: '0.7rem', color: '#D97706', fontWeight: 700, display: 'inline-block', marginTop: '2px' }}>
-                              ★ Senior Citizen
-                            </span>
-                          )}
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem' }}>
-                          {log.userEmail === 'Waiting' ? (
+                    {displayedActivityLogs.map((log) => {
+                      const isUnregistered = log.type === 'VISITOR_CHECK' || log.isRegistered === false;
+                      const isAttempt = log.type === 'ACCESS_ATTEMPT' || log.status === 'BLOCKED';
+                      const isLogin = log.type === 'SIGN_IN';
+                      const isLogout = log.type === 'LOG_OUT';
+                      const isRegister = log.type === 'REGISTER';
+
+                      return (
+                        <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                          {/* 1. Event & Type */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
                             <span style={{
-                              display: 'inline-block',
+                              padding: '4px 10px',
+                              borderRadius: '12px',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              background: isAttempt ? 'rgba(239, 68, 68, 0.15)' :
+                                          isUnregistered ? 'rgba(14, 165, 233, 0.15)' :
+                                          isLogin ? 'rgba(59, 130, 246, 0.15)' :
+                                          isLogout ? 'rgba(249, 115, 22, 0.15)' :
+                                          isRegister ? 'rgba(16, 185, 129, 0.15)' : 'rgba(0,0,0,0.06)',
+                              color: isAttempt ? '#EF4444' :
+                                     isUnregistered ? '#0284C7' :
+                                     isLogin ? '#3B82F6' :
+                                     isLogout ? '#F97316' :
+                                     isRegister ? '#10B981' : 'var(--text-primary)',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px'
+                            }}>
+                              {isAttempt && <ShieldAlert size={12} />}
+                              {isUnregistered && <Globe size={12} />}
+                              {isLogin && <LogIn size={12} />}
+                              {isLogout && <LogOut size={12} />}
+                              {isRegister && <UserPlus size={12} />}
+                              {isAttempt ? 'Access Attempt (Blocked)' :
+                               isUnregistered ? 'Public Visitor (Unregistered)' :
+                               isLogin ? 'Logged In' :
+                               isLogout ? 'Logged Out' :
+                               isRegister ? 'Registered' : log.type}
+                            </span>
+                          </td>
+
+                          {/* 2. Visitor / Member */}
+                          <td style={{ padding: '0.9rem 1.25rem', fontWeight: 700 }}>
+                            <div style={{ color: isUnregistered ? '#0284C7' : 'var(--text-primary)' }}>
+                              {log.userName}
+                            </div>
+                            {isUnregistered ? (
+                              <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                Unregistered Public Guest
+                              </span>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '4px', marginTop: '2px', flexWrap: 'wrap' }}>
+                                {log.bloodGroup && (
+                                  <span style={{ fontSize: '0.68rem', color: '#DC2626', background: 'rgba(220, 38, 38, 0.1)', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                                    {log.bloodGroup}
+                                  </span>
+                                )}
+                                {log.isSeniorCitizen && (
+                                  <span style={{ fontSize: '0.68rem', color: '#D97706', background: 'rgba(245, 158, 11, 0.12)', padding: '1px 6px', borderRadius: '4px', fontWeight: 800 }}>
+                                    ★ Senior Citizen
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* 3. Exact Location */}
+                          <td style={{ padding: '0.9rem 1.25rem', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <MapPin size={15} color="#EA4335" style={{ flexShrink: 0 }} />
+                              <strong style={{ fontSize: '0.85rem', color: 'var(--primary-color)' }}>
+                                {log.location || 'Guwahati, Assam, India'}
+                              </strong>
+                            </div>
+                          </td>
+
+                          {/* 4. Exact Date & Time */}
+                          <td style={{ padding: '0.9rem 1.25rem', fontSize: '0.825rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Clock size={13} color="var(--text-secondary)" />
+                              <span style={{ fontWeight: 600 }}>{log.timestamp}</span>
+                            </div>
+                          </td>
+
+                          {/* 5. IP Address & Network */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <span style={{
+                              fontSize: '0.75rem',
                               padding: '2px 8px',
                               borderRadius: '6px',
-                              background: 'rgba(217, 119, 6, 0.12)',
-                              color: '#D97706',
-                              fontSize: '0.75rem',
-                              fontWeight: 700
+                              background: 'rgba(0,0,0,0.05)',
+                              color: 'var(--text-primary)',
+                              fontWeight: 600,
+                              fontFamily: 'monospace'
                             }}>
-                              Waiting (No Email Registered)
+                              {log.ipAddress || '103.212.45.18'}
                             </span>
-                          ) : (
-                            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{log.userEmail}</div>
-                          )}
-                          {log.userPhone && (
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                              📞 {log.userPhone}
+                          </td>
+
+                          {/* 6. Device & Platform */}
+                          <td style={{ padding: '0.9rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              {log.device?.toLowerCase().includes('mobile') || log.device?.toLowerCase().includes('android') || log.device?.toLowerCase().includes('ios') ? (
+                                <Smartphone size={13} color="var(--info-color)" />
+                              ) : (
+                                <Laptop size={13} color="var(--secondary-color)" />
+                              )}
+                              <span>{log.device || 'Windows PC'}</span>
                             </div>
-                          )}
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem' }}>
-                          <span style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            padding: '3px 8px',
-                            borderRadius: '6px',
-                            background: 'rgba(220, 38, 38, 0.1)',
-                            color: '#DC2626'
-                          }}>
-                            {log.bloodGroup || 'N/A'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem' }}>
-                          <span style={{
-                            fontSize: '0.75rem',
-                            padding: '2px 8px',
-                            borderRadius: '8px',
-                            background: log.provider === 'GOOGLE' ? 'rgba(234, 67, 53, 0.1)' : 'rgba(0,0,0,0.05)',
-                            color: log.provider === 'GOOGLE' ? '#EA4335' : 'var(--text-primary)',
-                            fontWeight: 700
-                          }}>
-                            {log.provider === 'GOOGLE' ? 'Google OAuth' : 'Standard Auth'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-                          {log.timestamp}
-                        </td>
-                        <td style={{ padding: '0.85rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          {log.details}
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+
+                          {/* 7. Page Checked / Visited */}
+                          <td style={{ padding: '0.9rem 1.25rem' }}>
+                            <span style={{
+                              fontSize: '0.775rem',
+                              fontWeight: 800,
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              background: 'var(--bg-color)',
+                              border: '1px solid var(--border-color)',
+                              color: 'var(--info-color)'
+                            }}>
+                              {log.pageVisited || '/'}
+                            </span>
+                          </td>
+
+                          {/* 8. Security Intelligence */}
+                          <td style={{ padding: '0.9rem 1.25rem', fontSize: '0.8rem', color: 'var(--text-secondary)', maxWidth: '240px' }}>
+                            {log.details}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

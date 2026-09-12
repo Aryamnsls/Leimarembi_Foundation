@@ -11,7 +11,7 @@ import {
   ImageIcon, FileText, Video, QrCode, ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
-import { isSuperAdmin } from '@/lib/superAdminAuth';
+import { isSuperAdmin, recordActivity, recordVisitorCheck } from '@/lib/superAdminAuth';
 import { canSwitchRoleMode, isExecutiveOfficer } from '@/lib/executiveOfficers';
 
 export default function Navbar() {
@@ -121,7 +121,34 @@ export default function Navbar() {
     localStorage.setItem('theme', newTheme);
   };
 
+  // Record visitor check on route changes
+  useEffect(() => {
+    if (pathname && mounted) {
+      recordVisitorCheck(pathname);
+    }
+  }, [pathname, mounted]);
+
   const handleLogout = () => {
+    try {
+      const userStr = localStorage.getItem('lf_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        recordActivity({
+          type: 'LOG_OUT',
+          userName: u.name || 'Member',
+          userEmail: u.email || 'N/A',
+          userPhone: u.phone,
+          membershipNo: u.membershipNo,
+          bloodGroup: u.bloodGroup,
+          isSeniorCitizen: u.isSeniorCitizen,
+          provider: u.authProvider || 'LOCAL',
+          details: `${u.name || 'Member'} officially logged out of the platform`,
+          pageVisited: pathname,
+          isRegistered: true,
+          status: 'SUCCESS'
+        });
+      }
+    } catch {}
     localStorage.removeItem('lf_token');
     localStorage.removeItem('lf_user');
     document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';

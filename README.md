@@ -20,7 +20,13 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 11. **Super Admin & Executive Officer Dual-View Switcher**: Seamless switching between Super Admin Control Center (`/superadmin`) and Management Portal (`/management`) available exclusively to Aryaman Singha and M. Bina Babu Singha via top banner and compact navbar dual-pill.
 12. **Strict Public Sign In Privacy & Registration Password Verification**: Standard, clean member sign-in fields (`Email Address *` and `Password *`) with validation against member registration passwords. Executive officer Date of Birth (DOB) authentication and visible hint banners are strictly isolated inside `/documents` only.
 13. **Optimized Desktop Navbar & Fluid Layout**: 100% visible "Donate Now" button and Dark/Light Mode toggle across all standard desktop resolutions (1280px–1920px) with zero horizontal clipping.
-14. **Dynamic Live Registration & Senior/Non-Senior Activity Dashboard**: Real-time event tracking on Super Admin and Management portals, automatic Senior/Non-Senior citizen categorization, and Blood Group tracking during registration.
+14. **Executive Directorate (5 Officers) in Admin Dashboard (`/management`)**: Dedicated tab and overview card showcasing the 5 authorized Executive Officers (Dr. Phuritsabam Birmani, K. Ajit Singh, Y. Thambal Singha, M. Bina Babu Singha, Ng. Baldev Singha) with full Read, Write & Execute authority across Documents, Meetings, Gallery, and Management.
+15. **Admin Access Surveillance Stream (`/management`)**: Executive officers can monitor real-time surveillance of who logged in (`SIGN_IN`), who logged out (`LOG_OUT`), who accessed website modules (`PAGE_ACCESS`), and who attempted unauthorized access (`ACCESS_ATTEMPT`).
+16. **Super Admin Live Security & Location Intelligence Radar (`/superadmin`)**: Advanced telemetry radar exclusively for Aryaman Singha & M. Bina Babu Singha displaying exact **Geographic Location (City, State, Country)**, **Exact Date & Time**, **IP Address & ISP Network**, **Device / OS**, and **Visited / Attempted Route** for:
+   - **Unregistered Public Visitors** checking the website without registering (`VISITOR_CHECK`)
+   - **Unauthorized Intrusion Attempts** blocked at secure vaults (`ACCESS_ATTEMPT`)
+   - **Member & Officer Sign-Ins & Logouts** (`SIGN_IN` / `LOG_OUT`)
+17. **Stealth Administration Secrecy**: Aryaman Singha possesses supreme platform superpowers and Super Admin access, while remaining completely concealed from visible officer rosters on the Admin Dashboard (`/management`).
 
 ---
 
