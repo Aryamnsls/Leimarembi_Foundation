@@ -115,6 +115,41 @@ export default function SuperAdminPage() {
   const [editingMember, setEditingMember] = useState<MemberRecord | null>(null);
   const [idCardMember, setIdCardMember] = useState<MemberRecord | null>(null);
 
+  // Senior Citizen Directory & Health Card preview modals
+  const [showSeniorCitizenModal, setShowSeniorCitizenModal] = useState(false);
+  const [seniorCitizenHealthCard, setSeniorCitizenHealthCard] = useState<any | null>(null);
+  const [activityFilter, setActivityFilter] = useState<'ALL' | 'SENIOR'>('ALL');
+
+  // Official Senior Citizen members from verified foundation ledger (All 7 Members)
+  const seniorCitizenList = useMemo(() => {
+    const seniorsMap = new Map<string, any>();
+    activityLogs
+      .filter((l) => l.isSeniorCitizen)
+      .forEach((l) => {
+        if (!seniorsMap.has(l.userName)) {
+          seniorsMap.set(l.userName, {
+            name: l.userName,
+            phone: l.userPhone || '',
+            email: l.userEmail || 'Waiting',
+            bloodGroup: l.bloodGroup || 'N/A',
+            membershipNo: l.membershipNo || 'LF-SR-CITIZEN',
+            isSeniorCitizen: true,
+            status: 'ACTIVE',
+            healthCardStatus: 'Eligible (Free Rural Health Camp & Diagnostic Privilege)'
+          });
+        }
+      });
+    return Array.from(seniorsMap.values());
+  }, [activityLogs]);
+
+  // Filtered activity logs (All vs Senior Citizens only)
+  const displayedActivityLogs = useMemo(() => {
+    if (activityFilter === 'SENIOR') {
+      return activityLogs.filter((l) => l.isSeniorCitizen);
+    }
+    return activityLogs;
+  }, [activityLogs, activityFilter]);
+
   // New member form state
   const [formData, setFormData] = useState({
     name: '',
@@ -410,9 +445,26 @@ export default function SuperAdminPage() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
-        <div className="card" style={{ borderLeft: '4px solid var(--secondary-color)' }}>
+      {/* KPI Cards - Clickable Interactive Links */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+        {/* 1. Total Registered Members */}
+        <div
+          onClick={() => {
+            setActiveTab('MEMBERS');
+            setRoleFilter('ALL');
+            setSearchQuery('');
+            const el = document.getElementById('main-controls');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="card"
+          style={{
+            borderLeft: '4px solid var(--secondary-color)',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            position: 'relative'
+          }}
+          title="Click to view Member Registry (Read • Write • Execute)"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Total Registered Members</span>
             <Users size={20} color="var(--secondary-color)" />
@@ -420,10 +472,29 @@ export default function SuperAdminPage() {
           <p style={{ fontSize: '2.25rem', fontWeight: 900, margin: '0.5rem 0 0', color: 'var(--primary-color)' }}>
             {members.length}
           </p>
-          <span style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 700 }}>● Full Database Access</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 700 }}>● Full Database Access</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--secondary-color)', fontWeight: 800 }}>View Registry ↗</span>
+          </div>
         </div>
 
-        <div className="card" style={{ borderLeft: '4px solid #3B82F6' }}>
+        {/* 2. Logged Activity Events */}
+        <div
+          onClick={() => {
+            setActiveTab('ACTIVITY');
+            setActivityFilter('ALL');
+            refreshLogs();
+            const el = document.getElementById('main-controls');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="card"
+          style={{
+            borderLeft: '4px solid #3B82F6',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+          }}
+          title="Click to view Live Authentication Stream"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Logged Activity Events</span>
             <Activity size={20} color="#3B82F6" />
@@ -431,10 +502,28 @@ export default function SuperAdminPage() {
           <p style={{ fontSize: '2.25rem', fontWeight: 900, margin: '0.5rem 0 0', color: '#3B82F6' }}>
             {activityLogs.length}
           </p>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sign-Ins & Registrations</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Sign-Ins & Registrations</span>
+            <span style={{ fontSize: '0.75rem', color: '#3B82F6', fontWeight: 800 }}>Live Stream ↗</span>
+          </div>
         </div>
 
-        <div className="card" style={{ borderLeft: '4px solid #10B981' }}>
+        {/* 3. Active Members */}
+        <div
+          onClick={() => {
+            setActiveTab('MEMBERS');
+            setRoleFilter('ALL');
+            const el = document.getElementById('main-controls');
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+          }}
+          className="card"
+          style={{
+            borderLeft: '4px solid #10B981',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+          }}
+          title="Click to view Active Verified Members"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Active Members</span>
             <CheckCircle2 size={20} color="#10B981" />
@@ -442,23 +531,41 @@ export default function SuperAdminPage() {
           <p style={{ fontSize: '2.25rem', fontWeight: 900, margin: '0.5rem 0 0', color: '#10B981' }}>
             {members.filter(m => m.status === 'ACTIVE').length}
           </p>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Verified Credentials</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Verified Credentials</span>
+            <span style={{ fontSize: '0.75rem', color: '#10B981', fontWeight: 800 }}>Manage Active ↗</span>
+          </div>
         </div>
 
-        <div className="card" style={{ borderLeft: '4px solid #F59E0B' }}>
+        {/* 4. Senior Citizen Members (Reflects all 7 Senior Citizens from list) */}
+        <div
+          onClick={() => setShowSeniorCitizenModal(true)}
+          className="card"
+          style={{
+            borderLeft: '4px solid #F59E0B',
+            cursor: 'pointer',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            background: 'linear-gradient(180deg, var(--card-bg) 0%, rgba(245, 158, 11, 0.06) 100%)',
+            boxShadow: '0 4px 14px rgba(245, 158, 11, 0.12)'
+          }}
+          title="Click to view Senior Citizen Health Card Beneficiary Directory (All 7 Members)"
+        >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 700 }}>Senior Citizen Members</span>
             <Award size={20} color="#F59E0B" />
           </div>
           <p style={{ fontSize: '2.25rem', fontWeight: 900, margin: '0.5rem 0 0', color: '#F59E0B' }}>
-            {members.filter(m => m.isSeniorCitizen).length}
+            {seniorCitizenList.length}
           </p>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Health Card Eligible</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+            <span style={{ fontSize: '0.75rem', color: '#D97706', fontWeight: 800 }}>★ Health Card Eligible (All {seniorCitizenList.length})</span>
+            <span style={{ fontSize: '0.75rem', color: '#F59E0B', fontWeight: 800 }}>Open Directory ↗</span>
+          </div>
         </div>
       </div>
 
       {/* Main Controls & Tabs */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+      <div id="main-controls" className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {/* Navigation Tabs Bar */}
         <div style={{
           padding: '1rem 1.5rem',
@@ -527,13 +634,48 @@ export default function SuperAdminPage() {
                   Both Super Admins can monitor live user registrations and sign-ins across the platform.
                 </p>
               </div>
+
+              {/* Quick Filter: All Activity vs Senior Citizens Only */}
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Stream Filter:</span>
+                <button
+                  onClick={() => setActivityFilter('ALL')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: '1px solid var(--border-color)',
+                    background: activityFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
+                    color: activityFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  All Stream ({activityLogs.length})
+                </button>
+                <button
+                  onClick={() => setActivityFilter('SENIOR')}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    border: '1px solid rgba(245, 158, 11, 0.4)',
+                    background: activityFilter === 'SENIOR' ? '#D97706' : 'rgba(245, 158, 11, 0.1)',
+                    color: activityFilter === 'SENIOR' ? '#FFFFFF' : '#D97706',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ★ Senior Citizens Only ({seniorCitizenList.length})
+                </button>
+              </div>
             </div>
 
-            {activityLogs.length === 0 ? (
+            {displayedActivityLogs.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-secondary)' }}>
                 <Activity size={40} style={{ opacity: 0.3, marginBottom: '1rem' }} />
-                <p style={{ margin: 0, fontWeight: 700 }}>No live sign-ins logged in this session yet.</p>
-                <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>When anyone registers or logs in via Google or form, the timestamped event will stream here immediately.</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>No activity logged matching this filter.</p>
+                <p style={{ fontSize: '0.85rem', opacity: 0.8 }}>Click "All Stream" to view the complete real-time authentication registry.</p>
               </div>
             ) : (
               <div className="table-responsive">
@@ -550,7 +692,7 @@ export default function SuperAdminPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {activityLogs.map((log) => (
+                    {displayedActivityLogs.map((log) => (
                       <tr key={log.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                         <td style={{ padding: '0.85rem 1.25rem' }}>
                           <span style={{
@@ -1025,6 +1167,237 @@ export default function SuperAdminPage() {
                 Print / Save ID
               </button>
               <button onClick={() => setIdCardMember(null)} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: SENIOR CITIZEN HEALTH CARD BENEFICIARY DIRECTORY ── */}
+      {showSeniorCitizenModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div className="card" style={{ maxWidth: '900px', width: '100%', maxHeight: '90vh', overflowY: 'auto', borderRadius: '24px', padding: '2rem', border: '2px solid rgba(245, 158, 11, 0.4)', boxShadow: '0 25px 60px rgba(0,0,0,0.4)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '1.25rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                  <Award size={24} color="#F59E0B" />
+                  <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#D97706', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                    Foundation Health & Welfare Charter
+                  </span>
+                  <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#D97706', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
+                    {seniorCitizenList.length} Verified Members
+                  </span>
+                </div>
+                <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary-color)' }}>
+                  Senior Citizen Health Card Beneficiary Directory
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Exclusively accessible by Super Administrators Aryaman Singha & M. Bina Babu Singha.
+                </p>
+              </div>
+
+              <button
+                onClick={() => setShowSeniorCitizenModal(false)}
+                className="btn btn-outline"
+                style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Charter Banner */}
+            <div style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(212, 175, 55, 0.12) 100%)', border: '1px solid rgba(245, 158, 11, 0.25)', borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Award size={32} color="#D97706" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
+                <strong>Section 80G Certified Healthcare Protection:</strong> All {seniorCitizenList.length} Senior Citizen members listed below receive lifetime free consultations at Leimarembi Foundation Rural Health Camps, priority blood bank coordination, and official digital Health Cards.
+              </div>
+            </div>
+
+            {/* Senior Citizens Table */}
+            <div className="table-responsive" style={{ marginBottom: '1.5rem' }}>
+              <table>
+                <thead>
+                  <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
+                    <th style={{ padding: '0.8rem 1rem' }}>#</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Member Name</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Contact Phone</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Email Address</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Blood Group</th>
+                    <th style={{ padding: '0.8rem 1rem' }}>Health Privilege</th>
+                    <th style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>Health Card</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {seniorCitizenList.map((senior, idx) => (
+                    <tr key={senior.name} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                      <td style={{ padding: '0.8rem 1rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                        {idx + 1}
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontWeight: 700 }}>
+                        <div style={{ color: 'var(--text-primary)' }}>{senior.name}</div>
+                        <span style={{ fontSize: '0.7rem', color: '#D97706', fontWeight: 700 }}>
+                          ★ Senior Citizen (60+)
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontSize: '0.85rem' }}>
+                        📞 <strong>{senior.phone}</strong>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', fontSize: '0.85rem' }}>
+                        {senior.email === 'Waiting' ? (
+                          <span style={{
+                            display: 'inline-block',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            background: 'rgba(217, 119, 6, 0.12)',
+                            color: '#D97706',
+                            fontSize: '0.725rem',
+                            fontWeight: 700
+                          }}>
+                            Waiting (Pending Verification)
+                          </span>
+                        ) : (
+                          senior.email
+                        )}
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem' }}>
+                        <span style={{
+                          fontSize: '0.8rem',
+                          fontWeight: 800,
+                          padding: '3px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(220, 38, 38, 0.12)',
+                          color: '#DC2626'
+                        }}>
+                          {senior.bloodGroup}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem' }}>
+                        <span style={{
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.725rem',
+                          fontWeight: 800,
+                          background: 'rgba(16, 185, 129, 0.15)',
+                          color: '#10B981',
+                          display: 'inline-block'
+                        }}>
+                          ● Eligible (Health Card)
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.8rem 1rem', textAlign: 'center' }}>
+                        <button
+                          onClick={() => setSeniorCitizenHealthCard(senior)}
+                          className="btn btn-primary"
+                          style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem', gap: '4px' }}
+                          title="Generate & View Health Card"
+                        >
+                          <Award size={14} /> Health Card
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <button
+                onClick={() => {
+                  setShowSeniorCitizenModal(false);
+                  setActiveTab('ACTIVITY');
+                  setActivityFilter('SENIOR');
+                  const el = document.getElementById('main-controls');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="btn btn-outline"
+                style={{ fontSize: '0.85rem', gap: '6px' }}
+              >
+                <Activity size={16} /> Filter in Real-Time Authentication Stream
+              </button>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => window.print()}
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.85rem', gap: '6px' }}
+                >
+                  <Download size={16} /> Print Directory
+                </button>
+                <button
+                  onClick={() => setShowSeniorCitizenModal(false)}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.85rem' }}
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: SENIOR CITIZEN PRIVILEGE & HEALTH CARD PREVIEW ── */}
+      {seniorCitizenHealthCard && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div style={{ maxWidth: '440px', width: '100%', background: 'linear-gradient(135deg, #0A192F 0%, #1A2E4C 100%)', borderRadius: '24px', padding: '2rem', color: '#FFFFFF', border: '2px solid #F59E0B', boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '1rem' }}>
+              <span style={{ fontSize: '0.75rem', letterSpacing: '1.5px', color: '#F59E0B', fontWeight: 800, textTransform: 'uppercase' }}>
+                LEIMAREMBI FOUNDATION • HEALTH CHARTER
+              </span>
+              <h3 style={{ margin: '4px 0 0', fontSize: '1.25rem', fontWeight: 900, color: '#FFFFFF' }}>
+                Senior Citizen Privilege & Health Card
+              </h3>
+              <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                Section 80G Certified • Manipur & Guwahati Region
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Health ID No:</span>
+                <strong style={{ color: '#F59E0B' }}>
+                  LF-SR-HLTH-{seniorCitizenHealthCard.bloodGroup.replace(/[^A-Za-z0-9]/g, '')}-{seniorCitizenHealthCard.phone.replace(/[^0-9]/g, '').slice(-4)}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Member Name:</span>
+                <strong style={{ fontSize: '1rem' }}>{seniorCitizenHealthCard.name}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Category:</span>
+                <span style={{ color: '#F59E0B', fontWeight: 700 }}>Senior Citizen Privilege (60+)</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Blood Group:</span>
+                <strong style={{ color: '#EF4444', fontSize: '1rem' }}>{seniorCitizenHealthCard.bloodGroup}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Primary Phone:</span>
+                <span>{seniorCitizenHealthCard.phone}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Registered Email:</span>
+                <span>{seniorCitizenHealthCard.email === 'Waiting' ? 'Waiting (Pending)' : seniorCitizenHealthCard.email}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#94A3B8' }}>Coverage Status:</span>
+                <span style={{ color: '#10B981', fontWeight: 700 }}>Lifetime Free Rural Health Camps</span>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '1.5rem', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.85rem' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                Authorized by Super Administrators Aryaman Singha & M. Bina Babu Singha
+              </span>
+            </div>
+
+            <div style={{ marginTop: '1.25rem', display: 'flex', gap: '8px' }}>
+              <button onClick={() => window.print()} className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }}>
+                Print Health Card
+              </button>
+              <button onClick={() => setSeniorCitizenHealthCard(null)} className="btn btn-outline" style={{ flex: 1, justifyContent: 'center', color: '#FFFFFF', borderColor: 'rgba(255,255,255,0.3)' }}>
                 Close
               </button>
             </div>
