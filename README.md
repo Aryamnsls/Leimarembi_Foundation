@@ -236,6 +236,52 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
     - The Management Portal (`/management`) filters out Aryaman from the visible active member roster.
     - Aryaman Singha retains complete stealth Super Admin & Developer privileges across all backend endpoints and private vaults without exposing his credentials or card to other members.
 
+### 12. 🚀 Production Deployment & Verification Guide (`https://leimarembifoundation.org`)
+
+#### A. Checking the Digital Library & Documents (`/documents`)
+1. Open [https://leimarembifoundation.org/documents](https://leimarembifoundation.org/documents).
+2. Notice the visible **Restricted Vault** lock screen with the hint banner:
+   > `💡 Officer Access Hint: Your login password is your Date of Birth (DOB).`
+3. Click **"Authorised Officer Login Required"**.
+4. In the authentication modal, notice the security guidance:
+   > `💡 Officer Hint: Enter your registered Email or Phone. Your security password is your Date of Birth (DOB).`
+5. Enter any authorized Executive Officer credentials:
+   - **Email/Phone**: `ichemma@yahoo.com` or `98640-44123`
+   - **Password**: Date of Birth (e.g. `15/08/1960` or `98640`)
+6. Click **"Authenticate Officer Clearance"**:
+   - The vault unlocks instantly, displaying the authenticated signatory badge (`Dr. Phuritsabam Birmani`).
+   - Click **"View Document (Eye Reader)"** to inspect the PDF directly in the in-browser reader modal.
+   - Click **"Download Softcopy"** to download `Pad Leimarembi Imp Document.pdf`.
+
+#### B. Checking the Super Admin ⇄ Admin View Switcher
+1. Sign in using **Aryaman Singha** (`aryamansingha60@gmail.com` / `7099659804`) or **M. Bina Babu Singha** (`binababu.singha@yahoo.com` / `76370-87931`).
+2. **On Super Admin (`/superadmin`)**:
+   - Observe the top banner displaying `[⇄ Switch to Admin View]`. Click it to transition smoothly to `/management`.
+3. **On Management Portal (`/management`)**:
+   - Observe the header banner displaying `[👑 Switch to Super Admin View]`. Click it to return to `/superadmin`.
+4. **On Desktop Navbar & Mobile Drawer**:
+   - Notice the interactive dual-pill toggle:
+     `[🛡️ Super Admin] ⇄ [Admin]`
+   - This toggle is visible **strictly to Aryaman Singha and M. Bina Babu Singha**. Other executive officers only see the single `[🛡️ Admin Panel]` button.
+
+#### C. Checking Stealth Administrator Secrecy (Aryaman Hidden)
+1. Open `/members`, `/documents`, and `/management` without logging in as Aryaman.
+2. Confirm that **Aryaman Singha is completely hidden from visible public rosters and cards**:
+   - Only the 5 official Executive Officers are displayed in governance and directory lists.
+   - Aryaman's identity remains completely confidential for tomorrow's official Foundation Inauguration.
+
+#### D. Hostinger Production Synchronization
+1. **Static Build**: Pre-rendered using Next.js 16 static HTML export (`npm run build`).
+2. **Output Bundle**: All static HTML files, JavaScript bundles, CSS stylesheets, images, and fonts are located in [`d:/Leimarembi_Foundation/out`](file:///d:/Leimarembi_Foundation/out).
+3. **Git Master Branch**: All commits are synchronized with the remote repository:
+   ```bash
+   git push origin master
+   ```
+4. **Hostinger Hosting**:
+   - If Hostinger Git Auto-Deployment is configured, your live website at `https://leimarembifoundation.org` automatically updates within minutes of pushing to `master`.
+   - To update manually via Hostinger File Manager / FTP: Simply upload the files inside the `out/` folder directly into your Hostinger `public_html/` root directory.
+
+
 
 
 
