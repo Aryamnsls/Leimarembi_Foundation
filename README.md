@@ -153,3 +153,23 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
   - Prevents platform navigation until the member selects their Blood Group, confirms their Senior/Non-Senior status, and provides their phone number.
   - Data is synchronized via the `PUT /api/auth/update-profile` endpoint and reflected in real time across the Super Admin Dashboard.
 
+### 9. 🔒 Production RBAC Rule Enforcement & Universal Link Interceptor
+- **Static Export Architecture Support**: In production, Next.js runs as a static export (`output: 'export'`), meaning server-side `middleware.ts` is not executed by static web hosts (Hostinger/Apache). The system implements [`ClientRouteGuard.tsx`](file:///d:/Leimarembi_Foundation/website/src/components/ClientRouteGuard.tsx) mounted globally in [`RootLayout`](file:///d:/Leimarembi_Foundation/website/src/app/layout.tsx) to enforce strict RBAC across all production environments.
+- **Public Welcome Access**: The Welcome Page (`/`) and Login/Register Page (`/login`) remain accessible to everyone.
+- **Universal Capture-Phase Link Interceptor**:
+  - When an unauthenticated visitor clicks **ANY** link on the homepage, navbar, footer, core module cards, or action buttons (*Explore Governance*, *About*, *Executive Members*, *Activities*, *News Hub*, *Media Gallery*, *Culture*, *Documents*, *Meetings*, *Donate*, etc.):
+  - The navigation is immediately intercepted before page load and redirected to:
+    ```
+    /login?tab=register&redirect=<target>
+    ```
+  - Displays the prominent security notice banner:
+    > `🔒 Member Access Rule: Please Register or Sign In to access this section.`
+- **Direct URL Subroute Shield**: Typing or navigating directly to any protected URL without an active authenticated session (`lf_token`) prevents any flash of protected content and immediately redirects to registration.
+- **Register ➔ Sign In ➔ Platform Enjoyment Flow**:
+  - Unauthenticated visitors land directly on the **Register (Create Account)** tab.
+  - After submitting their registration (with mandatory Blood Group and Senior/Non-Senior category selection), the system confirms their new Membership ID and transitions them to the **Sign In** tab with their email pre-filled.
+  - Upon signing in, the member is seamlessly routed to their requested destination (or `/portal`) to explore and enjoy the full platform.
+- **Super Admin Clearance**: Aryaman Singha and M. Bina Babu Singha retain full administrative clearance across all routes, including the hidden `/superadmin` Command Center.
+- **Production Sync**: Changes are pre-rendered into `/out/` and pushed to GitHub `master` branch for automated deployment on `https://leimarembifoundation.org/`.
+
+
