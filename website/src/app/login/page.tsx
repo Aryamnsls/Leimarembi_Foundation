@@ -231,7 +231,14 @@ function LoginCard() {
           try {
             const existingUsersStr = localStorage.getItem('lf_local_users');
             const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
-            matchedUser = existingUsers.find((u: any) => u.email.toLowerCase() === inputEmail && (!u.password || u.password === loginData.password));
+            const userWithEmail = existingUsers.find((u: any) => u.email.toLowerCase() === inputEmail);
+            if (userWithEmail) {
+              if (userWithEmail.password && userWithEmail.password !== loginData.password) {
+                setError("Incorrect password. Please enter the password you created during registration.");
+                return;
+              }
+              matchedUser = userWithEmail;
+            }
           } catch {}
         }
 
@@ -259,6 +266,9 @@ function LoginCard() {
           } else {
             router.push("/portal");
           }
+          return;
+        } else {
+          setError("Account not found or invalid credentials. Please check your email or Register for a new membership.");
           return;
         }
       }
@@ -676,65 +686,20 @@ function LoginCard() {
                 <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
               </div>
 
-              {/* Executive Officers Login Hint Banner */}
-              <div style={{
-                background: "rgba(14, 165, 233, 0.08)",
-                border: "1.5px solid rgba(14, 165, 233, 0.3)",
-                borderRadius: "12px",
-                padding: "0.75rem 1rem",
-                display: "flex",
-                gap: "10px",
-                alignItems: "center"
-              }}>
-                <span style={{ fontSize: "1.1rem" }}>💡</span>
-                <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
-                  <strong>Executive Officers:</strong> Login with your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
-                </span>
-              </div>
-
               <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
-                  Registered Email Address or Phone Number *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter registered email or phone"
-                  value={loginData.email}
-                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                  style={{
-                    width: "100%",
-                    padding: "0.7rem 0.9rem",
-                    borderRadius: "10px",
-                    border: "1px solid var(--border-color)",
-                    background: "var(--bg-color)",
-                    color: "var(--text-primary)",
-                    fontSize: "0.9rem",
-                    outline: "none"
-                  }}
-                />
-              </div>
-
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                  <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)" }}>
-                    Password (Date of Birth / Password) *
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
+                    Email Address *
                   </label>
-                  <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
-                    DOB as Password for Officers
-                  </span>
-                </div>
-                <div style={{ position: "relative" }}>
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type="email"
                     required
-                    placeholder="Enter password or Date of Birth (DOB)"
-                    value={loginData.password}
-                    onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                    placeholder="you@example.com"
+                    value={loginData.email}
+                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                     style={{
                       width: "100%",
-                      padding: "0.7rem 2.4rem 0.7rem 0.9rem",
+                      padding: "0.7rem 0.9rem",
                       borderRadius: "10px",
                       border: "1px solid var(--border-color)",
                       background: "var(--bg-color)",
@@ -743,29 +708,53 @@ function LoginCard() {
                       outline: "none"
                     }}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{
-                      position: "absolute",
-                      right: "10px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      background: "none",
-                      border: "none",
-                      color: "var(--text-muted)",
-                      cursor: "pointer"
-                    }}
-                    aria-label="Toggle password visibility"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
+                <div>
+                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
+                    Password *
+                  </label>
+                  <div style={{ position: "relative" }}>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="Enter password"
+                      value={loginData.password}
+                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                      style={{
+                        width: "100%",
+                        padding: "0.7rem 2.4rem 0.7rem 0.9rem",
+                        borderRadius: "10px",
+                        border: "1px solid var(--border-color)",
+                        background: "var(--bg-color)",
+                        color: "var(--text-primary)",
+                        fontSize: "0.9rem",
+                        outline: "none"
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: "absolute",
+                        right: "10px",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "none",
+                        border: "none",
+                        color: "var(--text-muted)",
+                        cursor: "pointer"
+                      }}
+                      aria-label="Toggle password visibility"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
                 className="btn btn-primary"
                 style={{ width: "100%", justifyContent: "center", minHeight: "44px", fontSize: "0.95rem", marginTop: "0.5rem" }}
               >

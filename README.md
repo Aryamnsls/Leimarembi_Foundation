@@ -281,7 +281,14 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
    - If Hostinger Git Auto-Deployment is configured, your live website at `https://leimarembifoundation.org` automatically updates within minutes of pushing to `master`.
    - To update manually via Hostinger File Manager / FTP: Simply upload the files inside the `out/` folder directly into your Hostinger `public_html/` root directory.
 
-
-
-
-
+#### E. Desktop Navbar Spacing & Sign In Privacy Hardening
+1. **Desktop Navbar Layout Optimization**:
+   - Spacing, padding, and font metrics refined across `.nav-links` and action bar buttons (`LanguageSwitcher`, `QR Card`, `Sign Out`, `Super Admin ⇄ Admin`, `Donate Now`, `Dark/Light Mode`).
+   - Standard laptop resolutions (1280x720, 1366x768, 1440x900, 1920x1080) maintain 100% visibility for both the **"Donate Now"** button and the **"Dark/Light Mode"** circular toggle with zero horizontal clipping.
+   - Fluid `header-content` width prevents right-side elements from falling off the screen.
+   - Clean responsive breakpoint synchronized at `1180px` between desktop bar and mobile drawer.
+2. **Sign In Page (`/login`) Privacy Restoration**:
+   - Public Sign In form restored strictly to standard member credentials (`Email Address *` and `Password *`).
+   - The `💡 Executive Officers DOB` hint banner and officer DOB links have been **completely removed** from public view on `/login`.
+   - Officer DOB guidance is kept **strictly and exclusively** inside the internal [`/documents`](file:///documents) vault.
+   - Password entered on Sign In strictly validates the chosen password established during registration.

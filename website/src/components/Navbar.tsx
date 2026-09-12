@@ -142,29 +142,29 @@ export default function Navbar() {
           zIndex: 1000
         }}
       >
-        <div className="container header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem' }}>
+        <div className="header-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.3rem', width: '100%', maxWidth: '100%', padding: '0 0.75rem' }}>
           {/* Logo Identity */}
-          <Link href="/" className="logo-container" onClick={closeMenu} style={{ marginRight: '0.5rem' }}>
+          <Link href="/" className="logo-container" onClick={closeMenu} style={{ marginRight: '0.4rem', flexShrink: 0 }}>
             <Image 
               src="/leimarembi_official_logo.png" 
               alt="Leimarembi Foundation Logo" 
-              width={52} 
-              height={52} 
+              width={44} 
+              height={44} 
               className="logo-img" 
-              style={{ height: '52px', width: '52px', objectFit: 'contain', borderRadius: '8px' }} 
+              style={{ height: '44px', width: '44px', objectFit: 'contain', borderRadius: '8px' }} 
               priority 
             />
-            <div className="logo-text" style={{ fontSize: '0.95rem' }}>
+            <div className="logo-text" style={{ fontSize: '0.88rem' }}>
               LEIMAREMBI<br />
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '0.6rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1px', textTransform: 'uppercase' }}>
                 FOUNDATION
               </span>
             </div>
           </Link>
           
           {/* Desktop Navigation Links */}
-          <nav aria-label="Main Navigation" className="desktop-nav" style={{ marginRight: 'auto' }}>
-            <ul className="nav-links" style={{ display: 'flex', gap: '0.25rem', padding: 0, margin: 0 }}>
+          <nav aria-label="Main Navigation" className="desktop-nav" style={{ marginRight: 'auto', flexShrink: 1 }}>
+            <ul className="nav-links" style={{ display: 'flex', gap: '1px', padding: 0, margin: 0 }}>
               <li><Link href="/" style={isActive('/') ? activeStyle : {}}>{t('nav.home')}</Link></li>
               <li><Link href="/portal" style={isActive('/portal') ? activeStyle : {}}>{t('nav.portal')}</Link></li>
               <li><Link href="/about" style={isActive('/about') ? activeStyle : {}}>{t('nav.about')}</Link></li>
@@ -179,9 +179,11 @@ export default function Navbar() {
           </nav>
           
           {/* Action Bar */}
-          <div className="desktop-action-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexShrink: 0, marginLeft: 'auto' }}>
+          <div className="desktop-action-bar" style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', flexShrink: 0, marginLeft: 'auto' }}>
             {/* Native Language Switcher */}
-            <LanguageSwitcher />
+            <div style={{ flexShrink: 0 }}>
+              <LanguageSwitcher />
+            </div>
 
             {/* Official QR Access Card Button */}
             <button 
@@ -193,33 +195,35 @@ export default function Navbar() {
               style={{
                 background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
                 color: '#000000',
-                padding: '0.3rem 0.65rem',
-                fontSize: '0.775rem',
+                padding: '0.24rem 0.45rem',
+                fontSize: '0.72rem',
                 fontWeight: 900,
-                minHeight: '32px',
-                gap: '5px',
-                borderRadius: '20px',
+                minHeight: '30px',
+                gap: '3px',
+                borderRadius: '16px',
                 border: 'none',
-                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                boxShadow: '0 3px 10px rgba(245, 158, 11, 0.25)',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                flexShrink: 0
               }}
               title="Display & Share Executive QR Gateway Card"
             >
-              <QrCode size={14} /> QR Card
+              <QrCode size={12} /> QR Card
             </button>
 
             {mounted && isLoggedIn ? (
-              <button onClick={handleLogout} className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
-                <LogIn size={13} /> Sign Out
+              <button onClick={handleLogout} className="btn btn-outline desktop-only-btn" style={{ padding: '0.24rem 0.45rem', fontSize: '0.72rem', minHeight: '30px', gap: '3px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <LogIn size={12} /> Sign Out
               </button>
             ) : (
-              <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.3rem 0.55rem', fontSize: '0.775rem', minHeight: '32px', gap: '4px', whiteSpace: 'nowrap' }}>
-                <LogIn size={13} /> {t('nav.login')}
+              <Link href="/login" className="btn btn-outline desktop-only-btn" style={{ padding: '0.24rem 0.45rem', fontSize: '0.72rem', minHeight: '30px', gap: '3px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <LogIn size={12} /> {t('nav.login')}
               </Link>
             )}
+
             {/* Role Switcher for Aryaman & Bina Babu Singha ONLY */}
             {mounted && canSwitch && (
               <div 
@@ -228,45 +232,48 @@ export default function Navbar() {
                   display: 'inline-flex', 
                   alignItems: 'center', 
                   background: 'var(--surface-color)', 
-                  borderRadius: '20px', 
+                  borderRadius: '16px', 
                   border: '1.5px solid var(--secondary-color)', 
-                  padding: '2px', 
-                  gap: '2px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                  padding: '1px', 
+                  gap: '1px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                  flexShrink: 0
                 }}
               >
                 <Link 
                   href="/superadmin" 
                   style={{ 
-                    padding: '0.2rem 0.55rem', 
-                    fontSize: '0.74rem', 
-                    fontWeight: 900, 
-                    borderRadius: '16px', 
+                    padding: '0.14rem 0.38rem', 
+                    fontSize: '0.68rem', 
+                    fontWeight: 800, 
+                    borderRadius: '12px', 
                     textDecoration: 'none',
                     background: pathname.startsWith('/superadmin') ? 'var(--secondary-color)' : 'transparent',
                     color: pathname.startsWith('/superadmin') ? '#000000' : 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '3px'
+                    gap: '2px',
+                    whiteSpace: 'nowrap'
                   }}
                   title="Super Admin Control Center"
                 >
-                  <ShieldCheck size={12} /> Super Admin
+                  <ShieldCheck size={10} /> Super Admin
                 </Link>
-                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>⇄</span>
+                <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>⇄</span>
                 <Link 
                   href="/management" 
                   style={{ 
-                    padding: '0.2rem 0.55rem', 
-                    fontSize: '0.74rem', 
-                    fontWeight: 900, 
-                    borderRadius: '16px', 
+                    padding: '0.14rem 0.38rem', 
+                    fontSize: '0.68rem', 
+                    fontWeight: 800, 
+                    borderRadius: '12px', 
                     textDecoration: 'none',
                     background: pathname.startsWith('/management') ? 'var(--primary-color)' : 'transparent',
                     color: pathname.startsWith('/management') ? '#FFFFFF' : 'var(--text-primary)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '3px'
+                    gap: '2px',
+                    whiteSpace: 'nowrap'
                   }}
                   title="Admin Panel & Management Portal"
                 >
@@ -281,25 +288,40 @@ export default function Navbar() {
                 href="/management" 
                 className="btn desktop-only-btn" 
                 style={{ 
-                  padding: '0.3rem 0.65rem', 
-                  fontSize: '0.775rem', 
+                  padding: '0.24rem 0.45rem', 
+                  fontSize: '0.72rem', 
                   fontWeight: 800, 
-                  minHeight: '32px', 
-                  gap: '4px', 
+                  minHeight: '30px', 
+                  gap: '3px', 
                   whiteSpace: 'nowrap',
                   background: 'linear-gradient(135deg, rgba(27, 42, 87, 0.1) 0%, rgba(2, 132, 199, 0.15) 100%)',
                   border: '1.5px solid var(--info-color)',
-                  color: 'var(--primary-color)'
+                  color: 'var(--primary-color)',
+                  flexShrink: 0
                 }}
               >
-                <ShieldCheck size={14} color="var(--info-color)" /> Admin Panel
+                <ShieldCheck size={12} color="var(--info-color)" /> Admin Panel
               </Link>
             )}
-            <Link href="/donate" className="btn btn-primary desktop-only-btn" style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 800, minHeight: '32px', gap: '3px', whiteSpace: 'nowrap' }}>
-              {t('nav.donate')} <ArrowRight size={12} />
+
+            {/* Donate Button - ALWAYS VISIBLE */}
+            <Link 
+              href="/donate" 
+              className="btn btn-primary desktop-only-btn" 
+              style={{ 
+                padding: '0.26rem 0.55rem', 
+                fontSize: '0.74rem', 
+                fontWeight: 800, 
+                minHeight: '30px', 
+                gap: '3px', 
+                whiteSpace: 'nowrap',
+                flexShrink: 0
+              }}
+            >
+              {t('nav.donate')} <ArrowRight size={11} />
             </Link>
             
-            {/* Dark/Light Mode Toggle */}
+            {/* Dark/Light Mode Toggle - ALWAYS VISIBLE */}
             <button 
               onClick={toggleTheme} 
               style={{ 
@@ -309,17 +331,17 @@ export default function Navbar() {
                 cursor: 'pointer', 
                 display: 'flex', 
                 alignItems: 'center', 
-                justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                transition: 'all 0.2s ease',
-                flexShrink: 0
+                justifyContent: 'center', 
+                width: '30px', 
+                height: '30px', 
+                borderRadius: '50%', 
+                transition: 'all 0.2s ease', 
+                flexShrink: 0 
               }}
               aria-label="Toggle Dark Mode"
               title="Toggle Light / Dark Mode"
             >
-              {mounted && (theme === 'light' ? <Moon size={14} /> : <Sun size={14} />)}
+              {mounted && (theme === 'light' ? <Moon size={13} /> : <Sun size={13} />)}
             </button>
 
             {/* Mobile Hamburger Toggle Button */}
@@ -518,7 +540,7 @@ export default function Navbar() {
       </aside>
 
       <style jsx>{`
-        @media (max-width: 1240px) {
+        @media (max-width: 1180px) {
           .desktop-nav {
             display: none !important;
           }
