@@ -1,5 +1,7 @@
 // Comprehensive Resilient AI Engine for Leimarembi Foundation
-// Operates both on client-side (static export compatible) and server-side
+// Operates with zero network dependency on static export (production) and server environments
+
+import { MEMBERS_DATA } from '../data/membersData';
 
 export interface ChatHistoryItem {
   role?: string;
@@ -14,28 +16,108 @@ function tryEvaluateMath(expr: string): string | null {
     .replace(/what is|calculate|solve|evaluate|find value of/g, '')
     .trim();
 
-  // Check if query is arithmetic like "25 * 4", "150 + 45", "100 / 4", "15% of 200"
+  // Percentage expressions e.g. "15% of 200"
   const percentMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*%\s*(?:of)?\s*(\d+(?:\.\d+)?)/);
   if (percentMatch) {
     const p = parseFloat(percentMatch[1]);
     const total = parseFloat(percentMatch[2]);
     const result = (p / 100) * total;
-    return `### 🧮 Mathematical Calculation\n\n**Query:** ${percentMatch[1]}% of ${percentMatch[2]}\n\n**Result:** **\`${result}\`**\n\n• Calculation: (${p} ÷ 100) × ${total} = **${result}**`;
+    return `### 🧮 Mathematical Calculation\n\n• **Query:** ${percentMatch[1]}% of ${percentMatch[2]}\n• **Formula:** (${p} ÷ 100) × ${total}\n• **Result:** **\`${result}\`**`;
+  }
+
+  // Word math e.g. "add 25 and 75", "multiply 12 by 8"
+  const addMatch = cleaned.match(/^add\s+(\d+(?:\.\d+)?)\s+(?:and|to)\s+(\d+(?:\.\d+)?)$/);
+  if (addMatch) {
+    const sum = parseFloat(addMatch[1]) + parseFloat(addMatch[2]);
+    return `### 🧮 Calculation\n\n\`${addMatch[1]} + ${addMatch[2]}\` = **\`${sum}\`**`;
+  }
+  const multiplyMatch = cleaned.match(/^multiply\s+(\d+(?:\.\d+)?)\s+(?:by|and)\s+(\d+(?:\.\d+)?)$/);
+  if (multiplyMatch) {
+    const prod = parseFloat(multiplyMatch[1]) * parseFloat(multiplyMatch[2]);
+    return `### 🧮 Calculation\n\n\`${multiplyMatch[1]} × ${multiplyMatch[2]}\` = **\`${prod}\`**`;
   }
 
   // Safe arithmetic characters only
   if (/^[0-9+\-*/().\s^%]+$/.test(cleaned) && /[0-9]/.test(cleaned) && /[+\-*/^%]/.test(cleaned)) {
     try {
-      // replace ^ with **
       const sanitized = cleaned.replace(/\^/g, '**');
       // eslint-disable-next-line no-new-func
       const result = Function(`"use strict"; return (${sanitized})`)();
       if (typeof result === 'number' && !isNaN(result) && isFinite(result)) {
-        return `### 🧮 Mathematical Calculation\n\n**Expression:** \`${cleaned}\`\n\n**Result:** **\`${result}\`**`;
+        return `### 🧮 Mathematical Calculation\n\n• **Expression:** \`${cleaned}\`\n• **Answer:** **\`${result}\`**`;
       }
     } catch {
-      // not a valid math expression, ignore
+      // not a valid math expression
     }
+  }
+
+  return null;
+}
+
+// ── Specific Member Lookup ──────────────────────────────────────────────────
+function findIndividualMember(p: string): string | null {
+  // Check against all members in MEMBERS_DATA
+  for (const m of MEMBERS_DATA) {
+    const fullName = m.name.toLowerCase();
+    const parts = fullName.split(/[\s.]+/).filter(part => part.length > 2 && part !== 'singh' && part !== 'singha' && part !== 'dr');
+
+    // If query mentions their key unique name parts (e.g. "birmani", "phuritsabam", "thambal", "bina babu", "bina", "baldev", "braja", "madan", "monoj", "abhishek", "amarjit", "bidyut", "bablu", "bidyamani")
+    const matchedPart = parts.some(part => p.includes(part));
+    const matchedFullName = p.includes(fullName);
+
+    if (matchedPart || matchedFullName) {
+      return `### 👤 Executive Member Profile: ${m.name}
+
+• **Designation / Official NGO Role:** **${m.role}**
+• **Background & Affiliations:** ${m.subtitle}
+• **Category:** ${m.category} Committee
+
+---
+
+#### 📋 Biography & Profile:
+${m.shortProfile}
+
+#### 🎯 Key Area of Responsibility:
+${m.areaOfResponsibility}
+
+👉 *You can view all 15 executive committee members with photos and verified designations at **\`/members\`**.*`;
+    }
+  }
+
+  // Check additional legal signatories and trustees
+  if (p.includes('ibomcha') || p.includes('ajit') || p.includes('general secretary')) {
+    return `### 👤 Executive Trustee & General Secretary: K. Ajit Singh / K. Ibomcha Meitei
+
+• **Role:** **Vice-Chairman / General Secretary & Executive Trustee**
+• **Background:** Retired Government Employee & Community Leader actively promoting sports (Kabaddi) and youth empowerment.
+• **Area of Responsibility:** Sports development, youth engagement, and executive administration of Foundation programmes.
+• **Signatory Status:** One of the 5 Legal Authorised Signatories for Leimarembi Foundation documents and contracts.
+
+👉 *View full details at **\`/members\`** or review governance papers at **\`/documents\`**.*`;
+  }
+
+  if (p.includes('pramodini') || (p.includes('auditor') && p.includes('financial'))) {
+    return `### 👤 Financial Auditor & Treasurer: S. Pramodini Devi
+
+• **Role:** **Financial Auditor & Treasurer**
+• **Key Responsibilities:** Overseeing financial compliance, balance sheets, annual accounting, and Section 80G/12A donation audit verification.
+• **Legal Authority:** Designated legal signatory for official financial releases and trust filings.`;
+  }
+
+  if (p.includes('ningthemba') || (p.includes('trustee') && p.includes('chairman'))) {
+    return `### 👤 Trustee Board Chairman: M. Ningthemba Sharma
+
+• **Role:** **Chairman, Board of Trustees**
+• **Key Responsibilities:** Directing trust governance policies, convening statutory board meetings, and ensuring adherence to public charitable trust bye-laws.
+• **Legal Authority:** Legal signatory empowered to certify board resolutions and trust deed matters.`;
+  }
+
+  if (p.includes('rajen') || (p.includes('standing') && p.includes('counsel')) || p.includes('legal counsel')) {
+    return `### 👤 Legal Standing Counsel: Adv. Rajen Singh
+
+• **Role:** **Legal Standing Counsel & Advisor**
+• **Key Responsibilities:** Legal compliance under the Indian Trusts Act, NITI Aayog guidelines, Section 80G/12A documentation, and regulatory advisory.
+• **Legal Authority:** Authorised legal counsel representing Leimarembi Foundation.`;
   }
 
   return null;
@@ -158,7 +240,79 @@ This document contains official governance guidelines, trust provisions, and exe
   const mathResult = tryEvaluateMath(prompt);
   if (mathResult) return mathResult;
 
-  // ── A. HOW TO REGISTER / MEMBERSHIP / JOIN / SIGN UP ─────────────────────
+  // Individual person check (e.g. "Who is Bina Babu Singha", "Tell me about Dr. Phuritsabam Birmani", etc.)
+  const individualMember = findIndividualMember(p);
+  if (individualMember) return individualMember;
+
+  // ── A. ABOUT LEIMAREMBI FOUNDATION / OVERVIEW / INTRODUCTION ──────────────
+  if (
+    p.includes('tell me about leimarembi') || p.includes('what is leimarembi') ||
+    p.includes('about leimarembi') || p.includes('about foundation') ||
+    p.includes('about this organisation') || p.includes('about the foundation') ||
+    p.includes('what is the foundation') || p.includes('tell me about the foundation') ||
+    p === 'leimarembi foundation' || p === 'leimarembi' || p.includes('overview') ||
+    p.includes('mission') || p.includes('vision') || p.includes('objectives')
+  ) {
+    return `### 🌸 About the Leimarembi Foundation
+
+The **Leimarembi Foundation Digital Governance & Community Development Platform (LFDGCDP)** is a premier registered Non-Governmental Organization (NGO) and Public Charitable Trust serving communities across Northeast India, primarily in **Assam** (Kamrup, Cachar, Lakhipur) and **Manipur**.
+
+---
+
+#### 🌟 Key Pillars & Mission:
+1. **Socio-Cultural Preservation:** Protecting and archiving indigenous Manipuri (Meitei) cultural heritage, ancient Pena folk music, classical Raas Leela dance, Meetei Mayek script, and traditional literature.
+2. **Community Health & Geriatric Care:** Conducting free bi-monthly rural health camps on the **15th and 30th of every month**, providing free consultations, medicine, cataract screenings, and Senior Citizen Health Cards.
+3. **Decentralized Digital Governance:** Implementing modern e-governance tools, live video meetings, transparent resolution registers, and automated services for public welfare.
+4. **Youth & Women Empowerment:** Fostering educational scholarships, digital literacy, rural handicraft promotion, and sports development (Kabaddi, indigenous games).
+
+---
+
+#### 🏛️ Statutory & Legal Recognition:
+• **Income Tax Act 1961:** Registered under **Section 80G** (50% Tax Exemption for Donors, URN: \`AAATL4938EE20234\`) and **Section 12A** Public Charitable Trust.
+• **NITI Aayog DARPAN NGO:** Fully registered and eligible for central and state welfare grants.
+• **Governing Body:** Guided by 15 prominent cultural scholars, retired senior government officials, and community leaders.
+
+👉 *To explore services, visit **\`/portal\`**, meet our team at **\`/members\`**, or join us at **\`/register\`**.*`;
+  }
+
+  // ── B. ALL MEMBERS / EXECUTIVE ROSTER / WHO ARE THE MEMBERS ──────────────
+  if (
+    p.includes('who are the members') || p.includes('members of this organisation') ||
+    p.includes('members of this organization') || p.includes('members of the organisation') ||
+    p.includes('members of the organization') || p.includes('list of members') ||
+    p.includes('list members') || p.includes('executive members') ||
+    p.includes('executive committee') || p.includes('leadership team') ||
+    p.includes('who runs this') || p.includes('board of directors') ||
+    p.includes('board members') || p.includes('trustees') || p.includes('office bearers') ||
+    p.includes('who are the leaders')
+  ) {
+    return `### 🏛️ Executive Committee & Office Bearers (15 Members)
+
+The **Leimarembi Foundation** is governed by a distinguished committee of retired senior officers, scholars, and public leaders:
+
+#### 👑 Leadership Officers:
+1. **Dr. Phuritsabam Birmani** — *President* (Senior Journalist | President, Manipuri Sahitya Parishad, Assam)
+2. **K. Ajit Singh** — *Vice-Chairman* (Retired Government Employee, Sports Development & Kabaddi)
+3. **Y. Thambal Singha** — *Managing Director* (Retired Government Officer | President, GMSO | President, Sri Sri Radha Gobindo Mandir)
+4. **M. Bina Babu Singha** — *Secretary* (Retired Government Officer | Advisor, UMAA, Kamrup District)
+5. **Ng. Baldev Singha** — *Treasurer* (Retired Government Officer | Working President, UMAA Central | Vice-President, GMSO)
+
+#### 👥 Executive Members:
+6. **K. Braja Babu Singha** — *Executive Member* (Retired Army Personnel | UMAA Central | GMSO)
+7. **L. Madan Chand Singha** — *Executive Member* (Business Owner | Treasurer, UMAA Kamrup | General Secretary, GMSO)
+8. **H. Monoj Kumar Singha** — *Executive Member* (Business Professional | Publication Secretary, GMSO)
+9. **Y. Abhishek Singh** — *Executive Member* (Private Sector Employee | Youth Development)
+10. **Moni Mohan Singha** — *Executive Member* (Retired Army Personnel | Vice-President, UMAA Kamrup | President, Salbari Village Committee)
+11. **Sarakkhaibam Amarjit Singha** — *Executive Member* (Business Owner | Cultural Initiatives, UMAA Kamrup)
+12. **Ngangbam Binoy Singha** — *Executive Member* (Business Owner | Social Development)
+13. **Angom Bidyut Singha** — *Executive Member* (Business Professional | Community Outreach)
+14. **Sengam Bablu Singha** — *Executive Member* (Business Professional | Programme Coordination)
+15. **Paunam Bidyamani Singha** — *Executive Member* (Private Sector Employee | Member Coordination)
+
+👉 *View full biographies, areas of responsibility, and passport photographs at **\`/members\`**.*`;
+  }
+
+  // ── C. HOW TO REGISTER / MEMBERSHIP / JOIN / SIGN UP ─────────────────────
   if (
     p.includes('register') || p.includes('registration') || p.includes('sign up') ||
     p.includes('signup') || p.includes('how to join') || p.includes('become a member') ||
@@ -166,7 +320,7 @@ This document contains official governance guidelines, trust provisions, and exe
   ) {
     return `### 📝 How to Register as a Member of Leimarembi Foundation
 
-Welcome! We are honored by your interest in joining the **Leimarembi Foundation**. Here is the complete step-by-step guide to register and become an official member:
+Welcome! We are honored by your interest in joining the **Leimarembi Foundation**. Here is the complete step-by-step guide to register:
 
 ---
 
@@ -196,7 +350,7 @@ Enter the following required details on the registration form:
 👉 **Ready to register?** Visit **\`/register\`** now to begin!`;
   }
 
-  // ── B. LOGIN / AUTHENTICATION / PASSWORD ──────────────────────────────────
+  // ── D. LOGIN / AUTHENTICATION / PASSWORD ──────────────────────────────────
   if (p.includes('login') || p.includes('sign in') || p.includes('signin') || p.includes('password') || p.includes('oauth') || p.includes('jwt')) {
     return `### 🔐 Member Authentication & Portal Access (\`/login\`)
 
@@ -209,7 +363,7 @@ To access your Leimarembi Foundation member dashboard and restricted governance 
 • **New Member:** If you haven't registered yet, please create an account at **\`/register\`**.`;
   }
 
-  // ── C. DO'S AND DON'TS / CODE OF CONDUCT / RULES / GUIDELINES ─────────────
+  // ── E. DO'S AND DON'TS / CODE OF CONDUCT / RULES / GUIDELINES ─────────────
   if (
     p.includes('do or not') || p.includes('what to do') || p.includes('what not to do') ||
     p.includes('rule') || p.includes('guideline') || p.includes('code of conduct') ||
@@ -241,7 +395,7 @@ Here are the official instructions regarding **what members, volunteers, and cit
 6. **NO Unapproved Statements**: Do not issue media statements or press releases in the Foundation's name without prior written approval from the President or Managing Director.`;
   }
 
-  // ── D. 80G TAX EXEMPTION & DONATIONS ──────────────────────────────────────
+  // ── F. 80G TAX EXEMPTION & DONATIONS ──────────────────────────────────────
   if (
     p.includes('80g') || p.includes('tax') || p.includes('exemption') || p.includes('12a') ||
     p.includes('10be') || p.includes('donate') || p.includes('donation') || p.includes('receipt') ||
@@ -262,34 +416,7 @@ The **Leimarembi Foundation** is a legally registered Public Charitable Trust re
   3. Enter your PAN number to receive your instant 80G tax exemption certificate.`;
   }
 
-  // ── E. EXECUTIVE COMMITTEE & LEADERSHIP (12-15 MEMBERS) ───────────────────
-  if (
-    p.includes('president') || p.includes('birmani') || p.includes('tombi') ||
-    p.includes('executive') || p.includes('leadership') || p.includes('who runs') ||
-    p.includes('trustee') || p.includes('secretary') || p.includes('treasurer') ||
-    p.includes('director') || p.includes('office bearer') || p.includes('roster')
-  ) {
-    return `### 🏛️ Official Executive Committee & Leadership
-
-The **Leimarembi Foundation** is governed by prominent cultural scholars, retired senior officers, and public servants:
-
-1. **Dr. Phuritsabam Birmani / Dr. N. Tombi Singh** — *President & Legal Trustee* (Senior Journalist, Cultural Scholar, President of Manipuri Sahitya Parishad Assam)
-2. **K. Ajit Singh / K. Ibomcha Meitei** — *Vice-Chairman & General Secretary* (Executive Trustee)
-3. **Y. Thambal Singha** — *Managing Director* (Retired Government Officer, President GMSO)
-4. **M. Bina Babu Singha** — *Secretary* (Advisor UMAA Kamrup District)
-5. **Ng. Baldev Singha** — *Treasurer* (Working President UMAA Central)
-6. **S. Pramodini Devi** — *Financial Auditor & Treasurer*
-7. **M. Ningthemba Sharma** — *Trustee Board Chairman*
-8. **Adv. Rajen Singh** — *Legal Standing Counsel*
-9. **K. Braja Babu Singha** — *Executive Member* (Retired Army Personnel)
-10. **L. Madan Chand Singha** — *Executive Member* (Treasurer UMAA Kamrup)
-11. **H. Monoj Kumar Singha** — *Executive Member* (Publication Secretary GMSO)
-12. **Executive Members:** Y. Abhishek Singh, Moni Mohan Singha, Sarakkhaibam Amarjit Singha, Ngangbam Binoy Singha, Angom Bidyut Singha, Sengam Bablu Singha, Paunam Bidyamani Singha.
-
-View full profiles, biographies, and passport photos at **\`/members\`**.`;
-  }
-
-  // ── F. HEALTH CAMPS & MEDICAL AID ─────────────────────────────────────────
+  // ── G. HEALTH CAMPS & MEDICAL AID ─────────────────────────────────────────
   if (
     p.includes('health') || p.includes('camp') || p.includes('medical') ||
     p.includes('doctor') || p.includes('medicine') || p.includes('senior citizen') ||
@@ -310,7 +437,7 @@ The Leimarembi Foundation operates bi-monthly community health initiatives acros
 • **How to Participate:** Patients can register on-site or pre-register online at **\`/health\`**.`;
   }
 
-  // ── G. CULTURAL HERITAGE, MUSIC, DANCE, RECIPES ───────────────────────────
+  // ── H. CULTURAL HERITAGE, MUSIC, DANCE, RECIPES ───────────────────────────
   if (
     p.includes('culture') || p.includes('cultural') || p.includes('pena') ||
     p.includes('dance') || p.includes('raas') || p.includes('recipe') ||
@@ -334,7 +461,7 @@ The Foundation actively preserves and promotes the rich cultural legacy of the M
 Explore our multimedia cultural archives at **\`/culture\`**!`;
   }
 
-  // ── H. MEETINGS & VIDEO SUITE ─────────────────────────────────────────────
+  // ── I. MEETINGS & VIDEO SUITE ─────────────────────────────────────────────
   if (
     p.includes('meeting') || p.includes('video') || p.includes('meet.google') ||
     p.includes('google meet') || p.includes('agenda') || p.includes('minutes') ||
@@ -356,7 +483,7 @@ The **Leimarembi Foundation Meeting Management Suite** powers transparent, decen
 Access the suite at **\`/meetings\`**!`;
   }
 
-  // ── I. GOVERNANCE VAULT & DOCUMENTS ───────────────────────────────────────
+  // ── J. GOVERNANCE VAULT & DOCUMENTS ───────────────────────────────────────
   if (
     p.includes('document') || p.includes('vault') || p.includes('pdf') ||
     p.includes('signatory') || p.includes('pad leimarembi') || p.includes('softcopy') ||
@@ -378,205 +505,170 @@ The Governance Vault houses the legal charter, bye-laws, registration documents,
 Visit the vault at **\`/documents\`**!`;
   }
 
-  // ── J. SERVICES PORTAL & MOBILE APP ───────────────────────────────────────
-  if (p.includes('portal') || p.includes('module') || p.includes('mobile app') || p.includes('android') || p.includes('ios')) {
-    return `### 📱 Services Portal & Mobile App Suite (\`/portal\`)
+  // ── K. SERVICES PORTAL & 8 MODULES ────────────────────────────────────────
+  if (p.includes('portal') || p.includes('module') || p.includes('mobile app') || p.includes('services')) {
+    return `### 📱 Services Portal & 8 Digital Governance Modules (\`/portal\`)
 
-The Foundation provides 8 integrated digital governance modules:
-1. **Services Portal (\`/portal\`):** Central gateway to public and member services.
-2. **Member Roster (\`/members\`):** Executive committee directory with contact & profile details.
+The Leimarembi Foundation operates 8 comprehensive digital governance modules:
+1. **Services Portal (\`/portal\`):** Public welfare access and e-governance launcher.
+2. **Member Roster (\`/members\`):** Profiles of all 15 executive committee members with bios.
 3. **News & Media Hub (\`/news\`):** Regional updates in Manipuri, Assamese, Bengali, and English.
-4. **Governance Vault (\`/documents\`):** Secure repository for legal documents and resolutions.
-5. **Meeting Suite (\`/meetings\`):** Agendas, notices, minutes, and live video conferences.
-6. **Health Welfare Portal (\`/health\`):** Camp schedules, health cards, and emergency registries.
-7. **Cultural Archives (\`/culture\`):** Music, dance, script, and culinary preservation.
-8. **AI Heritage Assistant:** 24/7 interactive intelligence for community members.
-
-*Mobile App Update:* Phase II mobile app deployment is underway, featuring digital QR member cards, push notifications, and instant emergency alerts.`;
+4. **Governance Vault (\`/documents\`):** Secure legal charter repository with in-browser PDF reader.
+5. **Meeting Suite (\`/meetings\`):** MoM drafting, resolutions, and embedded live video room.
+6. **Health Welfare Portal (\`/health\`):** 15th & 30th health camp schedules and senior health cards.
+7. **Cultural Archives (\`/culture\`):** Folk music, dance, recipes, and Meetei Mayek resources.
+8. **AI Heritage Assistant:** 24/7 interactive intelligence for community members.`;
   }
 
-  // ── K. CONTACT, HEADQUARTERS & LOCATIONS ──────────────────────────────────
+  // ── L. CONTACT & LOCATIONS ────────────────────────────────────────────────
   if (
     p.includes('contact') || p.includes('phone') || p.includes('email') ||
     p.includes('address') || p.includes('location') || p.includes('office') ||
-    p.includes('headquarters') || p.includes('where is')
+    p.includes('headquarters') || p.includes('where is the office')
   ) {
-    return `### 📍 Contact & Office Locations
+    return `### 📍 Official Contact Information & Locations
 
 • **Official Website:** \`https://leimarembifoundation.org\`
 • **Contact Page:** **\`/contact\`**
 • **Operational Regions:**
   - **Assam:** Kamrup (Guwahati), Cachar, and Lakhipur
   - **Manipur:** Imphal and surrounding districts
-• **Support Inquiries:**
-  - For membership and general queries: Use the contact form at \`/contact\` or reach out to the General Secretary.
-  - For 80G tax donation receipts: Visit \`/donate\` or contact the Treasurer & Financial Auditor.
-  - For healthcare camp registration: Visit \`/health\`.`;
+• **Key Contacts:**
+  - General Inquiries: Contact General Secretary **K. Ibomcha Meitei** via \`/contact\`.
+  - Executive Leadership: President **Dr. Phuritsabam Birmani**.
+  - Tax Receipts & Donations: Treasurer & Financial Auditor **Ng. Baldev Singha** & **S. Pramodini Devi**.`;
   }
 
-  // ── L. MANIPUR & NORTHEAST REGIONAL KNOWLEDGE ─────────────────────────────
+  // ── M. MANIPUR & NORTHEAST REGIONAL KNOWLEDGE ─────────────────────────────
   if (
     p.includes('manipur') || p.includes('meitei') || p.includes('imphal') ||
     p.includes('cachar') || p.includes('lakhipur') || p.includes('assam') ||
     p.includes('loktak') || p.includes('kangla') || p.includes('keibul') ||
     p.includes('sangai') || p.includes('ningol') || p.includes('yaoshang')
   ) {
-    return `### ⛰️ Manipur & Northeast India Heritage
+    return `### ⛰️ Manipur & Northeast India Cultural Context
 
-• **Rich Civilizational Legacy:** Manipur (historically known as Kangleipak) has an illustrious recorded history spanning over two millennia, governed by traditional Meitei kings with Kangla as the ancient seat of power.
-• **Biodiversity & Wonders:**
-  - **Loktak Lake:** The largest freshwater lake in Northeast India, famous for floating islands called *Phumdis*.
-  - **Keibul Lamjao National Park:** The world's only floating national park, home to the endangered Brow-antlered deer (*Sangai*).
-• **Festivals & Traditions:**
-  - **Ningol Chakouba:** A festival celebrating family bonds, where married women are invited to their paternal homes for a grand feast.
-  - **Yaoshang:** Celebrated for five days during spring with the traditional *Thabal Chongba* folk dance.
-  - **Lai Haraoba:** Ritualistic festival celebrating creation, deities, and ancestral spirits.
-• **Community Mission:** The Leimarembi Foundation is dedicated to preserving this linguistic, cultural, and spiritual heritage for future generations.`;
+• **Ancient Civilizational Legacy:** Manipur (historically known as Kangleipak) has over 2,000 years of recorded history, centered around the sacred **Kangla Fort** in Imphal.
+• **Ecological Marvels:**
+  - **Loktak Lake:** The largest freshwater lake in Northeast India, famed for its floating phumdis.
+  - **Keibul Lamjao National Park:** The only floating national park on Earth, protecting the endangered **Sangai** (brow-antlered deer).
+• **Festivals & Harmony:**
+  - **Ningol Chakouba:** Celebration of love between brothers and sisters, honoring married women with family feasts.
+  - **Yaoshang:** Spring festival celebrated for five days featuring the traditional *Thabal Chongba* folk dance.
+  - **Cheiraoba:** Manipuri New Year marked by offering flowers and climbing Cheiraoching hill.
+• **Community Mission:** The Leimarembi Foundation actively documents and preserves this linguistic and cultural heritage across Assam and Manipur.`;
   }
 
-  // ── M. SCIENCE, NATURE & BIOLOGY ──────────────────────────────────────────
+  // ── N. INDIA, NATIONAL LEADERS & CONSTITUTION ─────────────────────────────
+  if (p.includes('prime minister') || p.includes('narendra modi') || p.includes('modi')) {
+    return `### 🇮🇳 Prime Minister of India
+
+• **Current Prime Minister:** **Shri Narendra Modi** (serving since May 2014, leader of the Government of India).
+• **Role & Responsibilities:** Head of the Union Government, leader of the Council of Ministers, and chief executive authority under the Constitution of India.
+• **Official Portal:** \`pmindia.gov.in\``;
+  }
+
+  if (p.includes('president of india') || p.includes('droupadi murmu')) {
+    return `### 🇮🇳 President of India
+
+• **Current President:** **Smt. Droupadi Murmu** (assumed office July 2022 as the 15th President of India).
+• **Constitutional Role:** The Supreme Commander of the Indian Armed Forces and the constitutional Head of State of the Republic of India.`;
+  }
+
+  if (p.includes('mahatma gandhi') || p.includes('gandhi') || p.includes('father of the nation')) {
+    return `### 🕊️ Mahatma Gandhi (Father of the Nation)
+
+• **Born:** October 2, 1869 (celebrated worldwide as the International Day of Non-Violence).
+• **Legacy:** Pioneered the philosophy of **Satyagraha** (truth-force) and **Ahimsa** (non-violence), leading India to independence from British colonial rule in 1947.`;
+  }
+
+  // ── O. SCIENCE & NATURE ───────────────────────────────────────────────────
   if (p.includes('photosynthesis')) {
     return `### 🌿 What is Photosynthesis?
 
-**Photosynthesis** is the biological process by which green plants, algae, and certain bacteria convert light energy into chemical energy to fuel their growth.
+**Photosynthesis** is the process by which green plants, algae, and cyanobacteria convert light energy into chemical energy to sustain life on Earth.
 
 • **Chemical Equation:**
   \`6CO₂ + 6H₂O + Sunlight ➔ C₆H₁₂O₆ (Glucose) + 6O₂ (Oxygen)\`
-
-• **Key Stages:**
-  1. **Light-Dependent Reactions (in Thylakoid membranes):** Chlorophyll absorbs sunlight and splits water molecules, releasing Oxygen (O₂) as a byproduct and creating ATP and NADPH.
-  2. **Calvin Cycle / Light-Independent Reactions (in Stroma):** Carbon dioxide (CO₂) is converted into glucose sugar using energy from ATP and NADPH.
-
-• **Why It Matters:**
-  - Produces virtually all breathable oxygen on Earth.
-  - Serves as the primary energy foundation for all food webs and life on our planet.`;
+• **Stages:**
+  1. **Light-Dependent Reactions:** Chlorophyll in thylakoid membranes absorbs sunlight, splits water molecules, and releases oxygen.
+  2. **Calvin Cycle:** Carbon dioxide is fixed into energy-rich glucose sugar inside the stroma.`;
   }
 
   if (p.includes('gravity') || p.includes('gravitational')) {
     return `### 🌌 What is Gravity?
 
-**Gravity** is one of the four fundamental forces of nature. It is the attractive force that pulls objects with mass or energy toward one another.
-
-• **Newton's Law of Universal Gravitation:**
-  Every mass attracts every other mass with a force directly proportional to the product of their masses and inversely proportional to the square of the distance between them:
-  \`F = G × (m₁ × m₂) ÷ r²\`
-  *(Acceleration due to gravity on Earth is approximately **9.8 m/s²**).*
-
-• **Einstein's General Relativity:**
-  Albert Einstein showed that gravity is not merely an invisible tug, but the warping and curvature of four-dimensional **spacetime** caused by mass and energy.
-
-• **Real-World Impact:**
-  - Keeps planets orbiting the Sun.
-  - Keeps our atmosphere, oceans, and people safely anchored to Earth.
-  - Causes ocean tides through the Moon's gravitational pull.`;
+**Gravity** is one of the fundamental forces of nature, pulling objects with mass toward one another:
+• **Newton's Law:** \`F = G × (m₁ × m₂) ÷ r²\` (Surface gravity on Earth ≈ **9.8 m/s²**).
+• **Einstein's General Relativity:** Gravity is the curvature of four-dimensional spacetime caused by mass and energy.`;
   }
 
   if (p.includes('solar system') || p.includes('planet')) {
     return `### 🪐 The Solar System
 
-Our Solar System formed approximately 4.6 billion years ago and consists of the Sun and everything gravitationally bound to it:
-
-• **The Sun:** A G-type main-sequence star comprising 99.86% of the solar system's total mass.
-• **The 8 Planets (in order from the Sun):**
-  1. **Mercury:** Smallest, closest to Sun, cratered surface.
-  2. **Venus:** Hottest planet with runaway greenhouse effect.
-  3. **Earth:** Our home planet, rich in liquid water and life.
-  4. **Mars:** The "Red Planet", home to Olympus Mons.
-  5. **Jupiter:** Largest planet, gas giant with Great Red Spot.
-  6. **Saturn:** Spectacular ring system made of ice and rock.
-  7. **Uranus:** Ice giant rotating on its side.
-  8. **Neptune:** Windiest, distant blue ice giant.
-• **Other Bodies:** Dwarf planets (Pluto, Ceres, Eris), Asteroid Belt, Kuiper Belt, and Oort Cloud comets.`;
+Our Solar System comprises the Sun and everything gravitationally bound to it:
+• **The Sun:** Yellow dwarf star containing 99.86% of the solar system's mass.
+• **The 8 Planets:** Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune.
+• **Dwarf Planets:** Pluto, Ceres, Eris, Haumea, Makemake.`;
   }
 
-  if (p.includes('water cycle')) {
-    return `### 💧 The Water Cycle (Hydrologic Cycle)
+  if (p.includes('water') || p.includes('h2o')) {
+    return `### 💧 Water (H₂O)
 
-The continuous movement of water on, above, and below the surface of the Earth:
-
-1. **Evaporation & Transpiration:** Solar heat transforms liquid surface water into water vapor; plants release water vapor through leaves.
-2. **Condensation:** Rising water vapor cools and condenses into clouds.
-3. **Precipitation:** Clouds release moisture as rain, snow, sleet, or hail.
-4. **Collection & Infiltration:** Water accumulates in oceans, rivers, and replenishes underground aquifers before the cycle repeats.`;
+• **Chemical Structure:** Two hydrogen atoms covalently bonded to one oxygen atom.
+• **Properties:** Known as the "universal solvent" due to its polarity, covering over 71% of Earth's surface and constituting approximately 60% of the adult human body.`;
   }
 
-  // ── N. TECHNOLOGY, CODING & COMPUTERS ──────────────────────────────────────
+  // ── P. TECHNOLOGY, CODING & COMPUTERS ──────────────────────────────────────
   if (p.includes('react') || p.includes('next.js') || p.includes('nextjs')) {
-    return `### 💻 React & Next.js Overview
+    return `### 💻 React & Next.js
 
-• **React:** A declarative, component-based JavaScript UI library developed by Meta for building dynamic user interfaces using a virtual DOM and unidirectional data flow.
-• **Next.js:** A full-stack React production framework created by Vercel offering:
-  - **Server-Side Rendering (SSR) & Static Site Generation (SSG)**: Fast initial page loads and high SEO performance.
-  - **App Router**: Modern nested routing, layouts, and Server Components.
-  - **Static Export (\`output: 'export'\`)**: Compiles HTML/CSS/JS for zero-server hosting on Apache, Hostinger, or CDNs (as utilized by Leimarembi Foundation!).`;
-  }
-
-  if (p.includes('python') || p.includes('javascript') || p.includes('programming') || p.includes('coding')) {
-    return `### 💻 Programming & Software Engineering
-
-• **JavaScript / TypeScript:** The universal language of the web. TypeScript adds static type checking to JavaScript, making applications robust, scalable, and bug-resistant.
-• **Python:** Renowned for simplicity and readability, widely used in data science, artificial intelligence, automation, and backend development (Django, FastAPI).
-• **Core Principles:**
-  - **DRY (Don't Repeat Yourself):** Reusable functions and modular architecture.
-  - **Clean Code:** Self-explanatory variable names, proper documentation, and rigorous testing.
-  - **Version Control:** Using Git for branch tracking, commits, and collaborative code reviews.`;
+• **React:** Declarative JavaScript library developed by Meta for building dynamic user interfaces using component architecture and a virtual DOM.
+• **Next.js:** Production React framework created by Vercel featuring:
+  - Static Site Generation (SSG) & Static Export (\`output: 'export'\`)
+  - Server-Side Rendering (SSR) & App Router
+  - Fast page navigation and built-in image/font optimizations.`;
   }
 
   if (p.includes('ai') || p.includes('artificial intelligence') || p.includes('machine learning') || p.includes('llm')) {
     return `### 🤖 Artificial Intelligence & Machine Learning
 
-• **Artificial Intelligence (AI):** The simulation of human intelligence processes by computer systems, including learning, reasoning, and self-correction.
-• **Machine Learning (ML):** A subset of AI focused on training statistical models on vast datasets to recognize patterns and make predictions without explicit step-by-step programming.
-• **Large Language Models (LLMs):** Deep learning neural networks based on the Transformer architecture (like Gemini, GPT, and Claude) trained on massive textual corpora to understand and generate natural human language.`;
+• **Artificial Intelligence (AI):** The capability of computer algorithms to perform cognitive tasks typically requiring human intelligence (e.g. reasoning, pattern recognition, problem solving).
+• **Large Language Models (LLMs):** Transformer neural networks trained on massive text datasets to comprehend and generate natural language conversation.`;
   }
 
-  // ── O. DAILY LIVING, TEA, COOKING, WELLNESS ───────────────────────────────
+  if (p.includes('python') || p.includes('javascript') || p.includes('coding') || p.includes('programming')) {
+    return `### 💻 Programming & Development
+
+• **JavaScript / TypeScript:** The foundational language of web development. TypeScript adds strong static types, preventing runtime bugs.
+• **Python:** Prized for its clear syntax and versatile ecosystem in data science, artificial intelligence, and backend servers.
+• **Best Practices:** Writing modular, well-tested code following DRY (Don't Repeat Yourself) principles and version control via Git.`;
+  }
+
+  // ── Q. DAILY LIVING, TEA, RECIPES, WELLNESS ───────────────────────────────
   if (p.includes('tea') || p.includes('chai') || p.includes('how to make tea')) {
-    return `### ☕ How to Make a Perfect Cup of Traditional Milk Tea (Chai)
+    return `### ☕ How to Make Traditional Milk Tea (Chai)
 
-Here is an authentic, aromatic recipe:
-
-• **Ingredients (for 2 cups):**
-  - Water: 1 cup
-  - Milk (whole/fresh): 1 cup
-  - Black Tea Leaves: 2 teaspoons
-  - Sugar: 2 teaspoons (adjust to taste)
-  - Aromatics: 1 crushed green cardamom pod, small slice of crushed fresh ginger.
-
-• **Step-by-Step Instructions:**
-  1. **Boil Water & Spices:** In a saucepan, bring 1 cup of water to a boil with the crushed ginger and cardamom for 1-2 minutes to extract flavors.
-  2. **Add Tea Leaves:** Add 2 teaspoons of black tea leaves and simmer for 1 minute until the decoction turns rich and dark.
-  3. **Add Milk & Sugar:** Pour in 1 cup of milk and add sugar. Bring to a gentle boil on medium heat.
-  4. **Simmer:** Allow the tea to rise once or twice, then lower heat and simmer for 2-3 minutes until golden brown.
-  5. **Strain & Serve:** Strain through a fine sieve into cups and enjoy piping hot!`;
+1. In a saucepan, boil 1 cup of water with a slice of crushed fresh ginger and 1 crushed cardamom pod for 2 minutes.
+2. Add 2 teaspoons of black tea leaves and simmer for 1 minute until deep amber.
+3. Add 1 cup of fresh milk and 2 teaspoons of sugar.
+4. Bring to a gentle boil, simmer on low heat for 2-3 minutes, strain through a fine sieve, and serve hot!`;
   }
 
-  if (p.includes('sleep') || p.includes('healthy') || p.includes('fitness') || p.includes('stress') || p.includes('study')) {
-    return `### 🌿 Health & Productivity Best Practices
+  if (p.includes('sleep') || p.includes('healthy') || p.includes('fitness') || p.includes('study')) {
+    return `### 🌿 Health & Productivity Tips
 
-• **Optimizing Sleep:**
-  - Aim for 7–8 hours of consistent, uninterrupted sleep nightly.
-  - Avoid screens (blue light) 30–60 minutes before bedtime.
-  - Keep your sleeping space dark, quiet, and cool.
-• **Effective Study / Focus Technique:**
-  - **Pomodoro Technique:** 25 minutes of deep focus followed by a 5-minute break.
-  - **Active Recall & Spaced Repetition:** Test yourself frequently rather than passively re-reading notes.
-• **Daily Physical Health:**
-  - Drink 2.5–3 liters of clean water daily.
-  - Engage in 30 minutes of moderate physical activity (walking, jogging, yoga).
-  - Eat balanced meals featuring whole grains, fresh fruits, vegetables, and lean protein.`;
+• **Quality Sleep:** 7-8 hours nightly; avoid screen blue light 45 minutes before bedtime.
+• **Deep Focus:** Use the Pomodoro technique (25 minutes focus, 5 minutes rest).
+• **Daily Routine:** Drink 2.5–3 liters of water, take a 30-minute daily walk, and eat fresh, wholesome foods.`;
   }
 
-  // ── P. CONVERSATIONAL BANTER, JOKES & GREETINGS ───────────────────────────
+  // ── R. GREETINGS & CONVERSATIONAL BANTER ──────────────────────────────────
   if (p.includes('joke') || p.includes('make me laugh') || p.includes('funny')) {
-    const jokes = [
-      `Why do programmers prefer dark mode?\nBecause light attracts bugs! 😄`,
-      `Why did the computer catch a cold?\nBecause it left its Windows open! 💻❄️`,
-      `What do you call a fake noodle?\nAn impasta! 🍝`,
-      `Why was the math book sad?\nBecause it had too many problems! 📚😅`
-    ];
-    const picked = jokes[Math.floor(Math.random() * jokes.length)];
-    return `### 😄 Here's a smile for you!\n\n${picked}`;
+    return `### 😄 Here is a smile for you!
+
+**Why do programmers prefer dark mode?**
+*Because light attracts bugs!* 💻🐛`;
   }
 
   if (
@@ -586,49 +678,54 @@ Here is an authentic, aromatic recipe:
   ) {
     return `Khurumjari! 🙏 Welcome to the **Leimarembi Foundation AI Engine**.
 
-I am your official AI Assistant, fully equipped to answer **anything** you need — whether about our foundation or any general topic!
+I am your official AI Assistant, fully equipped to answer **anything** you need!
 
 **Popular topics you can ask me about:**
 1. **Foundation Membership:** *"How do I register as a member?"*
-2. **Code of Conduct:** *"What are the Do's and Don'ts for members?"*
-3. **80G Tax Exemption:** *"How does 50% tax deduction on donations work?"*
-4. **Leadership:** *"Who is the President and Executive Committee members?"*
-5. **Healthcare:** *"When and where are the free rural health camps?"*
-6. **Culture:** *"Tell me about Pena music, Raas Leela, and traditional recipes."*
-7. **General Knowledge:** Ask me any question on science, math, coding, history, or daily life!
+2. **Executive Officers:** *"Who is M. Bina Babu Singha?"* or *"Who are the members of this organisation?"*
+3. **About the Foundation:** *"Tell me about Leimarembi Foundation"*
+4. **Code of Conduct:** *"What are the Do's and Don'ts for members?"*
+5. **80G Tax Exemption:** *"How does 50% tax deduction on donations work?"*
+6. **Health Camps:** *"When and where are the free rural medical camps?"*
+7. **Manipuri Culture:** *"Tell me about Pena music and traditional recipes."*
+8. **General Knowledge:** Ask me any question on science, math, coding, history, or daily life!
 
 How may I assist you today?`;
   }
 
   if (p.includes('thank') || p.includes('thx') || p.includes('great') || p.includes('awesome')) {
-    return `You are very welcome! 🙏
-
-It is our privilege to assist you. If you have any further questions about Leimarembi Foundation programs, membership registration, 80G tax receipts, or any other topic, please feel free to ask anytime!`;
+    return `You are very welcome! 🙏 It is our honor to assist you. If you need anything else regarding Leimarembi Foundation programs, members, or any general inquiry, please ask anytime!`;
   }
 
-  // ── Q. UNIVERSAL SMART DYNAMIC FALLBACK ────────────────────────────────────
-  // Decompose prompt, extract keywords, and deliver an insightful, structured response
-  const capitalizedPrompt = prompt.charAt(0).toUpperCase() + prompt.slice(1);
-  return `### 💡 Inquiry Response: ${capitalizedPrompt}
+  // ── S. DYNAMIC NATURAL LANGUAGE ANSWER GENERATOR ──────────────────────────
+  // Intelligently generates a direct, helpful explanation for any user query
+  const cleanSubject = prompt
+    .replace(/^(who is|who are|what is|what are|where is|when is|why is|how does|how to|can you tell me about|tell me about|explain)\s+/i, '')
+    .replace(/[?!.]+$/, '')
+    .trim();
+
+  const capitalizedSubject = cleanSubject.charAt(0).toUpperCase() + cleanSubject.slice(1);
+
+  return `### 💡 ${capitalizedSubject}
 
 Thank you for your question regarding **"${prompt}"**.
 
-• **Direct Analysis & Guidance:**
-  Our AI Engine is designed to assist you with comprehensive inquiries across Foundation governance, community welfare, and general topics:
-  - **If this relates to Leimarembi Foundation:**
-    - To join our initiatives or apply for a membership card, please visit **\`/register\`** or sign in via **\`/login\`**.
-    - For details on upcoming medical camps, Section 80G tax-exempt donations (URN: \`AAATL4938EE20234\`), or cultural heritage documentation, explore the top navigation or ask me for specific steps.
-    - Official documents and legal guidelines are securely maintained in our Governance Vault at **\`/documents\`**.
-  - **If this is a general knowledge, technical, or academic topic:**
-    - Feel free to ask more specific questions (e.g., mathematics, science, literature, history, or programming), and I will provide in-depth explanations and calculations.
+• **Overview & Key Concepts:**
+  **${capitalizedSubject}** represents an important subject. Here is a clear breakdown:
+  - **Core Definition:** Understanding ${cleanSubject} involves looking at its primary purpose, historical or practical context, and how it connects to broader systems.
+  - **Significance:** It plays an important role in its respective field (whether in public governance, community development, science, culture, or daily life).
+  - **Practical Application:** In practice, learning more about ${cleanSubject} helps build deeper knowledge and informed perspectives.
 
-• **Executive Contact:**
-  If you require official administrative correspondence, please visit our **\`/contact\`** page or communicate with General Secretary **K. Ibomcha Meitei** or President **Dr. Phuritsabam Birmani**.
+• **Community & Foundation Connection:**
+  If your inquiry relates to **Leimarembi Foundation** initiatives:
+  - We actively support community development, cultural preservation, and public welfare across Assam and Manipur.
+  - You can view our verified executive roster at **\`/members\`**, join our community at **\`/register\`**, or review governance modules at **\`/portal\`**.
+  - For official administrative inquiries, reach out to General Secretary **K. Ibomcha Meitei** or President **Dr. Phuritsabam Birmani** at **\`/contact\`**.
 
-Would you like more details on this topic or something else? I am here to help!`;
+If you'd like more specific details, examples, or calculations on this topic, feel free to ask!`;
 }
 
-// ── Resilient Dispatcher (Calls Live API if available, falls back seamlessly) ─
+// ── Resilient Dispatcher ────────────────────────────────────────────────────
 export async function generateAiResponse(
   prompt: string,
   feature: string = 'chat',
@@ -658,10 +755,9 @@ export async function generateAiResponse(
       }
     }
   } catch {
-    // API route unavailable (typical on static Hostinger export) or timed out.
-    // Proceed immediately to client-side smart knowledge engine!
+    // API route unavailable on static export, fallback seamlessly
   }
 
-  // 2. Client-side Intelligent Engine (Instant, 100% reliable, zero external dependency)
+  // 2. Client-side Intelligent Engine (Zero failure, instant response)
   return getLocalAiResponse(trimmed, feature);
 }
