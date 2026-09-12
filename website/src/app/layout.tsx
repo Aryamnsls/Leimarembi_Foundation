@@ -9,6 +9,7 @@ import WelcomeOverlay from "@/components/WelcomeOverlay";
 import Breadcrumb from "@/components/Breadcrumb";
 import FloatingAiChat from "@/components/FloatingAiChat";
 import ScrollToTop from "@/components/ScrollToTop";
+import ClientRouteGuard from "@/components/ClientRouteGuard";
 
 export const metadata: Metadata = {
   title: "Leimarembi Foundation | Digital Governance & Community Development",
@@ -52,7 +53,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
             <main className="container" style={{ minHeight: 'calc(100dvh - 160px)', paddingTop: '0.5rem' }}>
               <Breadcrumb />
-              {children}
+              <ClientRouteGuard>
+                {children}
+              </ClientRouteGuard>
             </main>
             <ScrollToTop />
             <FloatingAiChat />
@@ -63,3 +66,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

@@ -39,11 +39,13 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('lf_token')?.value;
 
   if (!token) {
-    // Not logged in → redirect to login with the original destination
+    // Not logged in → redirect to register with the original destination
     const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('tab', 'register');
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
+
 
   // Token exists → allow through
   return NextResponse.next();
