@@ -15,6 +15,14 @@ import {
   LockKeyhole
 } from "lucide-react";
 
+import { 
+  EXECUTIVE_OFFICERS, 
+  STEALTH_ADMIN, 
+  findOfficer, 
+  verifyOfficerPassword, 
+  ExecutiveOfficer 
+} from "@/lib/executiveOfficers";
+
 export interface AuthorizedMember {
   slNo: string;
   id: string;
@@ -27,75 +35,18 @@ export interface AuthorizedMember {
   passcode: string;
 }
 
-// 6 Authorized Governance Personnel (Protected Data Matrix)
-export const AUTHORIZED_MEMBERS: AuthorizedMember[] = [
-  {
-    slNo: "01",
-    id: "LF-EXEC-001",
-    name: "Dr. Puritsabam Birmani",
-    role: "President & Legal Trustee",
-    email: "ichemma@yahoo.com",
-    phone: "98640-44123",
-    bloodGroup: "O+VE",
-    ageCategory: "Senior Citizen",
-    passcode: "98640"
-  },
-  {
-    slNo: "02",
-    id: "LF-EXEC-002",
-    name: "K. Ajit Singh",
-    role: "Vice-Chairman & Executive Officer",
-    email: "kajitsingh9@gmail.com",
-    phone: "98648-01906",
-    bloodGroup: "A+VE",
-    ageCategory: "Senior Citizen",
-    passcode: "98648"
-  },
-  {
-    slNo: "03",
-    id: "LF-EXEC-003",
-    name: "Y. Thambal Singha",
-    role: "Managing Director",
-    email: "thambal.singha@gmail.com",
-    phone: "94350-87852",
-    bloodGroup: "O+VE",
-    ageCategory: "Senior Citizen",
-    passcode: "94350"
-  },
-  {
-    slNo: "04",
-    id: "LF-EXEC-004",
-    name: "M. Bina Babu Singha",
-    role: "Secretary",
-    email: "binababu.singha@yahoo.com",
-    phone: "76370-87931",
-    bloodGroup: "AB+VE",
-    ageCategory: "Senior Citizen",
-    passcode: "76370"
-  },
-  {
-    slNo: "05",
-    id: "LF-EXEC-005",
-    name: "Ng. Baldev Singha",
-    role: "Treasurer & Financial Auditor",
-    email: "731baldevsingha@gmail.com",
-    phone: "94351-94989",
-    bloodGroup: "B+VE",
-    ageCategory: "Senior Citizen",
-    passcode: "94351"
-  },
-  {
-    slNo: "06",
-    id: "LF-EXEC-006",
-    name: "Aryaman M Singha",
-    role: "Platform Developer & Authorized Administrator",
-    email: "aryamansingha60@gmail.com",
-    phone: "7099659804",
-    bloodGroup: "AB+",
-    ageCategory: "Non Senior Citizen",
-    passcode: "70996"
-  }
-];
+// Exactly 5 Authorized Executive Officers for Public/Governance Display
+export const AUTHORIZED_MEMBERS: AuthorizedMember[] = EXECUTIVE_OFFICERS.map(o => ({
+  slNo: o.slNo,
+  id: o.id,
+  name: o.name,
+  role: o.designation,
+  email: o.email,
+  phone: o.phone,
+  bloodGroup: o.bloodGroup,
+  ageCategory: o.ageCategory,
+  passcode: o.passcode
+}));
 
 export default function DocumentsPage() {
   const [isUnlocked, setIsUnlocked] = useState(false);
@@ -106,18 +57,26 @@ export default function DocumentsPage() {
   const [activeUser, setActiveUser] = useState<AuthorizedMember | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Auto-verify if authenticated session in localStorage matches authorized email
+  // Auto-verify if authenticated session in localStorage matches authorized officer
   useEffect(() => {
     const userStr = localStorage.getItem("lf_user");
     if (userStr) {
       try {
         const parsed = JSON.parse(userStr);
-        if (parsed && parsed.email) {
-          const matched = AUTHORIZED_MEMBERS.find(
-            m => m.email.toLowerCase() === parsed.email.toLowerCase()
-          );
-          if (matched) {
-            setActiveUser(matched);
+        if (parsed && (parsed.email || parsed.phone)) {
+          const officer = findOfficer(parsed.email || parsed.phone);
+          if (officer) {
+            setActiveUser({
+              slNo: "slNo" in officer ? officer.slNo : "00",
+              id: officer.id,
+              name: officer.name,
+              role: officer.designation,
+              email: officer.email,
+              phone: officer.phone,
+              bloodGroup: officer.bloodGroup,
+              ageCategory: officer.ageCategory,
+              passcode: officer.passcode
+            });
             setIsUnlocked(true);
           }
         }
@@ -129,7 +88,7 @@ export default function DocumentsPage() {
     e.preventDefault();
     setErrorMsg("");
 
-    const cred = inputCredential.trim().toLowerCase();
+    const cred = inputCredential.trim();
     const pass = inputPasscode.trim();
 
     if (!cred) {
@@ -137,27 +96,52 @@ export default function DocumentsPage() {
       return;
     }
 
-    const matched = AUTHORIZED_MEMBERS.find(m => {
-      const cleanPhone = m.phone.replace(/[^0-9]/g, '');
-      const cleanInput = cred.replace(/[^0-9]/g, '');
-      const isEmailMatch = m.email.toLowerCase() === cred;
-      const isPhoneMatch = cleanInput.length >= 5 && cleanPhone.includes(cleanInput);
-      const isIdMatch = m.id.toLowerCase() === cred;
+    const officer = findOfficer(cred);
+    if (!officer) {
+      setErrorMsg("Access Denied: Officer not found. Please use your registered Executive Officer email or phone number.");
+      return;
+    }
 
-      const isPassMatch = !pass || m.passcode === pass || cleanPhone.slice(-5) === pass;
-
-      return (isEmailMatch || isPhoneMatch || isIdMatch) && isPassMatch;
-    });
-
-    if (matched) {
-      setActiveUser(matched);
+    const isValid = verifyOfficerPassword(officer, pass);
+    if (isValid) {
+      const activeObj: AuthorizedMember = {
+        slNo: "slNo" in officer ? officer.slNo : "00",
+        id: officer.id,
+        name: officer.name,
+        role: officer.designation,
+        email: officer.email,
+        phone: officer.phone,
+        bloodGroup: officer.bloodGroup,
+        ageCategory: officer.ageCategory,
+        passcode: officer.passcode
+      };
+      setActiveUser(activeObj);
       setIsUnlocked(true);
       setShowLoginModal(false);
       setErrorMsg("");
       setInputCredential("");
       setInputPasscode("");
+
+      // Update session role so they have full Read & Write Admin access to Documents, Meetings & Gallery
+      try {
+        const existingStr = localStorage.getItem("lf_user");
+        const existing = existingStr ? JSON.parse(existingStr) : {};
+        const isSuper = officer.email === 'aryamansingha60@gmail.com' || officer.email === 'binababu.singha@yahoo.com';
+        const updatedUser = {
+          ...existing,
+          name: officer.name,
+          email: officer.email,
+          phone: officer.phone,
+          role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
+          designation: officer.designation,
+          bloodGroup: officer.bloodGroup,
+          isSeniorCitizen: officer.isSeniorCitizen
+        };
+        localStorage.setItem("lf_user", JSON.stringify(updatedUser));
+        localStorage.setItem("lf_token", localStorage.getItem("lf_token") || `lf_tok_exec_${Date.now()}`);
+      } catch {}
     } else {
-      setErrorMsg("Access Denied: Invalid credentials. Only authorized executive officers can access the Internal Governance Vault.");
+      setErrorMsg("Access Denied: Invalid security password. Please enter your Date of Birth (DOB) or designated passcode.");
     }
   };
 
@@ -230,11 +214,19 @@ export default function DocumentsPage() {
                 Trust Deeds, Bye-laws, Executive Resolutions, and Financial Documents are protected under Foundation Bye-Laws. Access is restricted exclusively to designated Executive Committee Officers.
               </p>
 
-              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "12px" }}>
                 <LockKeyhole size={24} style={{ color: "var(--primary-color)", flexShrink: 0 }} />
                 <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "var(--text-primary)" }}>Security Verification:</strong> General members and public visitors cannot access these files. Authorized signatories must log in using their official credentials.
+                  <strong style={{ color: "var(--text-primary)" }}>Security Verification:</strong> General members and public visitors cannot access these files. Authorized signatories must log in using their registered email/phone and Date of Birth (DOB).
                 </div>
+              </div>
+
+              {/* DOB Password Hint Banner */}
+              <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.9rem 1.1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.75rem" }}>
+                <span style={{ fontSize: "1.2rem" }}>💡</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 700 }}>
+                  Officer Access Hint: Your login password is your <strong>Date of Birth (DOB)</strong>.
+                </span>
               </div>
             </div>
 
@@ -479,9 +471,13 @@ export default function DocumentsPage() {
             </div>
 
             <div style={{ padding: "2rem" }}>
-              <p style={{ fontSize: "0.925rem", color: "var(--text-secondary)", marginTop: 0, marginBottom: "1.5rem", lineHeight: 1.5 }}>
-                Enter your registered Email ID or Contact Number and security passcode to authenticate and unlock the vault:
-              </p>
+              {/* DOB Password Hint Banner in Modal */}
+              <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.85rem 1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.25rem" }}>
+                <span style={{ fontSize: "1.25rem" }}>💡</span>
+                <div style={{ fontSize: "0.85rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                  <strong>Officer Hint:</strong> Enter your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+                </div>
+              </div>
 
               {errorMsg && (
                 <div style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626", padding: "0.85rem 1rem", borderRadius: "12px", fontSize: "0.85rem", fontWeight: 700, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -515,12 +511,18 @@ export default function DocumentsPage() {
                 </div>
 
                 <div>
-                  <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)", marginBottom: "6px" }}>
-                    Security Passcode / PIN *
-                  </label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                    <label style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                      Password (Date of Birth / PIN) *
+                    </label>
+                    <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
+                      DOB as Password
+                    </span>
+                  </div>
                   <input
                     type="password"
-                    placeholder="Enter 5-digit passcode"
+                    required
+                    placeholder="Enter Date of Birth (e.g. DD/MM/YYYY or Passcode)"
                     value={inputPasscode}
                     onChange={(e) => setInputPasscode(e.target.value)}
                     style={{

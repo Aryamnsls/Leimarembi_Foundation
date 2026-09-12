@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import Link from 'next/link';
 import { 
   Users, Search, Landmark, Heart, FileText, CheckCircle2, 
   Clock, XCircle, AlertCircle, X, Plus, Printer, Download, 
@@ -15,6 +16,7 @@ import {
   OFFICIAL_SEED_DONATIONS 
 } from '@/lib/donationLedger';
 import { isSuperAdmin } from '@/lib/superAdminAuth';
+import { canSwitchRoleMode, EXECUTIVE_OFFICERS } from '@/lib/executiveOfficers';
 
 interface RegisteredMember {
   id: string;
@@ -30,35 +32,20 @@ interface RegisteredMember {
   status: string;
 }
 
-// Default Registered Members from Super Admin Registry
-const DEFAULT_REGISTERED_MEMBERS: RegisteredMember[] = [
-  {
-    id: 'MEM-001',
-    name: 'Aryaman Singha',
-    email: 'aryamansingha60@gmail.com',
-    phone: '7099659804',
-    role: 'SUPER_ADMIN',
-    type: 'Lead Architect & Platform Director',
-    membershipNo: 'LF-2026-0001',
-    bloodGroup: 'A+',
-    isSeniorCitizen: false,
-    joinDate: '01 Sept 2026',
-    status: 'Active'
-  },
-  {
-    id: 'MEM-002',
-    name: 'M. Bina Babu Singha',
-    email: 'binababu.singha@yahoo.com',
-    phone: '7637087931',
-    role: 'SUPER_ADMIN',
-    type: 'Executive Vice President & Secretary',
-    membershipNo: 'LF-2026-0002',
-    bloodGroup: 'AB+',
-    isSeniorCitizen: true,
-    joinDate: '01 Sept 2026',
-    status: 'Active'
-  }
-];
+// Default Registered Members from Executive Officers Registry (5 Visible Officers)
+const DEFAULT_REGISTERED_MEMBERS: RegisteredMember[] = EXECUTIVE_OFFICERS.map(o => ({
+  id: o.id,
+  name: o.name,
+  email: o.email,
+  phone: o.phone,
+  role: 'ADMIN',
+  type: o.designation,
+  membershipNo: o.id,
+  bloodGroup: o.bloodGroup,
+  isSeniorCitizen: o.isSeniorCitizen,
+  joinDate: '01 Sept 2026',
+  status: 'Active'
+}));
 
 export default function Management() {
   const [activeTab, setActiveTab] = useState<'DONATIONS' | 'MEMBERS'>('DONATIONS');
@@ -163,7 +150,13 @@ export default function Management() {
       }
     } catch {}
 
-    setMembers(combinedMembers);
+    // Strictly hide Aryaman Singha from the visible management member roster for the Inauguration
+    const filteredVisible = combinedMembers.filter(m => 
+      !m.email.toLowerCase().includes('aryaman') && 
+      !(m.phone && m.phone.replace(/\D/g, '').endsWith('7099659804'))
+    );
+
+    setMembers(filteredVisible);
   }, []);
 
   // Initial load & real-time live event listeners
@@ -321,6 +314,28 @@ export default function Management() {
             <span style={{ background: '#F59E0B', color: '#000', fontSize: '0.75rem', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
               ⭐ SUPER ADMIN ACCESS
             </span>
+          )}
+          {canSwitchRoleMode(currentUser) && (
+            <Link
+              href="/superadmin"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
+                border: '1.5px solid var(--secondary-color)',
+                color: 'var(--secondary-color)',
+                padding: '0.35rem 0.9rem',
+                borderRadius: '20px',
+                fontSize: '0.775rem',
+                fontWeight: 900,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                marginLeft: '8px'
+              }}
+              title="Switch to Super Admin Control Center (/superadmin)"
+            >
+              👑 Switch to Super Admin View
+            </Link>
           )}
         </div>
         <h1 style={{ fontSize: '2.75rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>

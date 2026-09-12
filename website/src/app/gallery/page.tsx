@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ImageIcon, Play, X, ZoomIn, Upload, Loader2, ImagePlus, CheckCircle2, MapPin, Calendar, Type, FileText } from 'lucide-react';
+import { isExecutiveOfficer } from '@/lib/executiveOfficers';
 
 interface MediaItem {
   id: string;
@@ -99,13 +100,17 @@ export default function GalleryPage() {
     }
   ]);
 
-  // Auth check
+  // Auth check for Executive Officers & Members
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('lf_user');
       if (userStr) {
         const user = JSON.parse(userStr);
-        setUserRole(user.role);
+        if (isExecutiveOfficer(user) || user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+          setUserRole('ADMIN');
+        } else {
+          setUserRole(user.role);
+        }
       }
     } catch (e) {}
   }, []);
@@ -243,8 +248,8 @@ export default function GalleryPage() {
           ))}
         </div>
 
-        {/* Members Upload Access */}
-        {userRole && ['MEMBER', 'ADMIN', 'TRUSTEE', 'STAFF'].includes(userRole) && (
+        {/* Members & Executive Officers Upload Access */}
+        {userRole && ['MEMBER', 'ADMIN', 'TRUSTEE', 'STAFF', 'SUPER_ADMIN'].includes(userRole) && (
           <>
             <div style={{ width: '1px', height: '28px', background: 'var(--border-color)', margin: '0 0.5rem', display: 'block' }} className="hidden sm:block"></div>
             <button 

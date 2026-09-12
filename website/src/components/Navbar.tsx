@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { isSuperAdmin } from '@/lib/superAdminAuth';
+import { canSwitchRoleMode, isExecutiveOfficer } from '@/lib/executiveOfficers';
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -21,6 +22,8 @@ export default function Navbar() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSuperAdminUser, setIsSuperAdminUser] = useState(false);
+  const [canSwitch, setCanSwitch] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
 
@@ -43,6 +46,12 @@ export default function Navbar() {
           const u = JSON.parse(userStr);
           if (isSuperAdmin(u)) {
             setIsSuperAdminUser(true);
+          }
+          if (canSwitchRoleMode(u)) {
+            setCanSwitch(true);
+          }
+          if (u.role === 'ADMIN' || isExecutiveOfficer(u)) {
+            setIsAdminUser(true);
           }
         } catch {}
       }
@@ -211,24 +220,79 @@ export default function Navbar() {
                 <LogIn size={13} /> {t('nav.login')}
               </Link>
             )}
-            {mounted && isSuperAdminUser && (
+            {/* Role Switcher for Aryaman & Bina Babu Singha ONLY */}
+            {mounted && canSwitch && (
+              <div 
+                className="desktop-only-btn" 
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  background: 'var(--surface-color)', 
+                  borderRadius: '20px', 
+                  border: '1.5px solid var(--secondary-color)', 
+                  padding: '2px', 
+                  gap: '2px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+                }}
+              >
+                <Link 
+                  href="/superadmin" 
+                  style={{ 
+                    padding: '0.2rem 0.55rem', 
+                    fontSize: '0.74rem', 
+                    fontWeight: 900, 
+                    borderRadius: '16px', 
+                    textDecoration: 'none',
+                    background: pathname.startsWith('/superadmin') ? 'var(--secondary-color)' : 'transparent',
+                    color: pathname.startsWith('/superadmin') ? '#000000' : 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                  title="Super Admin Control Center"
+                >
+                  <ShieldCheck size={12} /> Super Admin
+                </Link>
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>⇄</span>
+                <Link 
+                  href="/management" 
+                  style={{ 
+                    padding: '0.2rem 0.55rem', 
+                    fontSize: '0.74rem', 
+                    fontWeight: 900, 
+                    borderRadius: '16px', 
+                    textDecoration: 'none',
+                    background: pathname.startsWith('/management') ? 'var(--primary-color)' : 'transparent',
+                    color: pathname.startsWith('/management') ? '#FFFFFF' : 'var(--text-primary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '3px'
+                  }}
+                  title="Admin Panel & Management Portal"
+                >
+                  Admin
+                </Link>
+              </div>
+            )}
+
+            {/* Standard Admin Panel Button for Other Executive Officers */}
+            {mounted && !canSwitch && isAdminUser && (
               <Link 
-                href="/superadmin" 
+                href="/management" 
                 className="btn desktop-only-btn" 
                 style={{ 
                   padding: '0.3rem 0.65rem', 
                   fontSize: '0.775rem', 
-                  fontWeight: 900, 
+                  fontWeight: 800, 
                   minHeight: '32px', 
                   gap: '4px', 
                   whiteSpace: 'nowrap',
-                  background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
-                  border: '1.5px solid var(--secondary-color)',
-                  color: 'var(--secondary-color)',
-                  boxShadow: '0 2px 10px rgba(212, 175, 55, 0.2)'
+                  background: 'linear-gradient(135deg, rgba(27, 42, 87, 0.1) 0%, rgba(2, 132, 199, 0.15) 100%)',
+                  border: '1.5px solid var(--info-color)',
+                  color: 'var(--primary-color)'
                 }}
               >
-                <ShieldCheck size={14} color="var(--secondary-color)" /> Super Admin
+                <ShieldCheck size={14} color="var(--info-color)" /> Admin Panel
               </Link>
             )}
             <Link href="/donate" className="btn btn-primary desktop-only-btn" style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 800, minHeight: '32px', gap: '3px', whiteSpace: 'nowrap' }}>
@@ -371,9 +435,54 @@ export default function Navbar() {
             <QrCode size={18} /> Executive QR Access Card
           </button>
 
-          {mounted && isSuperAdminUser && (
+          {/* Role Switcher in Mobile Drawer for Aryaman & Bina Babu Singha ONLY */}
+          {mounted && canSwitch && (
+            <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+              <Link 
+                href="/superadmin" 
+                onClick={closeMenu}
+                className="btn" 
+                style={{ 
+                  flex: 1,
+                  padding: '0.65rem 0.5rem', 
+                  fontSize: '0.8rem', 
+                  fontWeight: 900, 
+                  justifyContent: 'center', 
+                  minHeight: '40px', 
+                  gap: '6px',
+                  background: pathname.startsWith('/superadmin') ? 'var(--secondary-color)' : 'rgba(212, 175, 55, 0.15)',
+                  border: '1.5px solid var(--secondary-color)',
+                  color: pathname.startsWith('/superadmin') ? '#000000' : 'var(--secondary-color)'
+                }}
+              >
+                <ShieldCheck size={16} /> Super Admin
+              </Link>
+              <Link 
+                href="/management" 
+                onClick={closeMenu}
+                className="btn" 
+                style={{ 
+                  flex: 1,
+                  padding: '0.65rem 0.5rem', 
+                  fontSize: '0.8rem', 
+                  fontWeight: 900, 
+                  justifyContent: 'center', 
+                  minHeight: '40px', 
+                  gap: '6px',
+                  background: pathname.startsWith('/management') ? 'var(--primary-color)' : 'rgba(27, 42, 87, 0.15)',
+                  border: '1.5px solid var(--info-color)',
+                  color: pathname.startsWith('/management') ? '#FFFFFF' : 'var(--primary-color)'
+                }}
+              >
+                Admin View
+              </Link>
+            </div>
+          )}
+
+          {/* Admin Panel Button for Other Executive Officers in Mobile Drawer */}
+          {mounted && !canSwitch && isAdminUser && (
             <Link 
-              href="/superadmin" 
+              href="/management" 
               onClick={closeMenu}
               className="btn" 
               style={{ 
@@ -384,12 +493,12 @@ export default function Navbar() {
                 justifyContent: 'center', 
                 minHeight: '42px', 
                 gap: '8px',
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
-                border: '1.5px solid var(--secondary-color)',
-                color: 'var(--secondary-color)'
+                background: 'linear-gradient(135deg, rgba(27, 42, 87, 0.1) 0%, rgba(2, 132, 199, 0.15) 100%)',
+                border: '1.5px solid var(--info-color)',
+                color: 'var(--primary-color)'
               }}
             >
-              <ShieldCheck size={18} color="var(--secondary-color)" /> Super Admin Dashboard
+              <ShieldCheck size={18} color="var(--info-color)" /> Executive Admin Panel
             </Link>
           )}
 

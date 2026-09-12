@@ -17,6 +17,7 @@ import {
   getActivityLogs,
   recordActivity
 } from '@/lib/superAdminAuth';
+import { canSwitchRoleMode } from '@/lib/executiveOfficers';
 
 interface MemberRecord {
   id: string;
@@ -462,19 +463,45 @@ export default function SuperAdminPage() {
           </div>
         </div>
 
-        {/* Both Admins Badge */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.06)',
-          padding: '1rem 1.25rem',
-          borderRadius: '16px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          fontSize: '0.8rem'
-        }}>
-          <div style={{ fontWeight: 800, color: 'var(--secondary-color)', marginBottom: '4px' }}>
-            Authorized Super Administrators (2)
+        {/* Both Admins Badge & Mode Switcher */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
+          <div style={{
+            background: 'rgba(255, 255, 255, 0.06)',
+            padding: '0.85rem 1.25rem',
+            borderRadius: '16px',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            fontSize: '0.8rem'
+          }}>
+            <div style={{ fontWeight: 800, color: 'var(--secondary-color)', marginBottom: '4px' }}>
+              Authorized Super Administrators (2)
+            </div>
+            <div>1. <strong>Aryaman Singha</strong> (7099659804)</div>
+            <div>2. <strong>M. Bina Babu Singha</strong> (76370-87931)</div>
           </div>
-          <div>1. <strong>Aryaman Singha</strong> (7099659804)</div>
-          <div>2. <strong>M. Bina Babu Singha</strong> (76370-87931)</div>
+
+          {canSwitchRoleMode(currentUser) && (
+            <Link
+              href="/management"
+              className="btn"
+              style={{
+                background: 'linear-gradient(135deg, #0284C7 0%, #0369A1 100%)',
+                color: '#FFFFFF',
+                padding: '0.55rem 1.1rem',
+                borderRadius: '30px',
+                fontWeight: 800,
+                fontSize: '0.825rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+                textDecoration: 'none'
+              }}
+              title="Switch to Admin Panel View (/management)"
+            >
+              ⇄ Switch to Admin View
+            </Link>
+          )}
         </div>
       </div>
 

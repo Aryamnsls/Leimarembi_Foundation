@@ -34,15 +34,11 @@ import {
   LogOut
 } from "lucide-react";
 
-// Authorized 6 Executive Officers (Verification Matrix - Hidden from UI in Production)
-const AUTHORIZED_OFFICERS = [
-  { name: "Dr. Puritsabam Birmani", email: "ichemma@yahoo.com", phone: "98640-44123", rawPhone: "9864044123", passcode: "98640" },
-  { name: "K. Ajit Singh", email: "kajitsingh9@gmail.com", phone: "98648-01906", rawPhone: "9864801906", passcode: "98648" },
-  { name: "Y. Thambal Singha", email: "thambal.singha@gmail.com", phone: "94350-87852", rawPhone: "9435087852", passcode: "94350" },
-  { name: "M. Bina Babu Singha", email: "binababu.singha@yahoo.com", phone: "76370-87931", rawPhone: "7637087931", passcode: "76370" },
-  { name: "Ng. Baldev Singha", email: "731baldevsingha@gmail.com", phone: "94351-94989", rawPhone: "9435194989", passcode: "94351" },
-  { name: "Aryaman M Singha", email: "aryamansingha60@gmail.com", phone: "7099659804", rawPhone: "7099659804", passcode: "70996" }
-];
+import { 
+  EXECUTIVE_OFFICERS, 
+  findOfficer, 
+  verifyOfficerPassword 
+} from "@/lib/executiveOfficers";
 
 export default function MeetingsPage() {
   const [activeTab, setActiveTab] = useState<"notices" | "agendas" | "attendance" | "mom" | "resolutions">("notices");
@@ -52,7 +48,7 @@ export default function MeetingsPage() {
   const [camActive, setCamActive] = useState(true);
   const [newNoticeModal, setNewNoticeModal] = useState(false);
 
-  // Authentication State for 6 Official Members
+  // Authentication State for Executive Officers
   const [authenticatedOfficer, setAuthenticatedOfficer] = useState<{ name: string; email: string } | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [loginInput, setLoginInput] = useState("");
@@ -61,13 +57,31 @@ export default function MeetingsPage() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [actionNotice, setActionNotice] = useState<string>("");
 
-  // Helper function to enforce 6 Officer Clearance on actions
+  // Auto-verify if authenticated session in localStorage matches authorized officer
+  useState(() => {
+    if (typeof window !== "undefined") {
+      const userStr = localStorage.getItem("lf_user");
+      if (userStr) {
+        try {
+          const parsed = JSON.parse(userStr);
+          if (parsed && (parsed.email || parsed.phone)) {
+            const officer = findOfficer(parsed.email || parsed.phone);
+            if (officer) {
+              setAuthenticatedOfficer({ name: officer.name, email: officer.email });
+            }
+          }
+        } catch (e) {}
+      }
+    }
+  });
+
+  // Helper function to enforce Executive Officer Clearance on actions
   const requireOfficerClearance = (actionCallback: () => void, actionDescription?: string) => {
     if (authenticatedOfficer) {
       actionCallback();
     } else {
       setPendingAction(() => actionCallback);
-      setActionNotice(actionDescription || "Access Restricted to Official Members");
+      setActionNotice(actionDescription || "Access Restricted to Official Executive Officers");
       setAuthError("");
       setShowAuthModal(true);
     }
@@ -77,17 +91,12 @@ export default function MeetingsPage() {
     e.preventDefault();
     setAuthError("");
 
-    const cleanInput = loginInput.trim().toLowerCase();
+    const cleanInput = loginInput.trim();
     const cleanPasscode = passcode.trim();
 
-    const officer = AUTHORIZED_OFFICERS.find((o) => {
-      const matchEmail = o.email.toLowerCase() === cleanInput;
-      const matchPhone = o.phone.includes(cleanInput) || o.rawPhone.includes(cleanInput.replace(/\D/g, ""));
-      const matchPass = o.passcode === cleanPasscode;
-      return (matchEmail || matchPhone) && matchPass;
-    });
+    const officer = findOfficer(cleanInput);
 
-    if (officer) {
+    if (officer && verifyOfficerPassword(officer, cleanPasscode)) {
       setAuthenticatedOfficer({ name: officer.name, email: officer.email });
       setShowAuthModal(false);
       setLoginInput("");
@@ -99,7 +108,7 @@ export default function MeetingsPage() {
         setPendingAction(null);
       }
     } else {
-      setAuthError("Access Denied: This feature is strictly reserved for the 6 Authorized Executive Officers of Leimarembi Foundation. Invalid Officer Email/Phone or Clearance Passcode.");
+      setAuthError("Access Denied: This feature is reserved for the 5 Executive Officers of Leimarembi Foundation. Please enter your registered email/phone and your Date of Birth (DOB) as password.");
     }
   };
 
@@ -937,6 +946,23 @@ export default function MeetingsPage() {
               </div>
             )}
 
+            {/* Executive Officers Login Hint Banner */}
+            <div style={{
+              background: "rgba(14, 165, 233, 0.08)",
+              border: "1.5px solid rgba(14, 165, 233, 0.3)",
+              borderRadius: "12px",
+              padding: "0.75rem 1rem",
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+              marginBottom: "1.25rem"
+            }}>
+              <span style={{ fontSize: "1.1rem" }}>💡</span>
+              <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                <strong>Executive Officers:</strong> Login with your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+              </span>
+            </div>
+
             <form onSubmit={handleAuthenticate} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div>
                 <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "block", marginBottom: "6px", color: "var(--text-primary)" }}>
@@ -961,15 +987,20 @@ export default function MeetingsPage() {
               </div>
 
               <div>
-                <label style={{ fontSize: "0.85rem", fontWeight: 800, display: "block", marginBottom: "6px", color: "var(--text-primary)" }}>
-                  5-Digit Officer Clearance Passcode *
-                </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)" }}>
+                    Password (Date of Birth / Passcode) *
+                  </label>
+                  <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
+                    DOB as Password
+                  </span>
+                </div>
                 <input 
                   type="password" 
                   required 
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter 5-digit passcode (e.g. 98640)" 
+                  placeholder="Enter Date of Birth (DD/MM/YYYY or Passcode)" 
                   style={{ 
                     width: "100%", 
                     padding: "0.85rem 1rem", 

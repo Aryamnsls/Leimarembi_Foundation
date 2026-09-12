@@ -203,5 +203,39 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
   - Connected via `storage` and `lf_donation_updated` event hooks.
   - When a donation is made via `/donate` or recorded by an administrator, the Management Portal updates live without page reload.
 
+### 11. 🛡️ Executive Officers Admin Access, DOB Authentication & Stealth Role Switcher
+- **5 Official Executive Officers Granted Admin Clearance**:
+  1. **Dr. Phuritsabam Birmani** (President & Legal Trustee | `ichemma@yahoo.com` | `98640-44123`)
+  2. **K. Ajit Singh** (Vice-Chairman & Executive Officer | `kajitsingh9@gmail.com` | `98648-01906`)
+  3. **Y. Thambal Singha** (Managing Director | `thambal.singha@gmail.com` | `94350-87852`)
+  4. **M. Bina Babu Singha** (Secretary & Super Administrator | `binababu.singha@yahoo.com` | `76370-87931`)
+  5. **Ng. Baldev Singha** (Treasurer & Financial Auditor | `731baldevsingha@gmail.com` | `94351-94989`)
+- **Full Read & Write Access Across Modules**:
+  - All 5 Executive Officers plus Aryaman Singha receive authorized Admin privileges across:
+    - 📄 **Documents Archive (`/documents`)**: Unlocks the official governance vault, PDF eye-reader viewer modal, and softcopy download for `Pad Leimarembi Imp Document.pdf`.
+    - 📹 **Meeting Governance Suite (`/meetings`)**: Authorization to issue meeting circulars, manage agendas, capture attendance, publish minutes, and launch instant Google Meet video rooms.
+    - 🖼️ **Media Gallery (`/gallery`)**: Full access to upload photographs, videos, event highlights, and manage multimedia archives.
+    - 🏛️ **Management Portal (`/management`)**: Record donations, view donor vouchers, manage receipts, and inspect member rosters.
+- **Date of Birth (DOB) as Security Password**:
+  - When opening `/documents` or triggering executive actions in `/meetings`, officers authenticate using their registered Email/Phone and their **Date of Birth (DOB)**.
+  - Prominent hints are visibly displayed on the vault card and login modals:
+    > `💡 Officer Hint: Enter your registered Email or Phone. Your security password is your Date of Birth (DOB).`
+  - Flexible regex pattern matching accommodates standard DOB formats (`DD/MM/YYYY`, `DD-MM-YYYY`, `DDMMYYYY`, `YYYY-MM-DD`, or 5-digit security passcodes).
+- **Exclusive Super Admin ⇄ Admin View Switcher**:
+  - **Aryaman Singha** and **M. Bina Babu Singha ONLY** receive an interactive mode switcher (`canSwitchRoleMode`):
+    - On the **Super Admin Control Center (`/superadmin`)**, a button provides instant transition:
+      `[⇄ Switch to Admin View]` ➔ `/management`.
+    - On the **Management Portal (`/management`)**, a button provides instant transition:
+      `[👑 Switch to Super Admin View]` ➔ `/superadmin`.
+    - In the **Navbar (Desktop & Mobile Drawer)**, a dual-toggle pill switch allows switching between Super Admin and Admin views with one click.
+    - Other executive officers only see the standard `[🛡️ Admin Panel]` button without the Super Admin toggle.
+- **Stealth Administrator Protection for Aryaman Singha**:
+  - As requested for tomorrow's official Foundation Inauguration, **Aryaman Singha is completely hidden from public and visible officer rosters**:
+    - The visible governance directory on `/documents` displays strictly the 5 visible Executive Officers.
+    - Public member profiles on `/members` show the official executive officers and committee members.
+    - The Management Portal (`/management`) filters out Aryaman from the visible active member roster.
+    - Aryaman Singha retains complete stealth Super Admin & Developer privileges across all backend endpoints and private vaults without exposing his credentials or card to other members.
+
+
 
 

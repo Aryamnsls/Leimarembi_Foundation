@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, UserPlus, Shield } from "lucide-react";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { isSuperAdmin, recordActivity } from "@/lib/superAdminAuth";
+import { findOfficer, verifyOfficerPassword, isExecutiveOfficer } from "@/lib/executiveOfficers";
 
 type Tab = "login" | "register";
 
@@ -117,6 +118,50 @@ function LoginCard() {
     e.preventDefault();
     setLoading(true);
     setError("");
+
+    // 1. Instant verification for Executive Officers (Authenticated by Date of Birth or Passcode)
+    const credInput = loginData.email.trim();
+    const passInput = loginData.password.trim();
+    const officer = findOfficer(credInput);
+
+    if (officer && verifyOfficerPassword(officer, passInput)) {
+      const isSuper = officer.email === 'aryamansingha60@gmail.com' || officer.email === 'binababu.singha@yahoo.com';
+      const officerUser = {
+        id: officer.id,
+        name: officer.name,
+        email: officer.email,
+        phone: officer.phone,
+        role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
+        designation: officer.designation,
+        membershipNo: officer.id,
+        bloodGroup: officer.bloodGroup,
+        isSeniorCitizen: officer.isSeniorCitizen,
+        authProvider: 'LOCAL'
+      };
+      const token = `lf_tok_exec_${Date.now()}`;
+      saveSession(token, officerUser);
+      recordActivity({
+        type: "SIGN_IN",
+        userName: officerUser.name,
+        userEmail: officerUser.email,
+        userPhone: officerUser.phone,
+        membershipNo: officerUser.membershipNo,
+        bloodGroup: officerUser.bloodGroup,
+        isSeniorCitizen: officerUser.isSeniorCitizen,
+        provider: "LOCAL",
+        details: isSuper ? "Super Administrator Signed In" : `Executive Officer (${officer.role}) Signed In`,
+      });
+
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (isSuper) {
+        router.push("/superadmin");
+      } else {
+        router.push("/management");
+      }
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
@@ -631,15 +676,31 @@ function LoginCard() {
                 <div style={{ flex: 1, height: "1px", background: "var(--border-color)" }}></div>
               </div>
 
+              {/* Executive Officers Login Hint Banner */}
+              <div style={{
+                background: "rgba(14, 165, 233, 0.08)",
+                border: "1.5px solid rgba(14, 165, 233, 0.3)",
+                borderRadius: "12px",
+                padding: "0.75rem 1rem",
+                display: "flex",
+                gap: "10px",
+                alignItems: "center"
+              }}>
+                <span style={{ fontSize: "1.1rem" }}>💡</span>
+                <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                  <strong>Executive Officers:</strong> Login with your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+                </span>
+              </div>
+
               <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <div>
                 <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
-                  Email Address *
+                  Registered Email Address or Phone Number *
                 </label>
                 <input
-                  type="email"
+                  type="text"
                   required
-                  placeholder="you@example.com"
+                  placeholder="Enter registered email or phone"
                   value={loginData.email}
                   onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                   style={{
@@ -656,14 +717,19 @@ function LoginCard() {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
-                  Password *
-                </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                  <label style={{ fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)" }}>
+                    Password (Date of Birth / Password) *
+                  </label>
+                  <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
+                    DOB as Password for Officers
+                  </span>
+                </div>
                 <div style={{ position: "relative" }}>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
-                    placeholder="Enter password"
+                    placeholder="Enter password or Date of Birth (DOB)"
                     value={loginData.password}
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     style={{
