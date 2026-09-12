@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, UserPlus, Shield } from "lucide-react";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
+import { isSuperAdmin, recordActivity } from "@/lib/superAdminAuth";
 
 type Tab = "login" | "register";
 
@@ -49,6 +50,8 @@ function LoginCard() {
             saveSession(token, data.data);
             if (redirectTo) {
               router.push(redirectTo);
+            } else if (isSuperAdmin(data.data)) {
+              router.push("/superadmin");
             } else if (data.data.role === "ADMIN") {
               router.push("/management");
             } else {
@@ -62,7 +65,11 @@ function LoginCard() {
           if (userStr) {
             try {
               const u = JSON.parse(userStr);
-              router.push(u.role === "ADMIN" ? "/management" : "/portal");
+              if (isSuperAdmin(u)) {
+                router.push("/superadmin");
+              } else {
+                router.push(u.role === "ADMIN" ? "/management" : "/portal");
+              }
               return;
             } catch {}
           }
@@ -107,9 +114,22 @@ function LoginCard() {
 
       saveSession(data.data.token, data.data.user);
 
+      // Record activity in live audit feed
+      recordActivity({
+        type: "SIGN_IN",
+        userName: data.data.user.name,
+        userEmail: data.data.user.email,
+        userPhone: data.data.user.phone,
+        membershipNo: data.data.user.membershipNo,
+        provider: "LOCAL",
+        details: isSuperAdmin(data.data.user) ? "Super Admin Logged In" : "Member Signed In",
+      });
+
       // Redirect to original intended page or role-based default
       if (redirectTo) {
         router.push(redirectTo);
+      } else if (isSuperAdmin(data.data.user)) {
+        router.push("/superadmin");
       } else if (data.data.user.role === "ADMIN") {
         router.push("/management");
       } else {
@@ -137,6 +157,17 @@ function LoginCard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Registration failed");
 
+      // Record registration in live audit feed
+      recordActivity({
+        type: "REGISTER",
+        userName: data.data.user.name,
+        userEmail: data.data.user.email,
+        userPhone: data.data.user.phone,
+        membershipNo: data.data.user.membershipNo,
+        provider: "LOCAL",
+        details: "New Member Registered via Portal Form",
+      });
+
       setSuccess(`Welcome, ${data.data.user.name}! Your membership ID is ${data.data.user.membershipNo}. Please login.`);
       setTab("login");
       setLoginData({ email: registerData.email, password: "" });
@@ -162,8 +193,21 @@ function LoginCard() {
 
       saveSession(data.data.token, data.data.user);
 
+      // Record Google sign-in in live audit feed
+      recordActivity({
+        type: "SIGN_IN",
+        userName: data.data.user.name,
+        userEmail: data.data.user.email,
+        userPhone: data.data.user.phone,
+        membershipNo: data.data.user.membershipNo,
+        provider: "GOOGLE",
+        details: isSuperAdmin(data.data.user) ? "Super Admin Logged In via Google" : "User Authenticated via Google",
+      });
+
       if (redirectTo) {
         router.push(redirectTo);
+      } else if (isSuperAdmin(data.data.user)) {
+        router.push("/superadmin");
       } else if (data.data.user.role === "ADMIN") {
         router.push("/management");
       } else {

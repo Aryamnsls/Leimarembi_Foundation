@@ -8,9 +8,10 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { 
   Moon, Sun, Menu, X, ArrowRight, Home, LayoutGrid, Info, Activity,
   BookOpen, LogIn, Heart, Users, Newspaper, 
-  ImageIcon, FileText, Video, QrCode
+  ImageIcon, FileText, Video, QrCode, ShieldCheck
 } from 'lucide-react';
 import Image from 'next/image';
+import { isSuperAdmin } from '@/lib/superAdminAuth';
 
 export default function Navbar() {
   const { t } = useTranslation();
@@ -19,6 +20,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isSuperAdminUser, setIsSuperAdminUser] = useState(false);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
 
@@ -34,6 +36,15 @@ export default function Navbar() {
       setMounted(true);
       if (localStorage.getItem('lf_token')) {
         setIsLoggedIn(true);
+      }
+      const userStr = localStorage.getItem('lf_user');
+      if (userStr) {
+        try {
+          const u = JSON.parse(userStr);
+          if (isSuperAdmin(u)) {
+            setIsSuperAdminUser(true);
+          }
+        } catch {}
       }
       const savedTheme = localStorage.getItem('theme');
       if (savedTheme) {
@@ -200,6 +211,26 @@ export default function Navbar() {
                 <LogIn size={13} /> {t('nav.login')}
               </Link>
             )}
+            {mounted && isSuperAdminUser && (
+              <Link 
+                href="/superadmin" 
+                className="btn desktop-only-btn" 
+                style={{ 
+                  padding: '0.3rem 0.65rem', 
+                  fontSize: '0.775rem', 
+                  fontWeight: 900, 
+                  minHeight: '32px', 
+                  gap: '4px', 
+                  whiteSpace: 'nowrap',
+                  background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
+                  border: '1.5px solid var(--secondary-color)',
+                  color: 'var(--secondary-color)',
+                  boxShadow: '0 2px 10px rgba(212, 175, 55, 0.2)'
+                }}
+              >
+                <ShieldCheck size={14} color="var(--secondary-color)" /> Super Admin
+              </Link>
+            )}
             <Link href="/donate" className="btn btn-primary desktop-only-btn" style={{ padding: '0.3rem 0.65rem', fontSize: '0.775rem', fontWeight: 800, minHeight: '32px', gap: '3px', whiteSpace: 'nowrap' }}>
               {t('nav.donate')} <ArrowRight size={12} />
             </Link>
@@ -339,6 +370,28 @@ export default function Navbar() {
           >
             <QrCode size={18} /> Executive QR Access Card
           </button>
+
+          {mounted && isSuperAdminUser && (
+            <Link 
+              href="/superadmin" 
+              onClick={closeMenu}
+              className="btn" 
+              style={{ 
+                padding: '0.65rem 1rem', 
+                fontSize: '0.875rem', 
+                fontWeight: 900, 
+                width: '100%', 
+                justifyContent: 'center', 
+                minHeight: '42px', 
+                gap: '8px',
+                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
+                border: '1.5px solid var(--secondary-color)',
+                color: 'var(--secondary-color)'
+              }}
+            >
+              <ShieldCheck size={18} color="var(--secondary-color)" /> Super Admin Dashboard
+            </Link>
+          )}
 
           {mounted && isLoggedIn ? (
             <button onClick={() => { handleLogout(); closeMenu(); }} className="btn btn-outline" style={{ padding: '0.55rem', fontSize: '0.875rem', width: '100%', justifyContent: 'center', minHeight: '42px', gap: '8px' }}>

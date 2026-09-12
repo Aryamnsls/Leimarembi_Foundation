@@ -8,6 +8,20 @@ import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
+function isSuperAdminEmailOrPhone(eMail?: string, pHone?: string): boolean {
+  const e = (eMail || '').toLowerCase().trim();
+  const p = (pHone || '').replace(/[^0-9]/g, '');
+  return (
+    e === 'aryamansingha60@gmail.com' ||
+    e === 'aryamansingha60@gail.com' ||
+    e === 'binababu.singha@yahoo.com' ||
+    p === '7099659804' ||
+    p === '7637087931' ||
+    p.endsWith('7099659804') ||
+    p.endsWith('7637087931')
+  );
+}
+
 // Register new member / user
 router.post('/register', async (req: Request, res: Response) => {
   try {
@@ -26,6 +40,8 @@ router.post('/register', async (req: Request, res: Response) => {
     const count = await prisma.user.count();
     const membershipNo = `LF-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
+    const assignedRole = isSuperAdminEmailOrPhone(email, phone) ? 'ADMIN' : 'MEMBER';
+
     const user = await prisma.user.create({
       data: {
         email,
@@ -37,7 +53,7 @@ router.post('/register', async (req: Request, res: Response) => {
         isSeniorCitizen: Boolean(isSeniorCitizen),
         familyMembersCount: Number(familyMembersCount) || 1,
         membershipNo,
-        role: 'MEMBER',
+        role: assignedRole,
       },
     });
 
@@ -152,6 +168,7 @@ router.post('/google', async (req: Request, res: Response) => {
       const count = await prisma.user.count();
       const membershipNo = `LF-${new Date().getFullYear()}-${String(count + 1).padStart(4, '0')}`;
 
+      const assignedRole = isSuperAdminEmailOrPhone(email) ? 'ADMIN' : 'MEMBER';
       user = await prisma.user.create({
         data: {
           email,
@@ -159,16 +176,23 @@ router.post('/google', async (req: Request, res: Response) => {
           authProvider: 'GOOGLE',
           googleId,
           membershipNo,
-          role: 'MEMBER',
+          role: assignedRole,
           password: null, // No password for Google auth
         },
       });
     } else {
-      // Update existing user to link Google account if needed
-      if (!user.googleId) {
+      // Update existing user to link Google account and ensure ADMIN role if Super Admin
+      const updateData: any = {};
+      if (!user.googleId) updateData.googleId = googleId;
+      if (!user.authProvider || user.authProvider === 'LOCAL') updateData.authProvider = 'GOOGLE';
+      if (isSuperAdminEmailOrPhone(user.email, user.phone) && user.role !== 'ADMIN') {
+        updateData.role = 'ADMIN';
+      }
+
+      if (Object.keys(updateData).length > 0) {
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { googleId, authProvider: 'GOOGLE' },
+          data: updateData,
         });
       }
     }
