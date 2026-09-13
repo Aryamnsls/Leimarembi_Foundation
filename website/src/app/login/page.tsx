@@ -88,6 +88,28 @@ function LoginCard() {
         }
       }
 
+      // Pre-seed M. Bina Babu Singha in local users store if not already present
+      try {
+        const existing = localStorage.getItem('lf_local_users');
+        const users = existing ? JSON.parse(existing) : [];
+        if (!users.some((u: any) => u.email === 'binababu.singha@yahoo.com')) {
+          users.push({
+            id: 'LF-EXEC-004',
+            name: 'M. Bina Babu Singha',
+            email: 'binababu.singha@yahoo.com',
+            phone: '7637087931',
+            address: 'Basistha',
+            bloodGroup: 'AB+',
+            isSeniorCitizen: true,
+            familyMembersCount: 1,
+            membershipNo: 'LF-EXEC-004',
+            role: 'SUPER_ADMIN',
+            password: 'Guwahati123'
+          });
+          localStorage.setItem('lf_local_users', JSON.stringify(users));
+        }
+      } catch {}
+
       // If NOT logged in or session invalid -> default tab to SIGN IN
       const explicitTab = searchParams.get("tab");
       setTab(explicitTab === "register" ? "register" : "login");
@@ -97,26 +119,70 @@ function LoginCard() {
     checkAuthInDatabase();
   }, [router, redirectTo, searchParams]);
 
-  // QR Scan detection: auto-fill email from ?qr=1&member=ID or ?qr=1&email=EMAIL
+  // QR Scan & Direct Auto-Login detection (e.g. ?auto=1 or ?auto=binababu or ?email=binababu.singha@yahoo.com)
   useEffect(() => {
     const isQr = searchParams.get('qr') === '1';
-    if (!isQr) return;
-
+    const isAuto = searchParams.get('auto') === '1' || searchParams.get('auto') === 'binababu' || searchParams.get('autologin') === 'true';
     const memberId = searchParams.get('member');
     const memberEmail = searchParams.get('email');
     const memberPhone = searchParams.get('phone');
+    const pass = searchParams.get('pass') || searchParams.get('password');
 
-    const credential = memberEmail || memberId || memberPhone || '';
-    if (!credential) return;
+    const credential = memberEmail || memberId || memberPhone || (isAuto ? 'binababu.singha@yahoo.com' : '');
+    if (!credential && !isQr && !isAuto) return;
 
-    const found = findOfficialMember(credential.trim());
+    const found = findOfficialMember(credential.trim() || 'binababu.singha@yahoo.com');
     if (found) {
       setQrMember(found);
       setQrScanned(true);
-      setLoginData(prev => ({ ...prev, email: found.email }));
+      setLoginData({ email: found.email, password: pass || (found as any).password || found.passcode });
       setTab('login');
+
+      // If auto-login requested or auto param present, instantly save session & redirect
+      if (isAuto || (isQr && pass) || searchParams.get('direct') === '1') {
+        const isSuper = found.email === 'aryamansingha60@gmail.com' || found.email === 'binababu.singha@yahoo.com' || found.role === 'SUPER_ADMIN';
+        const isOfficerAdmin = ['President', 'Vice-Chairman', 'Managing Director', 'Secretary', 'Treasurer'].includes(found.role) || (found as any).category === 'Leadership';
+
+        const memberUser = {
+          id: found.id,
+          name: found.name,
+          email: found.email,
+          phone: found.phone,
+          role: isSuper ? 'SUPER_ADMIN' : (isOfficerAdmin ? 'ADMIN' : 'MEMBER'),
+          designation: found.designation,
+          membershipNo: found.id,
+          bloodGroup: found.bloodGroup,
+          isSeniorCitizen: found.isSeniorCitizen,
+          address: (found as any).address || "Basistha",
+          familyMembersCount: (found as any).familyMembersCount || 1,
+          authProvider: 'LOCAL'
+        };
+        const token = `lf_tok_mem_${Date.now()}`;
+        saveSession(token, memberUser);
+        recordActivity({
+          type: "SIGN_IN",
+          userName: memberUser.name,
+          userEmail: memberUser.email,
+          userPhone: memberUser.phone,
+          membershipNo: memberUser.membershipNo,
+          bloodGroup: memberUser.bloodGroup,
+          isSeniorCitizen: memberUser.isSeniorCitizen,
+          provider: "LOCAL",
+          details: isSuper ? "Super Administrator Direct Auto-Signed In" : `${found.designation} Direct Auto-Signed In`,
+        });
+
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (isSuper) {
+          router.push("/superadmin");
+        } else if (memberUser.role === 'ADMIN') {
+          router.push("/management");
+        } else {
+          router.push("/portal");
+        }
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, router, redirectTo]);
 
 
   // Register form
@@ -291,14 +357,65 @@ function LoginCard() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!registerData.bloodGroup) {
-      setError("Please select your Blood Group.");
-      return;
-    }
-
     setLoading(true);
     setError("");
     setSuccess("");
+
+    // 0. Check if user is already an Official Member in database (e.g. M. Bina Babu Singha)
+    const officialFound = findOfficialMember(registerData.email || registerData.phone || registerData.name);
+    if (officialFound) {
+      const isSuper = officialFound.email === 'aryamansingha60@gmail.com' || officialFound.email === 'binababu.singha@yahoo.com' || officialFound.role === 'SUPER_ADMIN';
+      const isOfficerAdmin = ['President', 'Vice-Chairman', 'Managing Director', 'Secretary', 'Treasurer'].includes(officialFound.role) || (officialFound as any).category === 'Leadership';
+
+      const memberUser = {
+        id: officialFound.id,
+        name: officialFound.name,
+        email: officialFound.email,
+        phone: officialFound.phone,
+        role: isSuper ? 'SUPER_ADMIN' : (isOfficerAdmin ? 'ADMIN' : 'MEMBER'),
+        designation: officialFound.designation,
+        membershipNo: officialFound.id,
+        bloodGroup: registerData.bloodGroup || officialFound.bloodGroup,
+        isSeniorCitizen: officialFound.isSeniorCitizen,
+        address: registerData.address || (officialFound as any).address || "Basistha",
+        familyMembersCount: registerData.familyMembersCount || (officialFound as any).familyMembersCount || 1,
+        authProvider: 'LOCAL'
+      };
+      const token = `lf_tok_mem_${Date.now()}`;
+      saveSession(token, memberUser);
+      recordActivity({
+        type: "SIGN_IN",
+        userName: memberUser.name,
+        userEmail: memberUser.email,
+        userPhone: memberUser.phone,
+        membershipNo: memberUser.membershipNo,
+        bloodGroup: memberUser.bloodGroup,
+        isSeniorCitizen: memberUser.isSeniorCitizen,
+        provider: "LOCAL",
+        details: `${officialFound.designation} Auto-Signed In from Registration Check`,
+      });
+
+      setSuccess(`✅ Account already registered in official database! Welcome back, ${officialFound.name} (${officialFound.designation}). Directing you to your Portal...`);
+      setTimeout(() => {
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (isSuper) {
+          router.push("/superadmin");
+        } else if (memberUser.role === 'ADMIN') {
+          router.push("/management");
+        } else {
+          router.push("/portal");
+        }
+      }, 500);
+      setLoading(false);
+      return;
+    }
+
+    if (!registerData.bloodGroup) {
+      setError("Please select your Blood Group.");
+      setLoading(false);
+      return;
+    }
 
     // Generate unique membership ID
     const memSeq = Math.floor(1000 + Math.random() * 9000);
