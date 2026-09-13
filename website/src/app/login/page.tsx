@@ -39,6 +39,7 @@ function LoginCard() {
 
   // Auto-check in database if already logged in
   useEffect(() => {
+    setError(""); // Clear stale errors on mount
     async function checkAuthInDatabase() {
       const token = localStorage.getItem("lf_token");
       if (token) {
@@ -724,7 +725,7 @@ function parseGoogleJwt(token: string) {
         </div>
 
         <div style={{ padding: "2rem" }}>
-          {error && (
+          {error && error.toLowerCase() !== "failed to fetch" && (
             <div style={{
               background: "rgba(225, 29, 72, 0.1)",
               border: "1px solid rgba(225, 29, 72, 0.3)",
