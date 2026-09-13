@@ -252,11 +252,12 @@ When scanned:
 
 **Super Admin (Overpower) Access:**
 - **Aryaman Singha** (`aryamansingha60@gmail.com` / `7099659804` / Blood Group: `A+`)
-- **M. Bina Babu Singha** (`binababu.singha@yahoo.com` / `76370-87931` / Blood Group: `AB+`)
+- **M. Bina Babu Singha** (`binababu.singha@yahoo.com` / `76370-87931` / Password: `Guwahati123` / Blood Group: `AB+` / Address: `Basistha` / Senior Citizen: Yes / Family Count: 1)
+  - 🔗 **Direct Auto-Login Link (No Sign-In Needed)**: [leimarembifoundation.org/login?auto=1](https://leimarembifoundation.org/login?auto=1)
 
-**Date of Birth (DOB) as Security Password:**
-- Officers authenticate using their registered Email/Phone + Date of Birth.
-- Flexible pattern matching: `DD/MM/YYYY`, `DD-MM-YYYY`, `DDMMYYYY`, `YYYY-MM-DD`, or 5-digit passcode.
+**Date of Birth (DOB) & Custom Password Security:**
+- Officers authenticate using their registered Email/Phone + Password (`Guwahati123`) or Date of Birth.
+- Flexible pattern matching: `DD/MM/YYYY`, `DD-MM-YYYY`, `DDMMYYYY`, `YYYY-MM-DD`, passcode, or custom password.
 - DOB hint is shown **only** to privileged (Admin/Super-Admin) users — hidden from public.
 
 ---
@@ -347,7 +348,7 @@ git push origin master
 | 1 | Dr. Puritsabam Birmani | President & Legal Trustee | ichemma@yahoo.com | 98640-44123 | Date of Birth |
 | 2 | K. Ajit Singh | Vice-Chairman & Executive Officer | kajitsingh9@gmail.com | 98648-01906 | Date of Birth |
 | 3 | Y. Thambal Singha | Managing Director | thambal.singha@gmail.com | 94350-87852 | Date of Birth |
-| 4 | M. Bina Babu Singha | Secretary & Super Admin | binababu.singha@yahoo.com | 76370-87931 | Date of Birth |
+| 4 | M. Bina Babu Singha | Secretary & Super Admin | binababu.singha@yahoo.com | 76370-87931 | Guwahati123 / DOB |
 | 5 | Ng. Baldev Singha | Treasurer & Financial Auditor | 731baldevsingha@gmail.com | 94351-94989 | Date of Birth |
 | 6 | Aryaman Singha *(Stealth)* | Platform Director & Lead Architect | aryamansingha60@gmail.com | 7099659804 | Date of Birth |
 
@@ -356,5 +357,5 @@ git push origin master
 ---
 
 *Last updated: September 2026 — Leimarembi Foundation, Manipuri Rajbari, Guwahati – 781007, Assam.*
-*Commit: `7042bd4` — Real member emails synced, QR code auto-login system deployed to production.*
+*Commit: `2973b4d` — Pre-register Bina Babu Singha with password Guwahati123 and direct auto-login support.*
 

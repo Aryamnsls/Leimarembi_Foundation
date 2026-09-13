@@ -197,7 +197,7 @@ npm run build
 | 01 | Dr. Puritsabam Birmani | `ichemma@yahoo.com` | 98640-44123 | O+VE | DOB or `98640` |
 | 02 | K. Ajit Singh | `kajitsingh9@gmail.com` | 98648-01906 | A+VE | DOB or `98648` |
 | 03 | Y. Thambal Singha | `thambal.singha@gmail.com` | 94350-87852 | O+VE | DOB or `94350` |
-| 04 | M. Bina Babu Singha | `binababu.singha@yahoo.com` | 76370-87931 | AB+VE | DOB or `76370` |
+| 04 | M. Bina Babu Singha | `binababu.singha@yahoo.com` | 76370-87931 | AB+VE | `Guwahati123`, DOB or `76370` |
 | 05 | Ng. Baldev Singha | `731baldevsingha@gmail.com` | 94351-94989 | B+VE | DOB or `94351` |
 | 06 | K. Braja Babu Singha | *(Waiting — sign in with phone)* | **70862-42310** | B+VE | DOB or `70862` |
 | 07 | L. Madan Chand Singha | `hanumantravels123@gmail.com` | 70027-49229 | A+VE | DOB or `70027` |
@@ -207,13 +207,15 @@ npm run build
 | 11 | S. Amarjit Singha | `panthoibielectronics@gmail.com` | 98640-80354 | O+VE | DOB or `98640` |
 | 12 | Ng. Binoy Singha | `ngbinoy@gmail.com` | 70020-66014 | B+VE | DOB or `70020` |
 
-### 📲 QR Code Login URLs
+### 📲 Direct Auto-Login & QR Code URLs
+
+- **M. Bina Babu Singha 1-Click Direct Auto-Login**: `https://leimarembifoundation.org/login?auto=1`
 
 ```
 https://leimarembifoundation.org/login?qr=1&email=ichemma@yahoo.com
 https://leimarembifoundation.org/login?qr=1&email=kajitsingh9@gmail.com
 https://leimarembifoundation.org/login?qr=1&email=thambal.singha@gmail.com
-https://leimarembifoundation.org/login?qr=1&email=binababu.singha@yahoo.com
+https://leimarembifoundation.org/login?auto=1
 https://leimarembifoundation.org/login?qr=1&email=731baldevsingha@gmail.com
 https://leimarembifoundation.org/login?qr=1&phone=7086242310
 https://leimarembifoundation.org/login?qr=1&email=hanumantravels123@gmail.com
@@ -240,4 +242,4 @@ git push origin master  # Triggers Hostinger auto-deploy
 
 *Leimarembi Foundation — Manipuri Rajbari, Guwahati – 781007, Assam | Est. 2001*  
 *Email: leimarembifoundation@gmail.com*  
-*Last updated: September 2026 — Commit `7042bd4`*
+*Last updated: September 2026 — Commit `2973b4d`*
