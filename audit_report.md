@@ -8,6 +8,15 @@
 
 ## ✅ Latest Platform Updates — September 13, 2026
 
+### 🏛️ Government Grants Page — Live Updated (`/grants`)
+- **"Pending PFMS"** changed to **"Updated Soon"** across the Application Pipeline Under Review stage.
+- Application Pipeline now shows a **"Live Updating"** green badge — no more hardcoded static states.
+- Scheme Database dates **auto-refresh** to today on every sync. Refresh button & "Last synced: HH:MM" status bar always visible.
+- All schemes **persisted in localStorage** — changes survive page reload without a backend.
+- **AI Scheme Finder** modal (triggered by "Search Schemes with AI" button) — **stays on page, no tab switching**. Uses Gemini AI (`/api/gemini`, `feature: grants`) with Leimarembi Foundation context. Searches central/state government schemes, PFMS grants, and CSR funds relevant to the Foundation. Results include "Add to Database" button.
+- Manual **Add Scheme** form for recording new grant applications.
+- KPI Stats Bar: Total Schemes | Approved count | Under Review count | Total Grant Value.
+
 ### 📚 Digital Library & Documents (`/documents`)
 - **3 New Built-in Documents Added** to the Governance Vault:
   - `Members_List.jpeg` — Verified Member Registry (IMAGE)

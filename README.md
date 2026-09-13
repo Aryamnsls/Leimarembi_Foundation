@@ -16,7 +16,8 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 4. **Official Member Profiles & Executive Roster**: Dedicated `/members` page showcasing all **15 official office bearers & executive committee members** with passport photos, search, role filters, and detailed profile modals.
 5. **Leimarembi News Hub (`/news`)**: Real-time aggregated news across **Local News (Lakhipur & Cachar)**, **Manipuri News**, **Assamese News**, and **Bengali Region News** delivered in English with vertical cube card aspect ratios and interactive article reading modals.
 6. **Restricted Internal Governance Vault (`/documents`)**: High-security governance archive protected for **6 Legal Authorised Executive Signatories**. Features **4 built-in documents**, hidden officer roster UI in production, 📥 Softcopy Download, 👁️ In-Browser PDF/Image/DOCX Viewer Modal, and a full **Upload Document** feature supporting any file type.
-7. **Meeting Management & Instant Video Suite (`/meetings`)**: Implements 5 core governance pillars (Meeting Notices, Agenda Preparation, Attendance Records, Minutes of Meetings, Resolution Register). View mode is open to the public; action capabilities are strictly protected by **6 Authorized Officer clearance modal rules**.
+7. **Government Grant Management (`/grants`)**: Live-updating Scheme Database (localStorage-persisted, auto-syncing dates), Application Pipeline with real-time stage tracking ("Updated Soon" replaces "Pending PFMS"), KPI stats bar (Total Schemes, Approved, Under Review, Grant Value), **AI Scheme Finder** powered by Gemini AI that searches for government schemes & CSR funding best suited to the Foundation, and a manual Add Scheme form.
+8. **Meeting Management & Instant Video Suite (`/meetings`)**: Implements 5 core governance pillars (Meeting Notices, Agenda Preparation, Attendance Records, Minutes of Meetings, Resolution Register). View mode is open to the public; action capabilities are strictly protected by **6 Authorized Officer clearance modal rules**.
 8. **AI Assistant (`POWERED BY Leimarembi Foundation`)**: Floating intelligent chat assistant integrated across all pages with a comprehensive knowledge base.
 9. **Services Portal (`/portal`)**: 8 governance modules including Mobile Application status notification.
 10. **Executive QR Code Gateway & WhatsApp Preview**: Interactive holographic QR Code gatekeeper with embedded Foundation logo seal, scanner beam animation, instant WhatsApp share button, and OpenGraph link sharing cards.
@@ -110,7 +111,33 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ## Recent Major Upgrades Summary
 
-### 1. 📚 Digital Library Expanded — 4 Built-in Documents + Upload Feature (`/documents`)
+### 1. 🏛️ Government Grant Management — Live Updated (`/grants`)
+
+**Application Pipeline:**
+- **"Pending PFMS"** changed to **"Updated Soon"** across the Under Review pipeline stage.
+- Pipeline is **live-tagged** with a "Live Updating" green badge — no hardcoded static text.
+- Stages: **Proposal Preparation → Under Review (Updated Soon) → Approved & Funded**.
+
+**Scheme Database — Live Updated:**
+- All scheme dates **auto-refresh** to today's date on every sync/refresh.
+- Refresh button (🔄) and "Live Updated · Last synced: HH:MM" status bar displayed at all times.
+- Schemes are **stored in localStorage** — edits/additions persist across page reloads.
+- Manual **Add Scheme** form: Scheme Name, Department, Amount, Status (Draft / Under Review / Updated Soon / Approved).
+- **Delete** any scheme with the trash icon.
+- KPI Stats Bar: Total Schemes | Approved | Under Review | Total Grant Value.
+
+**AI Scheme Finder (Search Schemes with AI):**
+- Clicking **"Search Schemes with AI"** opens a full-screen AI modal — **no tab switching**, no page reload.
+- Uses **Gemini AI (`/api/gemini`)** with `feature: "grants"` context specifically tailored for the Leimarembi Foundation.
+- Searches for **government schemes, PFMS grants, Ministry programs, and CSR funds** that best match the Foundation's mandate (Senior Citizen Welfare, Cultural Heritage, Health, Community Development, NE India).
+- Quick-tap suggestion tags: *Senior Citizen Welfare, Cultural Heritage, Community Health, Education, Women Empowerment, Northeast India Development*.
+- Smart dual-parser: accepts both **JSON array** and **markdown formatted** AI responses.
+- Each result card shows: Scheme Name, Ministry, Eligibility, Grant Amount, Why Relevant, and an **"Add to Database"** button to immediately register the scheme into the live Scheme Database.
+- Also provides a direct link to the Official Government Portal / NGO DARPAN.
+
+---
+
+### 2. 📚 Digital Library Expanded — 4 Built-in Documents + Upload Feature (`/documents`)
 
 **New Built-in Documents Added to the Vault:**
 
