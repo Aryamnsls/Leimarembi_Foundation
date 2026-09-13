@@ -41,33 +41,32 @@ export default function Portal() {
         return;
       }
 
-      try {
-        const res = await fetch(`${API_BASE_URL}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => null);
-        
-        if (res && res.ok) {
-          const data = await res.json().catch(() => null);
-          if (data && data.data) {
-            setUser(data.data);
-            localStorage.setItem('lf_user', JSON.stringify(data.data));
+      // First try local session (works for pre-seeded member tokens in production)
+      const userStr = localStorage.getItem('lf_user');
+      if (userStr) {
+        try {
+          const localUser = JSON.parse(userStr);
+          if (localUser && localUser.id) {
+            setUser(localUser);
             setCheckingAuth(false);
+            // Attempt background DB verification — update user if successful, silently ignore if not
+            fetch(`${API_BASE_URL}/auth/me`, {
+              headers: { Authorization: `Bearer ${token}` }
+            }).then(res => {
+              if (res.ok) return res.json();
+              return null;
+            }).then(data => {
+              if (data && data.data) {
+                setUser(data.data);
+                localStorage.setItem('lf_user', JSON.stringify(data.data));
+              }
+            }).catch(() => {/* silently ignore in static production */});
             return;
           }
-        }
-      } catch (e) {
-        // Network failure / offline fallback if local storage exists
-        const userStr = localStorage.getItem('lf_user');
-        if (userStr) {
-          try {
-            setUser(JSON.parse(userStr));
-            setCheckingAuth(false);
-            return;
-          } catch {}
-        }
+        } catch {}
       }
 
-      // Token invalid or user not found in DB -> clear & redirect to Sign In
+      // No local session either → clear & redirect to Sign In
       localStorage.removeItem('lf_token');
       localStorage.removeItem('lf_user');
       document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
