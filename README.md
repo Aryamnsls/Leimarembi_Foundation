@@ -27,6 +27,13 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
    - **Unauthorized Intrusion Attempts** blocked at secure vaults (`ACCESS_ATTEMPT`)
    - **Member & Officer Sign-Ins & Logouts** (`SIGN_IN` / `LOG_OUT`)
 17. **Stealth Administration Secrecy**: Aryaman Singha possesses supreme platform superpowers and Super Admin access, while remaining completely concealed from visible officer rosters on the Admin Dashboard (`/management`).
+18. **Leimarembi Northeast News Hub & Live Newspaper Covers (`/news`)**: 
+    - 100% verified, active live feeds across all Northeast Sister States (Assam, Manipur, Meghalaya, Tripura, Nagaland, Mizoram) and local Cachar / Barak Valley (*Barak Bulletin*).
+    - **Live Daily Newspaper Covers & e-Paper Editions Hub**: Live front-page editions and direct e-Paper reading portals for *The Sangai Express* (Manipur), *Northeast Now / Tom TV* (Manipur & NE), *Barak Bulletin* (Cachar & Silchar), and *The Assam Tribune* (Assam).
+    - **In-App Full Article Reader Modal**: Built-in narrative view mounted via React portal preventing 404 errors and linking directly to verified official publisher sources.
+19. **Centered Floating Slide Down & Slide to Top Navigation**:
+    - Repositioned floating navigation pill to the exact horizontal center (`left: 50%, transform: translateX(-50%), bottom: 24px`) ensuring zero overlap with the bottom-right AI Assistant on desktop, mobile, and app viewports.
+    - Smart dual-mode: displays "Slide Down" (with smooth partial scroll) when at the top of the page, automatically transitioning to "Slide to Top" when scrolled down.
 
 ---
 
