@@ -241,6 +241,22 @@ async function main() {
         status: 'SUCCESS',
         paidAt: new Date('2026-09-10'),
       },
+      {
+        publicDonationId: 'DON-20260912-007',
+        donorName: 'Sri Dina Bandhu Das',
+        firstName: 'Dina Bandhu',
+        lastName: 'Das',
+        email: 'dinabandhu.das@foundation-donor.org',
+        phone: '9864000015',
+        amount: 10000,
+        currency: 'INR',
+        paymentMethod: 'UPI_QR',
+        provider: 'MANUAL_UPI',
+        receiptNo: '007',
+        purpose: 'Community Welfare & Rural Development (Goalpara)',
+        status: 'SUCCESS',
+        paidAt: new Date('2026-09-12'),
+      },
     ],
   });
   console.log('✅ Donations seeded');
