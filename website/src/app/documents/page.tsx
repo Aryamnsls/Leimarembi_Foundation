@@ -20,8 +20,10 @@ import {
   STEALTH_ADMIN, 
   findOfficer, 
   verifyOfficerPassword, 
+  isExecutiveOfficer,
   ExecutiveOfficer 
 } from "@/lib/executiveOfficers";
+import { isSuperAdmin } from "@/lib/superAdminAuth";
 
 export interface AuthorizedMember {
   slNo: string;
@@ -56,28 +58,39 @@ export default function DocumentsPage() {
   const [inputPasscode, setInputPasscode] = useState("");
   const [activeUser, setActiveUser] = useState<AuthorizedMember | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isAdminOrSuperAdmin, setIsAdminOrSuperAdmin] = useState(false);
 
-  // Auto-verify if authenticated session in localStorage matches authorized officer
+  // Auto-verify if authenticated session in localStorage matches authorized officer or admin
   useEffect(() => {
     const userStr = localStorage.getItem("lf_user");
     if (userStr) {
       try {
         const parsed = JSON.parse(userStr);
-        if (parsed && (parsed.email || parsed.phone)) {
-          const officer = findOfficer(parsed.email || parsed.phone);
-          if (officer) {
-            setActiveUser({
-              slNo: "slNo" in officer ? officer.slNo : "00",
-              id: officer.id,
-              name: officer.name,
-              role: officer.designation,
-              email: officer.email,
-              phone: officer.phone,
-              bloodGroup: officer.bloodGroup,
-              ageCategory: officer.ageCategory,
-              passcode: officer.passcode
-            });
-            setIsUnlocked(true);
+        if (parsed) {
+          const isPrivileged = 
+            isSuperAdmin(parsed) || 
+            isExecutiveOfficer(parsed) || 
+            parsed.role === 'ADMIN' || 
+            parsed.role === 'SUPER_ADMIN';
+            
+          setIsAdminOrSuperAdmin(isPrivileged);
+
+          if (parsed.email || parsed.phone) {
+            const officer = findOfficer(parsed.email || parsed.phone);
+            if (officer) {
+              setActiveUser({
+                slNo: "slNo" in officer ? officer.slNo : "00",
+                id: officer.id,
+                name: officer.name,
+                role: officer.designation,
+                email: officer.email,
+                phone: officer.phone,
+                bloodGroup: officer.bloodGroup,
+                ageCategory: officer.ageCategory,
+                passcode: officer.passcode
+              });
+              setIsUnlocked(true);
+            }
           }
         }
       } catch (e) {}
@@ -141,7 +154,9 @@ export default function DocumentsPage() {
         localStorage.setItem("lf_token", localStorage.getItem("lf_token") || `lf_tok_exec_${Date.now()}`);
       } catch {}
     } else {
-      setErrorMsg("Access Denied: Invalid security password. Please enter your Date of Birth (DOB) or designated passcode.");
+      setErrorMsg(isAdminOrSuperAdmin 
+        ? "Access Denied: Invalid security password. Please enter your Date of Birth (DOB) or designated passcode." 
+        : "Access Denied: Invalid security clearance password. Please check your credentials.");
     }
   };
 
@@ -214,20 +229,22 @@ export default function DocumentsPage() {
                 Trust Deeds, Bye-laws, Executive Resolutions, and Financial Documents are protected under Foundation Bye-Laws. Access is restricted exclusively to designated Executive Committee Officers.
               </p>
 
-              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: "1.5rem", display: "flex", alignItems: "center", gap: "12px" }}>
+              <div style={{ background: "var(--bg-color)", borderRadius: "16px", padding: "1.25rem", border: "1px solid var(--border-color)", marginBottom: isAdminOrSuperAdmin ? "1.5rem" : "2rem", display: "flex", alignItems: "center", gap: "12px" }}>
                 <LockKeyhole size={24} style={{ color: "var(--primary-color)", flexShrink: 0 }} />
                 <div style={{ fontSize: "0.85rem", color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  <strong style={{ color: "var(--text-primary)" }}>Security Verification:</strong> General members and public visitors cannot access these files. Authorized signatories must log in using their registered email/phone and Date of Birth (DOB).
+                  <strong style={{ color: "var(--text-primary)" }}>Security Verification:</strong> General members and public visitors cannot access these files. {isAdminOrSuperAdmin ? "Authorized signatories must log in using their registered email/phone and Date of Birth (DOB)." : "Access is restricted exclusively to authenticated Executive Committee Officers with security clearance."}
                 </div>
               </div>
 
-              {/* DOB Password Hint Banner */}
-              <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.9rem 1.1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.75rem" }}>
-                <span style={{ fontSize: "1.2rem" }}>💡</span>
-                <span style={{ fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 700 }}>
-                  Officer Access Hint: Your login password is your <strong>Date of Birth (DOB)</strong>.
-                </span>
-              </div>
+              {/* DOB Password Hint Banner - Strictly visible ONLY for Admin and Super-Admin users */}
+              {isAdminOrSuperAdmin && (
+                <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.9rem 1.1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.75rem" }}>
+                  <span style={{ fontSize: "1.2rem" }}>💡</span>
+                  <span style={{ fontSize: "0.85rem", color: "var(--text-primary)", fontWeight: 700 }}>
+                    Officer Access Hint: Your login password is your <strong>Date of Birth (DOB)</strong>.
+                  </span>
+                </div>
+              )}
             </div>
 
             <button
@@ -471,13 +488,15 @@ export default function DocumentsPage() {
             </div>
 
             <div style={{ padding: "2rem" }}>
-              {/* DOB Password Hint Banner in Modal */}
-              <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.85rem 1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.25rem" }}>
-                <span style={{ fontSize: "1.25rem" }}>💡</span>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
-                  <strong>Officer Hint:</strong> Enter your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+              {/* DOB Password Hint Banner in Modal - ONLY visible for Admin and Super Admin users */}
+              {isAdminOrSuperAdmin && (
+                <div style={{ background: "rgba(14, 165, 233, 0.08)", border: "1.5px solid rgba(14, 165, 233, 0.3)", borderRadius: "14px", padding: "0.85rem 1rem", display: "flex", gap: "10px", alignItems: "center", marginBottom: "1.25rem" }}>
+                  <span style={{ fontSize: "1.25rem" }}>💡</span>
+                  <div style={{ fontSize: "0.85rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                    <strong>Officer Hint:</strong> Enter your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+                  </div>
                 </div>
-              </div>
+              )}
 
               {errorMsg && (
                 <div style={{ background: "rgba(220,38,38,0.1)", border: "1px solid rgba(220,38,38,0.3)", color: "#DC2626", padding: "0.85rem 1rem", borderRadius: "12px", fontSize: "0.85rem", fontWeight: 700, marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "8px" }}>
@@ -513,16 +532,22 @@ export default function DocumentsPage() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                     <label style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                      Password (Date of Birth / PIN) *
+                      {isAdminOrSuperAdmin ? "Password (Date of Birth / PIN) *" : "Executive Security Password *"}
                     </label>
-                    <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
-                      DOB as Password
-                    </span>
+                    {isAdminOrSuperAdmin ? (
+                      <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
+                        DOB as Password
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                        Clearance Required
+                      </span>
+                    )}
                   </div>
                   <input
                     type="password"
                     required
-                    placeholder="Enter Date of Birth (e.g. DD/MM/YYYY or Passcode)"
+                    placeholder={isAdminOrSuperAdmin ? "Enter Date of Birth (e.g. DD/MM/YYYY or Passcode)" : "Enter executive security password"}
                     value={inputPasscode}
                     onChange={(e) => setInputPasscode(e.target.value)}
                     style={{
@@ -537,6 +562,7 @@ export default function DocumentsPage() {
                     }}
                   />
                 </div>
+
 
                 <button
                   type="submit"

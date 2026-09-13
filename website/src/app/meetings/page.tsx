@@ -37,8 +37,10 @@ import {
 import { 
   EXECUTIVE_OFFICERS, 
   findOfficer, 
-  verifyOfficerPassword 
+  verifyOfficerPassword,
+  isExecutiveOfficer 
 } from "@/lib/executiveOfficers";
+import { isSuperAdmin } from "@/lib/superAdminAuth";
 
 export default function MeetingsPage() {
   const [activeTab, setActiveTab] = useState<"notices" | "agendas" | "attendance" | "mom" | "resolutions">("notices");
@@ -56,6 +58,7 @@ export default function MeetingsPage() {
   const [authError, setAuthError] = useState("");
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [actionNotice, setActionNotice] = useState<string>("");
+  const [isAdminOrSuperAdmin, setIsAdminOrSuperAdmin] = useState(false);
 
   // Auto-verify if authenticated session in localStorage matches authorized officer
   useState(() => {
@@ -64,10 +67,19 @@ export default function MeetingsPage() {
       if (userStr) {
         try {
           const parsed = JSON.parse(userStr);
-          if (parsed && (parsed.email || parsed.phone)) {
-            const officer = findOfficer(parsed.email || parsed.phone);
-            if (officer) {
-              setAuthenticatedOfficer({ name: officer.name, email: officer.email });
+          if (parsed) {
+            const isPrivileged = 
+              isSuperAdmin(parsed) || 
+              isExecutiveOfficer(parsed) || 
+              parsed.role === 'ADMIN' || 
+              parsed.role === 'SUPER_ADMIN';
+            setIsAdminOrSuperAdmin(isPrivileged);
+
+            if (parsed.email || parsed.phone) {
+              const officer = findOfficer(parsed.email || parsed.phone);
+              if (officer) {
+                setAuthenticatedOfficer({ name: officer.name, email: officer.email });
+              }
             }
           }
         } catch (e) {}
@@ -108,7 +120,9 @@ export default function MeetingsPage() {
         setPendingAction(null);
       }
     } else {
-      setAuthError("Access Denied: This feature is reserved for the 5 Executive Officers of Leimarembi Foundation. Please enter your registered email/phone and your Date of Birth (DOB) as password.");
+      setAuthError(isAdminOrSuperAdmin 
+        ? "Access Denied: This feature is reserved for the 5 Executive Officers of Leimarembi Foundation. Please enter your registered email/phone and your Date of Birth (DOB) as password."
+        : "Access Denied: This feature is reserved for authorized Executive Officers with security clearance.");
     }
   };
 
@@ -946,22 +960,24 @@ export default function MeetingsPage() {
               </div>
             )}
 
-            {/* Executive Officers Login Hint Banner */}
-            <div style={{
-              background: "rgba(14, 165, 233, 0.08)",
-              border: "1.5px solid rgba(14, 165, 233, 0.3)",
-              borderRadius: "12px",
-              padding: "0.75rem 1rem",
-              display: "flex",
-              gap: "10px",
-              alignItems: "center",
-              marginBottom: "1.25rem"
-            }}>
-              <span style={{ fontSize: "1.1rem" }}>💡</span>
-              <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
-                <strong>Executive Officers:</strong> Login with your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
-              </span>
-            </div>
+            {/* Executive Officers Login Hint Banner - ONLY visible for Admin and Super-Admin users */}
+            {isAdminOrSuperAdmin && (
+              <div style={{
+                background: "rgba(14, 165, 233, 0.08)",
+                border: "1.5px solid rgba(14, 165, 233, 0.3)",
+                borderRadius: "12px",
+                padding: "0.75rem 1rem",
+                display: "flex",
+                gap: "10px",
+                alignItems: "center",
+                marginBottom: "1.25rem"
+              }}>
+                <span style={{ fontSize: "1.1rem" }}>💡</span>
+                <span style={{ fontSize: "0.825rem", color: "var(--text-primary)", lineHeight: 1.4 }}>
+                  <strong>Executive Officers:</strong> Login with your registered Email or Phone. Your security password is your <strong>Date of Birth (DOB)</strong>.
+                </span>
+              </div>
+            )}
 
             <form onSubmit={handleAuthenticate} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               <div>
@@ -989,18 +1005,24 @@ export default function MeetingsPage() {
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                   <label style={{ fontSize: "0.85rem", fontWeight: 800, color: "var(--text-primary)" }}>
-                    Password (Date of Birth / Passcode) *
+                    {isAdminOrSuperAdmin ? "Password (Date of Birth / Passcode) *" : "Executive Security Password *"}
                   </label>
-                  <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
-                    DOB as Password
-                  </span>
+                  {isAdminOrSuperAdmin ? (
+                    <span style={{ fontSize: "0.75rem", color: "var(--secondary-color)", fontWeight: 700 }}>
+                      DOB as Password
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                      Clearance Required
+                    </span>
+                  )}
                 </div>
                 <input 
                   type="password" 
                   required 
                   value={passcode}
                   onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Enter Date of Birth (DD/MM/YYYY or Passcode)" 
+                  placeholder={isAdminOrSuperAdmin ? "Enter Date of Birth (DD/MM/YYYY or Passcode)" : "Enter executive security password"} 
                   style={{ 
                     width: "100%", 
                     padding: "0.85rem 1rem", 
@@ -1012,6 +1034,7 @@ export default function MeetingsPage() {
                   }} 
                 />
               </div>
+
 
               <button 
                 type="submit" 
