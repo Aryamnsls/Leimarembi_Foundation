@@ -68,7 +68,7 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
       const target = encodeURIComponent(
         pathname + (window.location.search || '')
       );
-      router.replace(`/login?tab=register&redirect=${target}`);
+      router.replace(`/login?tab=login&redirect=${target}`);
       return;
     }
 
@@ -85,7 +85,7 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
       } catch {
         setAuthorized(false);
         setChecking(false);
-        router.replace('/login?tab=register');
+        router.replace('/login?tab=login');
         return;
       }
     }
@@ -98,7 +98,7 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
   // ───────────────────────────────────────────────────────────
   // 2. GLOBAL LINK CLICK INTERCEPTOR FOR UNAUTHENTICATED USERS
   // Intercepts clicks on ANY internal link on the welcome page
-  // and routes visitor directly to the register page.
+  // and routes visitor directly to the login page.
   // ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -138,13 +138,13 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
       }
 
       // ANY OTHER internal link (e.g. /portal, /about, /members, /news, /meetings, /documents, /activities, /donate, etc.)
-      // Intercept immediately and route to Register!
+      // Intercept immediately and route to Sign In!
       e.preventDefault();
       e.stopPropagation();
 
       const redirectTarget = encodeURIComponent(rawHref);
       startTransition(() => {
-        router.push(`/login?tab=register&redirect=${redirectTarget}`);
+        router.push(`/login?tab=login&redirect=${redirectTarget}`);
       });
     };
 
@@ -225,16 +225,16 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
         </div>
 
         <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#FFFFFF', margin: '0 0 0.5rem 0' }}>
-          Member Registration Required
+          Member Access Clearance Required
         </h2>
 
         <p style={{ fontSize: '0.875rem', color: '#94A3B8', lineHeight: 1.6, margin: '0 0 1.5rem 0' }}>
-          To access Foundation Governance, Executive Portals, Health Welfare, and Official Meeting Suites, please complete your official registration and sign in.
+          To access Foundation Governance, Executive Portals, Health Welfare, and Official Meeting Suites, please sign in with your credentials or register a new membership.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <button
-            onClick={() => router.push(`/login?tab=register&redirect=${encodeURIComponent(pathname)}`)}
+            onClick={() => router.push(`/login?tab=login&redirect=${encodeURIComponent(pathname)}`)}
             style={{
               background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
               color: '#000000',
@@ -251,11 +251,11 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
               boxShadow: '0 8px 20px rgba(245, 158, 11, 0.35)'
             }}
           >
-            <UserPlus size={18} /> Register Official Account <ArrowRight size={16} />
+            <ShieldCheck size={18} /> Sign In to Member Account <ArrowRight size={16} />
           </button>
 
           <button
-            onClick={() => router.push(`/login?tab=login&redirect=${encodeURIComponent(pathname)}`)}
+            onClick={() => router.push(`/login?tab=register&redirect=${encodeURIComponent(pathname)}`)}
             style={{
               background: 'rgba(255, 255, 255, 0.08)',
               color: '#E2E8F0',
@@ -264,10 +264,14 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
               fontWeight: 700,
               fontSize: '0.85rem',
               border: '1px solid rgba(255, 255, 255, 0.2)',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
             }}
           >
-            Already Registered? Sign In
+            <UserPlus size={16} /> Need an account? Register New Membership
           </button>
         </div>
       </div>

@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn, UserPlus, Shield } from "lucide-react";
 import { GoogleLogin, GoogleOAuthProvider } from '@react-oauth/google';
 import { isSuperAdmin, recordActivity } from "@/lib/superAdminAuth";
-import { findOfficer, verifyOfficerPassword, isExecutiveOfficer } from "@/lib/executiveOfficers";
+import { findOfficer, verifyOfficerPassword, isExecutiveOfficer, findOfficialMember, verifyOfficialMemberPassword, ALL_OFFICIAL_MEMBERS } from "@/lib/executiveOfficers";
 
 type Tab = "login" | "register";
 
@@ -26,7 +26,8 @@ function LoginCard() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || null;
   const tabParam = searchParams.get("tab");
-  const [tab, setTab] = useState<Tab>(tabParam === "login" ? "login" : "register"); // Default to register if not logged in
+  // Default tab is Sign In ("login") unless explicitly set to "register"
+  const [tab, setTab] = useState<Tab>(tabParam === "register" ? "register" : "login");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
@@ -44,47 +45,47 @@ function LoginCard() {
         try {
           const res = await fetch(`${API_BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` }
-          });
-          const data = await res.json();
-          if (res.ok && data.data) {
-            // User is verified in database -> auto-open portal
-            saveSession(token, data.data);
-            if (redirectTo) {
-              router.push(redirectTo);
-            } else if (isSuperAdmin(data.data)) {
-              router.push("/superadmin");
-            } else if (data.data.role === "ADMIN") {
-              router.push("/management");
-            } else {
-              router.push("/portal");
-            }
-            return;
-          }
-        } catch (e) {
-          // Offline or network fallback using existing valid session
-          const userStr = localStorage.getItem("lf_user");
-          if (userStr) {
-            try {
-              const u = JSON.parse(userStr);
+          }).catch(() => null);
+
+          if (res && res.ok) {
+            const data = await res.json().catch(() => null);
+            if (data && data.data) {
+              saveSession(token, data.data);
               if (redirectTo) {
                 router.push(redirectTo);
-              } else if (isSuperAdmin(u)) {
+              } else if (isSuperAdmin(data.data)) {
                 router.push("/superadmin");
+              } else if (data.data.role === "ADMIN") {
+                router.push("/management");
               } else {
-                router.push(u.role === "ADMIN" ? "/management" : "/portal");
+                router.push("/portal");
               }
               return;
-            } catch {}
+            }
           }
+        } catch (e) {
+          // Silent offline / network fallback using existing valid session
+        }
+
+        const userStr = localStorage.getItem("lf_user");
+        if (userStr) {
+          try {
+            const u = JSON.parse(userStr);
+            if (redirectTo) {
+              router.push(redirectTo);
+            } else if (isSuperAdmin(u)) {
+              router.push("/superadmin");
+            } else {
+              router.push(u.role === "ADMIN" ? "/management" : "/portal");
+            }
+            return;
+          } catch {}
         }
       }
 
-      // If NOT logged in or DB check fails -> clear stale session and show REGISTER tab first
-      localStorage.removeItem("lf_token");
-      localStorage.removeItem("lf_user");
-      document.cookie = "lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax";
+      // If NOT logged in or session invalid -> default tab to SIGN IN
       const explicitTab = searchParams.get("tab");
-      setTab(explicitTab === "login" ? "login" : "register");
+      setTab(explicitTab === "register" ? "register" : "login");
       setCheckingAuth(false);
     }
 
@@ -119,49 +120,56 @@ function LoginCard() {
     setLoading(true);
     setError("");
 
-    // 1. Instant verification for Executive Officers (Authenticated by Date of Birth or Passcode)
     const credInput = loginData.email.trim();
     const passInput = loginData.password.trim();
-    const officer = findOfficer(credInput);
 
-    if (officer && verifyOfficerPassword(officer, passInput)) {
-      const isSuper = officer.email === 'aryamansingha60@gmail.com' || officer.email === 'binababu.singha@yahoo.com';
-      const officerUser = {
-        id: officer.id,
-        name: officer.name,
-        email: officer.email,
-        phone: officer.phone,
-        role: isSuper ? 'SUPER_ADMIN' : 'ADMIN',
-        designation: officer.designation,
-        membershipNo: officer.id,
-        bloodGroup: officer.bloodGroup,
-        isSeniorCitizen: officer.isSeniorCitizen,
+    // 1. Instant verification for Official Foundation Members (All 15 Members + Officers + Super Admin)
+    const officialMember = findOfficialMember(credInput);
+
+    if (officialMember && verifyOfficialMemberPassword(officialMember, passInput)) {
+      const isSuper = officialMember.email === 'aryamansingha60@gmail.com' || officialMember.email === 'binababu.singha@yahoo.com' || officialMember.role === 'SUPER_ADMIN';
+      const isOfficerAdmin = ['President', 'Vice-Chairman', 'Managing Director', 'Secretary', 'Treasurer'].includes(officialMember.role) || officialMember.category === 'Leadership';
+      
+      const memberUser = {
+        id: officialMember.id,
+        name: officialMember.name,
+        email: officialMember.email,
+        phone: officialMember.phone,
+        role: isSuper ? 'SUPER_ADMIN' : (isOfficerAdmin ? 'ADMIN' : 'MEMBER'),
+        designation: officialMember.designation,
+        membershipNo: officialMember.id,
+        bloodGroup: officialMember.bloodGroup,
+        isSeniorCitizen: officialMember.isSeniorCitizen,
         authProvider: 'LOCAL'
       };
-      const token = `lf_tok_exec_${Date.now()}`;
-      saveSession(token, officerUser);
+      const token = `lf_tok_mem_${Date.now()}`;
+      saveSession(token, memberUser);
       recordActivity({
         type: "SIGN_IN",
-        userName: officerUser.name,
-        userEmail: officerUser.email,
-        userPhone: officerUser.phone,
-        membershipNo: officerUser.membershipNo,
-        bloodGroup: officerUser.bloodGroup,
-        isSeniorCitizen: officerUser.isSeniorCitizen,
+        userName: memberUser.name,
+        userEmail: memberUser.email,
+        userPhone: memberUser.phone,
+        membershipNo: memberUser.membershipNo,
+        bloodGroup: memberUser.bloodGroup,
+        isSeniorCitizen: memberUser.isSeniorCitizen,
         provider: "LOCAL",
-        details: isSuper ? "Super Administrator Signed In" : `Executive Officer (${officer.role}) Signed In`,
+        details: isSuper ? "Super Administrator Signed In" : `${officialMember.designation} Signed In`,
       });
 
       if (redirectTo) {
         router.push(redirectTo);
       } else if (isSuper) {
         router.push("/superadmin");
-      } else {
+      } else if (memberUser.role === 'ADMIN') {
         router.push("/management");
+      } else {
+        router.push("/portal");
       }
+      setLoading(false);
       return;
     }
 
+    // 2. Database API authentication call
     try {
       const res = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
@@ -173,7 +181,6 @@ function LoginCard() {
 
       saveSession(data.data.token, data.data.user);
 
-      // Record activity in live audit feed
       recordActivity({
         type: "SIGN_IN",
         userName: data.data.user.name,
@@ -186,7 +193,6 @@ function LoginCard() {
         details: isSuperAdmin(data.data.user) ? "Super Admin Logged In" : "Member Signed In",
       });
 
-      // Redirect to original intended page or role-based default
       if (redirectTo) {
         router.push(redirectTo);
       } else if (isSuperAdmin(data.data.user)) {
@@ -196,85 +202,62 @@ function LoginCard() {
       } else {
         router.push("/portal");
       }
+      return;
     } catch (err: unknown) {
-      // Offline / static production fallback if backend API is not directly reachable
-      if (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) {
-        const inputEmail = loginData.email.trim().toLowerCase();
-        let matchedUser = null;
+      // 3. Static production / offline fallback for locally registered users
+      const inputEmailOrPhone = loginData.email.trim().toLowerCase();
+      let matchedUser = null;
 
-        // Check if Aryaman Singha
-        if (inputEmail === "aryamansingha60@gmail.com" || inputEmail === "aryamansingha60@gail.com") {
-          matchedUser = {
-            id: "sa_aryaman",
-            name: "Aryaman Singha",
-            email: "aryamansingha60@gmail.com",
-            phone: "7099659804",
-            role: "SUPER_ADMIN",
-            membershipNo: "LF-SA-001",
-            bloodGroup: "A+",
-            isSeniorCitizen: false,
-          };
-        } else if (inputEmail === "binababu.singha@yahoo.com") {
-          // Check if M. Bina Babu Singha
-          matchedUser = {
-            id: "sa_bina_babu",
-            name: "M. Bina Babu Singha",
-            email: "binababu.singha@yahoo.com",
-            phone: "7637087931",
-            role: "SUPER_ADMIN",
-            membershipNo: "LF-SA-002",
-            bloodGroup: "AB+",
-            isSeniorCitizen: true,
-          };
-        } else {
-          // Check locally registered members
-          try {
-            const existingUsersStr = localStorage.getItem('lf_local_users');
-            const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
-            const userWithEmail = existingUsers.find((u: any) => u.email.toLowerCase() === inputEmail);
-            if (userWithEmail) {
-              if (userWithEmail.password && userWithEmail.password !== loginData.password) {
-                setError("Incorrect password. Please enter the password you created during registration.");
-                return;
-              }
-              matchedUser = userWithEmail;
-            }
-          } catch {}
-        }
-
-        if (matchedUser) {
-          const fallbackToken = `lf_tok_${Date.now()}_${Math.random().toString(36).substring(2)}`;
-          saveSession(fallbackToken, matchedUser);
-          recordActivity({
-            type: "SIGN_IN",
-            userName: matchedUser.name,
-            userEmail: matchedUser.email,
-            userPhone: matchedUser.phone,
-            membershipNo: matchedUser.membershipNo,
-            bloodGroup: matchedUser.bloodGroup,
-            isSeniorCitizen: matchedUser.isSeniorCitizen,
-            provider: "LOCAL",
-            details: isSuperAdmin(matchedUser) ? "Super Admin Logged In" : "Member Signed In",
-          });
-
-          if (redirectTo) {
-            router.push(redirectTo);
-          } else if (isSuperAdmin(matchedUser)) {
-            router.push("/superadmin");
-          } else if (matchedUser.role === "ADMIN") {
-            router.push("/management");
-          } else {
-            router.push("/portal");
+      try {
+        const existingUsersStr = localStorage.getItem('lf_local_users');
+        const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
+        const userFound = existingUsers.find((u: any) => 
+          (u.email && u.email.toLowerCase() === inputEmailOrPhone) ||
+          (u.phone && u.phone.replace(/\D/g, '').includes(inputEmailOrPhone.replace(/\D/g, '')))
+        );
+        if (userFound) {
+          if (userFound.password && userFound.password !== loginData.password) {
+            setError("Incorrect password. Please enter the password you created during registration.");
+            setLoading(false);
+            return;
           }
-          return;
-        } else {
-          setError("Account not found or invalid credentials. Please check your email or Register for a new membership.");
-          return;
+          matchedUser = userFound;
         }
+      } catch {}
+
+      if (matchedUser) {
+        const fallbackToken = `lf_tok_${Date.now()}_${Math.random().toString(36).substring(2)}`;
+        saveSession(fallbackToken, matchedUser);
+        recordActivity({
+          type: "SIGN_IN",
+          userName: matchedUser.name,
+          userEmail: matchedUser.email,
+          userPhone: matchedUser.phone,
+          membershipNo: matchedUser.membershipNo,
+          bloodGroup: matchedUser.bloodGroup,
+          isSeniorCitizen: matchedUser.isSeniorCitizen,
+          provider: "LOCAL",
+          details: isSuperAdmin(matchedUser) ? "Super Admin Logged In" : "Member Signed In",
+        });
+
+        if (redirectTo) {
+          router.push(redirectTo);
+        } else if (isSuperAdmin(matchedUser)) {
+          router.push("/superadmin");
+        } else if (matchedUser.role === "ADMIN") {
+          router.push("/management");
+        } else {
+          router.push("/portal");
+        }
+        return;
       }
 
-      const message = err instanceof Error ? err.message : "An error occurred";
-      setError(message);
+      // If user is neither in Official Members list, API, nor Local Registrations:
+      if (officialMember && !verifyOfficialMemberPassword(officialMember, passInput)) {
+        setError("Invalid password for Official Member account. Please check your password or DOB.");
+      } else {
+        setError("Account not found. Non-preloaded users must click the Register tab to create a membership account first.");
+      }
     } finally {
       setLoading(false);
     }
@@ -290,78 +273,76 @@ function LoginCard() {
     setLoading(true);
     setError("");
     setSuccess("");
+
+    // Generate unique membership ID
+    const memSeq = Math.floor(1000 + Math.random() * 9000);
+    const memId = `LF-2026-${memSeq}`;
+    const newUserObj = {
+      id: `usr_${Date.now()}`,
+      name: registerData.name,
+      email: registerData.email,
+      phone: registerData.phone,
+      address: registerData.address,
+      bloodGroup: registerData.bloodGroup,
+      isSeniorCitizen: registerData.isSeniorCitizen,
+      membershipNo: memId,
+      role: "MEMBER",
+      password: registerData.password,
+    };
+
     try {
       const res = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(registerData),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Registration failed");
+      }).catch(() => null);
 
-      // Record registration in live audit feed
-      recordActivity({
-        type: "REGISTER",
-        userName: data.data.user.name,
-        userEmail: data.data.user.email,
-        userPhone: data.data.user.phone,
-        membershipNo: data.data.user.membershipNo,
-        bloodGroup: registerData.bloodGroup,
-        isSeniorCitizen: registerData.isSeniorCitizen,
-        provider: "LOCAL",
-        details: `Official Member Registration • ${registerData.isSeniorCitizen ? "Senior Citizen (Health Card Eligible)" : "Non-Senior Citizen"} (${registerData.bloodGroup})`,
-      });
-
-      setSuccess(`🎉 Registration Successful, ${data.data.user.name}! Your Membership ID is ${data.data.user.membershipNo}. Please Sign In with your credentials to access the platform.`);
-      setTab("login");
-      setLoginData({ email: registerData.email, password: "" });
-    } catch (err: unknown) {
-      // Offline / static production fallback if backend API is not directly reachable
-      if (err instanceof TypeError && err.message.toLowerCase().includes('fetch')) {
-        const memSeq = Math.floor(1000 + Math.random() * 9000);
-        const memId = `LF-2026-${memSeq}`;
-        const localUser = {
-          id: `usr_${Date.now()}`,
-          name: registerData.name,
-          email: registerData.email,
-          phone: registerData.phone,
-          bloodGroup: registerData.bloodGroup,
-          isSeniorCitizen: registerData.isSeniorCitizen,
-          membershipNo: memId,
-          role: "MEMBER",
-          password: registerData.password,
-        };
-
-        try {
-          const existingUsersStr = localStorage.getItem('lf_local_users');
-          const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
-          existingUsers.push(localUser);
-          localStorage.setItem('lf_local_users', JSON.stringify(existingUsers));
-        } catch {}
-
-        recordActivity({
-          type: "REGISTER",
-          userName: localUser.name,
-          userEmail: localUser.email,
-          userPhone: localUser.phone,
-          membershipNo: localUser.membershipNo,
-          bloodGroup: localUser.bloodGroup,
-          isSeniorCitizen: localUser.isSeniorCitizen,
-          provider: "LOCAL",
-          details: `Official Member Registration • ${localUser.isSeniorCitizen ? "Senior Citizen (Health Card Eligible)" : "Non-Senior Citizen"} (${localUser.bloodGroup})`,
-        });
-
-        setSuccess(`🎉 Registration Successful, ${localUser.name}! Your Membership ID is ${localUser.membershipNo}. Please Sign In with your credentials to access the platform.`);
-        setTab("login");
-        setLoginData({ email: registerData.email, password: "" });
-        return;
+      if (res && res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.data) {
+          recordActivity({
+            type: "REGISTER",
+            userName: data.data.user.name,
+            userEmail: data.data.user.email,
+            userPhone: data.data.user.phone,
+            membershipNo: data.data.user.membershipNo,
+            bloodGroup: registerData.bloodGroup,
+            isSeniorCitizen: registerData.isSeniorCitizen,
+            provider: "LOCAL",
+            details: `Official Member Registration • ${registerData.isSeniorCitizen ? "Senior Citizen" : "Non-Senior Citizen"} (${registerData.bloodGroup})`,
+          });
+          setSuccess(`🎉 Registration Successful, ${data.data.user.name}! Your Membership ID is ${data.data.user.membershipNo}. Please Sign In below.`);
+          setTab("login");
+          setLoginData({ email: registerData.email, password: "" });
+          return;
+        }
       }
+    } catch {}
 
-      const message = err instanceof Error ? err.message : "An error occurred";
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
+    // Static production / offline fallback
+    try {
+      const existingUsersStr = localStorage.getItem('lf_local_users');
+      const existingUsers = existingUsersStr ? JSON.parse(existingUsersStr) : [];
+      existingUsers.push(newUserObj);
+      localStorage.setItem('lf_local_users', JSON.stringify(existingUsers));
+    } catch {}
+
+    recordActivity({
+      type: "REGISTER",
+      userName: newUserObj.name,
+      userEmail: newUserObj.email,
+      userPhone: newUserObj.phone,
+      membershipNo: newUserObj.membershipNo,
+      bloodGroup: newUserObj.bloodGroup,
+      isSeniorCitizen: newUserObj.isSeniorCitizen,
+      provider: "LOCAL",
+      details: `Official Member Registration • ${newUserObj.isSeniorCitizen ? "Senior Citizen" : "Non-Senior Citizen"} (${newUserObj.bloodGroup})`,
+    });
+
+    setSuccess(`🎉 Registration Successful, ${newUserObj.name}! Your Membership ID is ${newUserObj.membershipNo}. Please Sign In below to access the platform.`);
+    setTab("login");
+    setLoginData({ email: registerData.email, password: "" });
+    setLoading(false);
   };
 
 
