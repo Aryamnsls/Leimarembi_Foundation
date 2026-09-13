@@ -188,6 +188,20 @@ export const OFFICIAL_SEED_DONATIONS: DonationRecord[] = [
     status: 'SUCCESS',
     paymentMethod: 'Direct Bank Transfer',
     verifiedBy: 'Leimarembi Head Office Guwahati'
+  },
+  {
+    publicDonationId: 'DON-20260912-007',
+    receiptNo: '007',
+    donorName: 'Sri Dina Bandhu Das',
+    location: 'Goalpara, Assam',
+    amount: 10000,
+    currency: 'INR',
+    date: '12 Sept. 2026',
+    createdAt: '2026-09-12 11:45 AM',
+    purpose: 'Community Welfare & Rural Development',
+    status: 'SUCCESS',
+    paymentMethod: 'UPI / Bank',
+    verifiedBy: 'Leimarembi Head Office Guwahati'
   }
 ];
 

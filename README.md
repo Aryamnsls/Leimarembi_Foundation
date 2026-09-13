@@ -228,7 +228,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ### 8. 💰 Management Portal Live Ledger (`/management`)
 
-- **12 Official Foundation Donors** seeded from verified Foundation Ledger (*Manipuri Rajbari, Guwahati – 781007*). Verified Total: **₹16,101**.
+- **13 Official Foundation Donors** seeded from verified Foundation Ledger (*Manipuri Rajbari, Guwahati – 781007*). Verified Total: **₹26,101** (including Receipt No. 007: Sri Dina Bandhu Das, Goalpara – **₹10,000/-**).
 - **Super Admin Full Access**: Record donations, print official receipt vouchers, export CSV, delete/toggle status.
 - **Cross-Platform Live Sync**: Connected via `storage` and `lf_donation_updated` event hooks.
 - **Executive Officers**: Read, Write & Execute access to Documents, Meetings, Gallery, and Management.
