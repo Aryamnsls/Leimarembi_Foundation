@@ -36,23 +36,24 @@ export default function Portal() {
     async function verifyUserInDB() {
       const token = localStorage.getItem('lf_token');
       if (!token) {
-        // Not logged in -> redirect to Register first
-        router.push('/login?tab=register');
+        // Not logged in -> redirect to Sign In first
+        router.push('/login?tab=login');
         return;
       }
 
       try {
         const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await res.json();
+        }).catch(() => null);
         
-        if (res.ok && data.data) {
-          // Database confirmed user is logged in & valid!
-          setUser(data.data);
-          localStorage.setItem('lf_user', JSON.stringify(data.data));
-          setCheckingAuth(false);
-          return;
+        if (res && res.ok) {
+          const data = await res.json().catch(() => null);
+          if (data && data.data) {
+            setUser(data.data);
+            localStorage.setItem('lf_user', JSON.stringify(data.data));
+            setCheckingAuth(false);
+            return;
+          }
         }
       } catch (e) {
         // Network failure / offline fallback if local storage exists
@@ -66,11 +67,11 @@ export default function Portal() {
         }
       }
 
-      // Token invalid or user not found in DB -> clear & redirect to Register
+      // Token invalid or user not found in DB -> clear & redirect to Sign In
       localStorage.removeItem('lf_token');
       localStorage.removeItem('lf_user');
       document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
-      router.push('/login?tab=register');
+      router.push('/login?tab=login');
     }
 
     verifyUserInDB();
@@ -81,7 +82,7 @@ export default function Portal() {
     localStorage.removeItem('lf_user');
     // Clear cookie
     document.cookie = 'lf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; SameSite=Lax';
-    router.push('/login?tab=register');
+    router.push('/login?tab=login');
   };
 
   if (checkingAuth) {
