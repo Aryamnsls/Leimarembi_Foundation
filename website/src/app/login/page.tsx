@@ -37,6 +37,10 @@ function LoginCard() {
   // Login form
   const [loginData, setLoginData] = useState({ email: "", password: "" });
 
+  // QR Scan auto-login detection
+  const [qrMember, setQrMember] = useState<any>(null);
+  const [qrScanned, setQrScanned] = useState(false);
+
   // Auto-check in database if already logged in
   useEffect(() => {
     setError(""); // Clear stale errors on mount
@@ -92,6 +96,27 @@ function LoginCard() {
 
     checkAuthInDatabase();
   }, [router, redirectTo, searchParams]);
+
+  // QR Scan detection: auto-fill email from ?qr=1&member=ID or ?qr=1&email=EMAIL
+  useEffect(() => {
+    const isQr = searchParams.get('qr') === '1';
+    if (!isQr) return;
+
+    const memberId = searchParams.get('member');
+    const memberEmail = searchParams.get('email');
+    const memberPhone = searchParams.get('phone');
+
+    const credential = memberEmail || memberId || memberPhone || '';
+    if (!credential) return;
+
+    const found = findOfficialMember(credential.trim());
+    if (found) {
+      setQrMember(found);
+      setQrScanned(true);
+      setLoginData(prev => ({ ...prev, email: found.email }));
+      setTab('login');
+    }
+  }, [searchParams]);
 
 
   // Register form
@@ -758,6 +783,41 @@ function parseGoogleJwt(token: string) {
           {/* TAB 1: LOGIN FORM */}
           {tab === "login" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+
+              {/* QR Scan Welcome Banner */}
+              {qrScanned && qrMember && (
+                <div style={{
+                  background: "linear-gradient(135deg, rgba(22,163,74,0.12), rgba(16,185,129,0.08))",
+                  border: "1.5px solid rgba(22,163,74,0.4)",
+                  borderRadius: "12px",
+                  padding: "1rem 1.2rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "0.25rem"
+                }}>
+                  <div style={{
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "50%",
+                    background: "rgba(22,163,74,0.2)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "1.4rem",
+                    flexShrink: 0
+                  }}>✅</div>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: "0.95rem", color: "#15803D" }}>
+                      Welcome, {qrMember.name}!
+                    </div>
+                    <div style={{ fontSize: "0.8rem", color: "#16A34A", fontWeight: 600, marginTop: "2px" }}>
+                      🏛️ {qrMember.designation} &nbsp;·&nbsp; ✅ Verified Member — Enter your password to access the platform
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.5rem" }}>
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
@@ -777,23 +837,36 @@ function parseGoogleJwt(token: string) {
               <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
                 <div>
                   <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, color: "var(--text-primary)", marginBottom: "0.4rem" }}>
-                    Email Address *
+                    Email Address or Phone Number *
+                    {qrScanned && qrMember && (
+                      <span style={{
+                        marginLeft: "8px",
+                        background: "rgba(22,163,74,0.15)",
+                        color: "#16A34A",
+                        fontSize: "0.7rem",
+                        fontWeight: 700,
+                        padding: "2px 8px",
+                        borderRadius: "20px",
+                        border: "1px solid rgba(22,163,74,0.3)"
+                      }}>✅ QR Verified</span>
+                    )}
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    placeholder="you@example.com"
+                    placeholder="you@example.com or phone number"
                     value={loginData.email}
-                    onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                    onChange={(e) => { setLoginData({ ...loginData, email: e.target.value }); if (qrScanned) setQrScanned(false); }}
                     style={{
                       width: "100%",
                       padding: "0.7rem 0.9rem",
                       borderRadius: "10px",
-                      border: "1px solid var(--border-color)",
-                      background: "var(--bg-color)",
+                      border: qrScanned ? "2px solid rgba(22,163,74,0.6)" : "1px solid var(--border-color)",
+                      background: qrScanned ? "rgba(22,163,74,0.04)" : "var(--bg-color)",
                       color: "var(--text-primary)",
                       fontSize: "0.9rem",
-                      outline: "none"
+                      outline: "none",
+                      transition: "border 0.2s ease"
                     }}
                   />
                 </div>
