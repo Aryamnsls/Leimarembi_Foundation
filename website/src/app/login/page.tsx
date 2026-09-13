@@ -1249,7 +1249,7 @@ function parseGoogleJwt(token: string) {
 
 
 export default function LoginPage() {
-  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1234567890-dummy.apps.googleusercontent.com";
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "730372035681-v9d2m0bel4hstaee1rkei30pkok6judt.apps.googleusercontent.com";
 
   return (
     <GoogleOAuthProvider clientId={clientId}>
