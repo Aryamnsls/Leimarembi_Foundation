@@ -172,6 +172,9 @@ npm run build
 ## Recent Changes
 
 ### September 2026
+- ✅ **Real Email IDs Synced from Members List**: All confirmed email IDs from `Documents/Memebers List.jpeg` synced into member database (`executiveOfficers.ts`). Members without emails (Sl 06 & 10) use phone number as login credential.
+- ✅ **QR Code Auto-Login System**: Scan a QR code → `/login?qr=1&email=EMAIL` → email pre-filled, green **✅ Welcome, [Name]!** banner shown, one-step password entry, instant portal access.
+- ✅ **Donation Ledger Updated**: 13th donor (Sri Dina Bandhu Das, ₹10,000/-) added. Verified total: **₹26,101/-** across 13 receipts.
 - ✅ **Government Grants page fully live-updated**: Scheme Database auto-refreshes dates, "Pending PFMS" → "Updated Soon", Application Pipeline live-tagged, KPI stats bar added.
 - ✅ **AI Scheme Finder fixed (3-layer fallback)**: Was broken in production (static export `/api/gemini` returns 404). Fixed with: (1) Direct Gemini REST API from client, (2) `/api/gemini` in dev mode, (3) Local curated DB of 16 real Indian Govt. schemes — keyword-scored, always returns results. **AI search never errors out.**
 - ✅ **Add Scheme modal**: Manually add any scheme to the live Scheme Database with custom title, department, amount, and status.
@@ -182,6 +185,44 @@ npm run build
 - ✅ **Slide Down navigation**: Repositioned to horizontal center (`left: 50%`) — no AI Assistant overlap.
 - ✅ **In-App Article Reader Modal**: Mounted via React portal — no 404 errors on article read.
 - ✅ **Stats bar in Document Vault**: Shows Total Documents, Built-in Records, Uploaded Files, and Access Level counters.
+
+---
+
+## Official 12 Members Database — Verified from Members List
+
+> Source: `Documents/Memebers List.jpeg` (Leimarembi Foundation — COMMUNITY • HERITAGE • SERVICE • EMPOWERMENT)
+
+| Sl | Name | Email | Phone | Blood Group | Login Password |
+|:--:|:-----|:------|:------|:-----------:|:--------------|
+| 01 | Dr. Puritsabam Birmani | `ichemma@yahoo.com` | 98640-44123 | O+VE | DOB or `98640` |
+| 02 | K. Ajit Singh | `kajitsingh9@gmail.com` | 98648-01906 | A+VE | DOB or `98648` |
+| 03 | Y. Thambal Singha | `thambal.singha@gmail.com` | 94350-87852 | O+VE | DOB or `94350` |
+| 04 | M. Bina Babu Singha | `binababu.singha@yahoo.com` | 76370-87931 | AB+VE | DOB or `76370` |
+| 05 | Ng. Baldev Singha | `731baldevsingha@gmail.com` | 94351-94989 | B+VE | DOB or `94351` |
+| 06 | K. Braja Babu Singha | *(Waiting — sign in with phone)* | **70862-42310** | B+VE | DOB or `70862` |
+| 07 | L. Madan Chand Singha | `hanumantravels123@gmail.com` | 70027-49229 | A+VE | DOB or `70027` |
+| 08 | H. Monoj Kumar Singha | `satabditravel183@gmail.com` | 86384-51576 | O+VE | DOB or `86384` |
+| 09 | Y. Abhishek Singh | `y.abhisheksingh@gmail.com` | 89749-02685 | B+VE | DOB or `89749` |
+| 10 | Moni Mohan Singha | *(Waiting — sign in with phone)* | **94361-18112** | B+VE | DOB or `94361` |
+| 11 | S. Amarjit Singha | `panthoibielectronics@gmail.com` | 98640-80354 | O+VE | DOB or `98640` |
+| 12 | Ng. Binoy Singha | `ngbinoy@gmail.com` | 70020-66014 | B+VE | DOB or `70020` |
+
+### 📲 QR Code Login URLs
+
+```
+https://leimarembifoundation.org/login?qr=1&email=ichemma@yahoo.com
+https://leimarembifoundation.org/login?qr=1&email=kajitsingh9@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=thambal.singha@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=binababu.singha@yahoo.com
+https://leimarembifoundation.org/login?qr=1&email=731baldevsingha@gmail.com
+https://leimarembifoundation.org/login?qr=1&phone=7086242310
+https://leimarembifoundation.org/login?qr=1&email=hanumantravels123@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=satabditravel183@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=y.abhisheksingh@gmail.com
+https://leimarembifoundation.org/login?qr=1&phone=9436118112
+https://leimarembifoundation.org/login?qr=1&email=panthoibielectronics@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=ngbinoy@gmail.com
+```
 
 ---
 
@@ -198,4 +239,5 @@ git push origin master  # Triggers Hostinger auto-deploy
 ---
 
 *Leimarembi Foundation — Manipuri Rajbari, Guwahati – 781007, Assam | Est. 2001*  
-*Email: leimarembifoundation@gmail.com*
+*Email: leimarembifoundation@gmail.com*  
+*Last updated: September 2026 — Commit `7042bd4`*

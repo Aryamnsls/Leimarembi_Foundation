@@ -111,13 +111,59 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ## Recent Major Upgrades Summary
 
-### 1. 🔑 Production Authentication Fixes & Official 15 Members Pre-Seeded Database (`/login`)
+### 1. 🔑 Production Authentication & Official Members Database (`/login`)
 
 - **Default Sign In Tab**: `/login` and protected route redirects now open on the **Sign In** tab by default.
 - **Offline / Static Production Network Safety**: Caught unhandled network fetch exceptions so production browser visits never produce `"Failed to fetch"` pink error popups.
-- **All 15 Official Members Pre-Seeded**: Pre-configured all 15 official office bearers & executive committee members (`Dr. Phuritsabam Birmani`, `K. Ajit Singh`, `Y. Thambal Singha`, `M. Bina Babu Singha`, `Ng. Baldev Singha`, `K. Braja Babu Singha`, `L. Madan Chand Singha`, `H. Monoj Kumar Singha`, `Y. Abhishek Singh`, `Moni Mohan Singha`, `Sarakkhaibam Amarjit Singha`, `Ngangbam Binoy Singha`, `Angom Bidyut Singha`, `Sengam Bablu Singha`, `Paunam Bidyamani Singha` + `Aryaman Singha`) in `ALL_OFFICIAL_MEMBERS` database.
-- **Direct Login for Official Members**: Official 15 members enter their Email or Phone number + Password/DOB/Passcode to log in directly without registering.
+- **All 15 Official Members Pre-Seeded**: Pre-configured all 15 official office bearers & executive committee members in `ALL_OFFICIAL_MEMBERS` database — verified against the official Members List (`Documents/Memebers List.jpeg`).
+- **Real Email IDs Synced from Official Members List**: All confirmed email IDs from the Foundation's blood group & contact list have been synced directly into the member database. Members 06 (K. Braja Babu Singha) and 10 (Moni Mohan Singha) have email status **"Waiting"** — they sign in using their phone number.
+- **Direct Login for Official Members**: Official members enter their Email or Phone number + Password (DOB or first 5 digits of phone) to log in directly without registering.
+- **QR Code Auto-Login**: Members scan a QR code that opens `/login?qr=1&email=THEIR_EMAIL` — the page auto-fills their email, shows a green **✅ Welcome, [Name]!** banner with their designation, and they only need to enter their password to access the platform.
 - **Public User Registration Flow**: Non-preloaded users attempting to log in are instructed to click the **Register** tab to create their membership account first.
+
+#### 📋 Official 12 Members Database (Verified from Members List)
+
+| Sl | Name | Email (Login Credential) | Phone | Blood Group | Login Password |
+|:--:|:-----|:------------------------|:------|:-----------:|:--------------|
+| 01 | Dr. Puritsabam Birmani | `ichemma@yahoo.com` | 98640-44123 | O+VE | DOB or `98640` |
+| 02 | K. Ajit Singh | `kajitsingh9@gmail.com` | 98648-01906 | A+VE | DOB or `98648` |
+| 03 | Y. Thambal Singha | `thambal.singha@gmail.com` | 94350-87852 | O+VE | DOB or `94350` |
+| 04 | M. Bina Babu Singha | `binababu.singha@yahoo.com` | 76370-87931 | AB+VE | DOB or `76370` |
+| 05 | Ng. Baldev Singha | `731baldevsingha@gmail.com` | 94351-94989 | B+VE | DOB or `94351` |
+| 06 | K. Braja Babu Singha | *(Email: Waiting — use phone)* | **70862-42310** | B+VE | DOB or `70862` |
+| 07 | L. Madan Chand Singha | `hanumantravels123@gmail.com` | 70027-49229 | A+VE | DOB or `70027` |
+| 08 | H. Monoj Kumar Singha | `satabditravel183@gmail.com` | 86384-51576 | O+VE | DOB or `86384` |
+| 09 | Y. Abhishek Singh | `y.abhisheksingh@gmail.com` | 89749-02685 | B+VE | DOB or `89749` |
+| 10 | Moni Mohan Singha | *(Email: Waiting — use phone)* | **94361-18112** | B+VE | DOB or `94361` |
+| 11 | S. Amarjit Singha | `panthoibielectronics@gmail.com` | 98640-80354 | O+VE | DOB or `98640` |
+| 12 | Ng. Binoy Singha | `ngbinoy@gmail.com` | 70020-66014 | B+VE | DOB or `70020` |
+
+> **Password Rule**: Enter Date of Birth in any format (`DD/MM/YYYY`, `DD-MM-YYYY`, `DDMMYYYY`) **or** the first 5 digits of the registered phone number.
+
+#### 📲 QR Code Auto-Login URLs (For QR Generator)
+
+Generate a QR code for each member pointing to these URLs:
+
+```
+https://leimarembifoundation.org/login?qr=1&email=ichemma@yahoo.com
+https://leimarembifoundation.org/login?qr=1&email=kajitsingh9@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=thambal.singha@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=binababu.singha@yahoo.com
+https://leimarembifoundation.org/login?qr=1&email=731baldevsingha@gmail.com
+https://leimarembifoundation.org/login?qr=1&phone=7086242310   (K. Braja Babu Singha — no email)
+https://leimarembifoundation.org/login?qr=1&email=hanumantravels123@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=satabditravel183@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=y.abhisheksingh@gmail.com
+https://leimarembifoundation.org/login?qr=1&phone=9436118112   (Moni Mohan Singha — no email)
+https://leimarembifoundation.org/login?qr=1&email=panthoibielectronics@gmail.com
+https://leimarembifoundation.org/login?qr=1&email=ngbinoy@gmail.com
+```
+
+When scanned:
+1. Browser opens the login page with email/phone **pre-filled**.
+2. A green **✅ Welcome, [Member Name]!** banner appears showing their designation.
+3. Member enters their password (DOB or first 5 digits of phone).
+4. Instantly redirected to their Member Portal / Admin Dashboard.
 
 ---
 
@@ -310,4 +356,5 @@ git push origin master
 ---
 
 *Last updated: September 2026 — Leimarembi Foundation, Manipuri Rajbari, Guwahati – 781007, Assam.*
+*Commit: `7042bd4` — Real member emails synced, QR code auto-login system deployed to production.*
 
