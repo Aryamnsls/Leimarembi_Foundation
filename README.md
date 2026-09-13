@@ -228,10 +228,30 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ### 8. 💰 Management Portal Live Ledger (`/management`)
 
-- **13 Official Foundation Donors** seeded from verified Foundation Ledger (*Manipuri Rajbari, Guwahati – 781007*). Verified Total: **₹26,101** (including Receipt No. 007: Sri Dina Bandhu Das, Goalpara – **₹10,000/-**).
+- **13 Official Foundation Donors** seeded directly from the verified Foundation Ledger (`Documents/Donation list of members.docx` at *Manipuri Rajbari, Guwahati – 781007*).
+- **Verified Total Corpus**: **₹26,101/-** across 13 verified receipts (including Receipt No. 007: Sri Dina Bandhu Das, Goalpara – **₹10,000/-**).
 - **Super Admin Full Access**: Record donations, print official receipt vouchers, export CSV, delete/toggle status.
 - **Cross-Platform Live Sync**: Connected via `storage` and `lf_donation_updated` event hooks.
 - **Executive Officers**: Read, Write & Execute access to Documents, Meetings, Gallery, and Management.
+
+#### Official Verified Donation Ledger Table
+
+| Sl No. | Receipt No. | Donor Name | Location | Donation Amount (₹) | Date |
+|:---:|:---:|:---|:---|:---:|:---:|
+| 1 | 001 | Mr. Dhrubajyoti Saikia | Mangoldai, Assam | ₹1,000/- | 26 August 2026 |
+| 2 | 004 | Mr. Amarjit Singha | Survey, Guwahati, Assam | ₹1,000/- | 29 August 2026 |
+| 3 | 005 | S. Nilkumar Singha | Chandpur, Cachar, Assam | ₹500/- | 30 August 2026 |
+| 4 | 003 | J. A. Choudhury | Sribhumi, Assam | ₹1,000/- | 30 August 2026 |
+| 5 | 006 | Mr. Ajoy Barman | Mangoldai | ₹500/- | 5 Sept. 2026 |
+| 6 | 008 | Yendrembam Raju Singha. | Haflong | ₹301/- | 8 Sept. 2026 |
+| 7 | 009 | Loitangbam Biswajit Singha. | Cachar, Silchar | ₹2,000/- | 8 Sept. 2026 |
+| 8 | 010 | Khaidem Surjya Kumar Singha. | Kolasib, Mizoram | ₹1,000/- | 8 Sept. 2026 |
+| 9 | 011 | Sahab Uddin Ahmed, Former MLA Jaleswar LAC. | Goalpara, Jaleswar | ₹500/- | 8 Sept. 2026 |
+| 10 | 012 | Mutum Nilchandra Singha. | Hojai | ₹300/- | 9 Sept. 2026 |
+| 11 | 013 | Laisram Pankaj Singha. | Cachar, Silchar | ₹1,000/- | 10 Sept. 2026 |
+| 12 | 014 | K M Gopal Sana Raj Kumar. | Cachar, Silchar | ₹7,000/- | 10 Sept. 2026 |
+| 13 | 007 | Sri Dina Bandhu Das | Goalpara | ₹10,000/- | 12 Sept. 2026 |
+| **TOTAL** | **13 Receipts** | **Verified Total Corpus** | **All Locations** | **₹26,101/-** | **As of 12 Sept. 2026** |
 
 ---
 
