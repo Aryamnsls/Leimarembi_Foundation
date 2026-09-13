@@ -11,9 +11,9 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 ## Key Features
 
 1. **Dynamic Architecture**: Built with Next.js 16 (App Router) and TypeScript.
-2. **Full Database Authentication System**: JWT-based Email/Password login, Google OAuth Sign-In, database token verification via `/api/auth/me`, automatic session persistence via cookies and localStorage, and auto-redirection to the **Register First** screen for unauthenticated users.
+2. **Full Database Authentication System**: JWT-based Email/Password login, Google OAuth Sign-In, database token verification via `/api/auth/me`, automatic session persistence via cookies and localStorage, seamless pre-registered official members database authentication, and default redirection to **Sign In** (`/login?tab=login`) for unauthenticated users.
 3. **RBAC Route Protection**: Next.js Middleware enforces that public routes remain accessible while securing member modules.
-4. **Official Member Profiles & Executive Roster**: Dedicated `/members` page showcasing all **15 official office bearers & executive committee members** with passport photos, search, role filters, and detailed profile modals.
+4. **Official Member Profiles & Pre-Registered Database**: Dedicated `/members` page showcasing all **15 official office bearers & executive committee members** with passport photos, search, role filters, and detailed profile modals. All 15 members can log in directly using their email/phone + password/DOB without needing to re-register.
 5. **Leimarembi News Hub (`/news`)**: Real-time aggregated news across **Local News (Lakhipur & Cachar)**, **Manipuri News**, **Assamese News**, and **Bengali Region News** delivered in English with vertical cube card aspect ratios and interactive article reading modals.
 6. **Restricted Internal Governance Vault (`/documents`)**: High-security governance archive protected for **6 Legal Authorised Executive Signatories**. Features **4 built-in documents**, hidden officer roster UI in production, 📥 Softcopy Download, 👁️ In-Browser PDF/Image/DOCX Viewer Modal, and a full **Upload Document** feature supporting any file type.
 7. **Government Grant Management (`/grants`)**: Live-updating Scheme Database (localStorage-persisted, auto-syncing dates), Application Pipeline with real-time stage tracking ("Updated Soon" replaces "Pending PFMS"), KPI stats bar (Total Schemes, Approved, Under Review, Grant Value), **AI Scheme Finder** powered by Gemini AI that searches for government schemes & CSR funding best suited to the Foundation, and a manual Add Scheme form.
@@ -22,7 +22,7 @@ This project is a React-based frontend web application (using Next.js 16 App Rou
 9. **Services Portal (`/portal`)**: 8 governance modules including Mobile Application status notification.
 10. **Executive QR Code Gateway & WhatsApp Preview**: Interactive holographic QR Code gatekeeper with embedded Foundation logo seal, scanner beam animation, instant WhatsApp share button, and OpenGraph link sharing cards.
 11. **Super Admin & Executive Officer Dual-View Switcher**: Seamless switching between Super Admin Control Center (`/superadmin`) and Management Portal (`/management`) available exclusively to Aryaman Singha and M. Bina Babu Singha.
-12. **Strict Public Sign In Privacy & Registration Password Verification**: Standard, clean member sign-in fields with validation against member registration passwords. Executive officer DOB authentication hint banners are strictly isolated inside `/documents` and `/meetings` only — **invisible to the public**.
+12. **Production Network Safety & Default Sign In Tab**: Default tab on `/login` is set to **Sign In**. Production fetch calls handle network exceptions silently, eliminating `Failed to fetch` pink alert popups on static deployments.
 13. **Optimized Desktop Navbar & Fluid Layout**: 100% visible "Donate Now" button and Dark/Light Mode toggle across all standard desktop resolutions (1280px–1920px) with zero horizontal clipping.
 14. **Executive Directorate (5 Officers) in Admin Dashboard (`/management`)**: Dedicated tab and overview card showcasing the 5 authorized Executive Officers with full Read, Write & Execute authority.
 15. **Admin Access Surveillance Stream (`/management`)**: Executive officers monitor real-time surveillance of who logged in, logged out, accessed modules, or attempted unauthorized access.
@@ -97,7 +97,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
     - `/culture` (Manipuri Cultural Heritage, Pena Songs, Classical Dance, Recipes, Folklore PDFs)
     - `/login` (Member Portal Register & Sign In with DB Verification)
     - `/superadmin` (Super Admin Command Center with 2-Admin Whitelist, Live Activity Stream)
-  - `src/lib/executiveOfficers.ts` — Officer registry with DOB verification logic.
+  - `src/lib/executiveOfficers.ts` — Officer & official members registry (`ALL_OFFICIAL_MEMBERS`) with DOB verification logic.
   - `src/lib/superAdminAuth.ts` — Super admin privilege detection.
   - `src/components/Navbar.tsx` — Sticky navbar with language switcher, theme toggle.
   - `src/components/AIAssistant.tsx` — Intelligent assistant widget.
@@ -111,7 +111,17 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ## Recent Major Upgrades Summary
 
-### 1. 🏛️ Government Grant Management — Live Updated (`/grants`)
+### 1. 🔑 Production Authentication Fixes & Official 15 Members Pre-Seeded Database (`/login`)
+
+- **Default Sign In Tab**: `/login` and protected route redirects now open on the **Sign In** tab by default.
+- **Offline / Static Production Network Safety**: Caught unhandled network fetch exceptions so production browser visits never produce `"Failed to fetch"` pink error popups.
+- **All 15 Official Members Pre-Seeded**: Pre-configured all 15 official office bearers & executive committee members (`Dr. Phuritsabam Birmani`, `K. Ajit Singh`, `Y. Thambal Singha`, `M. Bina Babu Singha`, `Ng. Baldev Singha`, `K. Braja Babu Singha`, `L. Madan Chand Singha`, `H. Monoj Kumar Singha`, `Y. Abhishek Singh`, `Moni Mohan Singha`, `Sarakkhaibam Amarjit Singha`, `Ngangbam Binoy Singha`, `Angom Bidyut Singha`, `Sengam Bablu Singha`, `Paunam Bidyamani Singha` + `Aryaman Singha`) in `ALL_OFFICIAL_MEMBERS` database.
+- **Direct Login for Official Members**: Official 15 members enter their Email or Phone number + Password/DOB/Passcode to log in directly without registering.
+- **Public User Registration Flow**: Non-preloaded users attempting to log in are instructed to click the **Register** tab to create their membership account first.
+
+---
+
+### 2. 🏛️ Government Grant Management — Live Updated (`/grants`)
 
 **Application Pipeline:**
 - **"Pending PFMS"** changed to **"Updated Soon"** across the Under Review pipeline stage.
@@ -139,7 +149,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 2. 📚 Digital Library Expanded — 4 Built-in Documents + Upload Feature (`/documents`)
+### 3. 📚 Digital Library Expanded — 4 Built-in Documents + Upload Feature (`/documents`)
 
 **New Built-in Documents Added to the Vault:**
 
@@ -166,7 +176,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 2. 🔐 Secretive DOB Hint — Hidden from Public View
+### 4. 🔐 Secretive DOB Hint — Hidden from Public View
 
 - The `💡 Officer Access Hint: Your login password is your Date of Birth (DOB)` banner is **completely invisible to the public**.
 - It is shown **only** to authenticated Admin and Super-Admin users.
@@ -175,7 +185,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 3. 🗞️ Northeast News Hub & Live Newspaper Covers (`/news`)
+### 5. 🗞️ Northeast News Hub & Live Newspaper Covers (`/news`)
 
 - **All-Northeast live news feeds** for Assam, Manipur, Meghalaya, Tripura, Nagaland, and Mizoram.
 - Fixed all 404 Sentinel Assam links; replaced with verified active sources for **Barak Valley / Cachar** local news (*Barak Bulletin*).
@@ -185,7 +195,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 4. 🛡️ Executive Officers & Admin Clearance System
+### 6. 🛡️ Executive Officers & Admin Clearance System
 
 **5 Official Executive Officers Granted Admin Clearance:**
 1. **Dr. Phuritsabam Birmani** (President & Legal Trustee | `ichemma@yahoo.com` | `98640-44123`)
@@ -205,7 +215,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 5. 📊 Super Admin Dashboard (`/superadmin`)
+### 7. 📊 Super Admin Dashboard (`/superadmin`)
 
 - **Live Security Radar**: Geographic Location, Exact Date & Time, IP, ISP, Device/OS, and Route for:
   - Unregistered public visitors (`VISITOR_CHECK`)
@@ -216,7 +226,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 6. 💰 Management Portal Live Ledger (`/management`)
+### 8. 💰 Management Portal Live Ledger (`/management`)
 
 - **12 Official Foundation Donors** seeded from verified Foundation Ledger (*Manipuri Rajbari, Guwahati – 781007*). Verified Total: **₹16,101**.
 - **Super Admin Full Access**: Record donations, print official receipt vouchers, export CSV, delete/toggle status.
@@ -225,7 +235,7 @@ Open [http://localhost:5555](http://localhost:5555) to browse the live database 
 
 ---
 
-### 7. 🔎 Public Member Access vs. Internal Executive Vault Matrix
+### 9. 🔎 Public Member Access vs. Internal Executive Vault Matrix
 
 | Feature | Public Member Sign In (`/login`) | Internal Governance Vault (`/documents`) |
 |---|---|---|
@@ -280,3 +290,4 @@ git push origin master
 ---
 
 *Last updated: September 2026 — Leimarembi Foundation, Manipuri Rajbari, Guwahati – 781007, Assam.*
+
