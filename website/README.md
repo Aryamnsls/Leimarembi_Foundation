@@ -148,7 +148,7 @@ npm run build
 
 ### September 2026
 - ✅ **Government Grants page fully live-updated**: Scheme Database auto-refreshes dates, "Pending PFMS" → "Updated Soon", Application Pipeline live-tagged, KPI stats bar added.
-- ✅ **AI Scheme Finder**: Clicking "Search Schemes with AI" opens an in-page modal (no tab switch) powered by Gemini AI with foundation-specific context. Searches central & state govt. schemes, PFMS grants, and CSR funds. Results include "Add to Database" button. Quick-tap suggestion tags included.
+- ✅ **AI Scheme Finder fixed (3-layer fallback)**: Was broken in production (static export `/api/gemini` returns 404). Fixed with: (1) Direct Gemini REST API from client, (2) `/api/gemini` in dev mode, (3) Local curated DB of 16 real Indian Govt. schemes — keyword-scored, always returns results. **AI search never errors out.**
 - ✅ **Add Scheme modal**: Manually add any scheme to the live Scheme Database with custom title, department, amount, and status.
 - ✅ **Digital Library expanded**: Added Members List (JPEG), Donation List (DOCX), Blood Group Register (DOCX) as built-in documents.
 - ✅ **Upload Document feature**: Supports all file types, drag & drop, category tags, localStorage persistence.

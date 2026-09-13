@@ -13,7 +13,11 @@
 - Application Pipeline now shows a **"Live Updating"** green badge — no more hardcoded static states.
 - Scheme Database dates **auto-refresh** to today on every sync. Refresh button & "Last synced: HH:MM" status bar always visible.
 - All schemes **persisted in localStorage** — changes survive page reload without a backend.
-- **AI Scheme Finder** modal (triggered by "Search Schemes with AI" button) — **stays on page, no tab switching**. Uses Gemini AI (`/api/gemini`, `feature: grants`) with Leimarembi Foundation context. Searches central/state government schemes, PFMS grants, and CSR funds relevant to the Foundation. Results include "Add to Database" button.
+- **AI Scheme Finder** modal (triggered by "Search Schemes with AI" button) — **stays on page, no tab switching**.
+  - **Bug fixed**: `/api/gemini` returns 404 in static export — resolved with a **3-layer fallback system**:
+    - Layer 1: Direct Gemini REST API from browser client (`NEXT_PUBLIC_GEMINI_API_KEY`) — works in production.
+    - Layer 2: Internal `/api/gemini` route — works in dev mode only.
+    - Layer 3: **Local curated database of 16 real verified Indian Government schemes** (PMAGY, IGNCA, NHM, AYUSH, DARPAN NE Package, RVY, PM-CARES, CSR, DoNER, Beti Bachao, PM-YUVA, Digital India, etc.) — keyword-scored matching, **always returns results, never errors**.
 - Manual **Add Scheme** form for recording new grant applications.
 - KPI Stats Bar: Total Schemes | Approved count | Under Review count | Total Grant Value.
 
