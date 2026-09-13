@@ -147,13 +147,16 @@ npm run build
 ## Recent Changes
 
 ### September 2026
+- ✅ **Government Grants page fully live-updated**: Scheme Database auto-refreshes dates, "Pending PFMS" → "Updated Soon", Application Pipeline live-tagged, KPI stats bar added.
+- ✅ **AI Scheme Finder**: Clicking "Search Schemes with AI" opens an in-page modal (no tab switch) powered by Gemini AI with foundation-specific context. Searches central & state govt. schemes, PFMS grants, and CSR funds. Results include "Add to Database" button. Quick-tap suggestion tags included.
+- ✅ **Add Scheme modal**: Manually add any scheme to the live Scheme Database with custom title, department, amount, and status.
 - ✅ **Digital Library expanded**: Added Members List (JPEG), Donation List (DOCX), Blood Group Register (DOCX) as built-in documents.
 - ✅ **Upload Document feature**: Supports all file types, drag & drop, category tags, localStorage persistence.
 - ✅ **Secretive DOB hint**: `💡 DOB Hint` banner hidden from public — only visible to Admin/Super-Admin users.
 - ✅ **News Hub fixes**: All Northeast Sister State feeds verified & active. Sentinel Assam 404 links replaced with *Barak Bulletin*.
 - ✅ **Slide Down navigation**: Repositioned to horizontal center (`left: 50%`) — no AI Assistant overlap.
 - ✅ **In-App Article Reader Modal**: Mounted via React portal — no 404 errors on article read.
-- ✅ **Stats bar in Document Vault**: Shows Total Documents, Built-in Records, Uploaded Files, and Access Level.
+- ✅ **Stats bar in Document Vault**: Shows Total Documents, Built-in Records, Uploaded Files, and Access Level counters.
 
 ---
 
