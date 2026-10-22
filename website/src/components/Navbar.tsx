@@ -55,18 +55,23 @@ export default function Navbar() {
           }
         } catch {}
       }
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme) {
-        // Respect user's explicit manual preference if they've toggled before
-        setTheme(savedTheme);
-        document.documentElement.setAttribute('data-theme', savedTheme);
-      } else {
-        // Default to light mode always (ignore OS dark mode preference)
-        setTheme('light');
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
+      const activeTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
+      setTheme(activeTheme);
+      document.documentElement.setAttribute('data-theme', activeTheme);
     }, 0);
-    return () => clearTimeout(timer);
+
+    const handleThemeChange = () => {
+      const current = document.documentElement.getAttribute('data-theme') || localStorage.getItem('theme') || 'light';
+      setTheme(current);
+    };
+    window.addEventListener('storage', handleThemeChange);
+    window.addEventListener('theme-change', handleThemeChange);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('storage', handleThemeChange);
+      window.removeEventListener('theme-change', handleThemeChange);
+    };
   }, []);
 
   // Handle scroll to hide/show navbar on scroll direction
@@ -115,10 +120,12 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const current = document.documentElement.getAttribute('data-theme') || theme;
+    const newTheme = current === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+    window.dispatchEvent(new Event('theme-change'));
   };
 
   // Record visitor check on route changes
@@ -157,6 +164,11 @@ export default function Navbar() {
   };
 
   const closeMenu = () => setIsMenuOpen(false);
+
+  // Do not show public website navbar on Admin CRM dashboard routes
+  if (pathname?.startsWith('/management') || pathname?.startsWith('/superadmin')) {
+    return null;
+  }
 
   return (
     <>

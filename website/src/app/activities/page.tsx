@@ -1,9 +1,12 @@
 import { HeartPulse, Library, Briefcase } from 'lucide-react';
 
-export const metadata = {
-  title: 'Activities & Projects | Leimarembi Foundation',
-  description: 'Explore our latest activities, health modules, and cultural preservation projects.',
-};
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata = buildPageMetadata({
+  title: 'Activities & Projects - Cultural Heritage & Community Initiatives',
+  description: 'Explore Leimarembi Foundation key programs including indigenous language preservation, senior healthcare welfare drives, and youth cultural development in Northeast India.',
+  path: '/activities',
+});
 
 export default function Activities() {
   return (

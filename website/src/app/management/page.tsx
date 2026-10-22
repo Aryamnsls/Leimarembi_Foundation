@@ -2,29 +2,30 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { 
-  Users, Search, Landmark, Heart, FileText, CheckCircle2, 
-  Clock, XCircle, AlertCircle, X, Plus, Printer, Download, 
+import {
+  Users, Search, Landmark, Heart, FileText, CheckCircle2,
+  Clock, XCircle, AlertCircle, X, Plus, Printer, Download,
   Trash2, ShieldCheck, ShieldAlert, Sparkles, Phone, Mail, MapPin, Calendar,
-  ArrowRight, Lock, LogIn, LogOut, Eye, Award, ExternalLink, Shield, Activity
+  ArrowRight, Lock, LogIn, LogOut, Eye, Award, ExternalLink, Shield, Activity, RefreshCw
 } from 'lucide-react';
 import Image from 'next/image';
-import { 
-  DonationRecord, 
-  getDonations, 
-  saveDonations, 
-  recordNewDonation, 
-  OFFICIAL_SEED_DONATIONS 
+import {
+  DonationRecord,
+  getDonations,
+  saveDonations,
+  recordNewDonation,
+  OFFICIAL_SEED_DONATIONS
 } from '@/lib/donationLedger';
 import { isSuperAdmin, ActivityEvent, getActivityLogs } from '@/lib/superAdminAuth';
-import { 
-  canSwitchRoleMode, 
-  EXECUTIVE_OFFICERS, 
+import {
+  canSwitchRoleMode,
+  EXECUTIVE_OFFICERS,
   ExecutiveOfficer,
-  isExecutiveOfficer, 
-  findOfficer, 
-  verifyOfficerPassword 
+  isExecutiveOfficer,
+  findOfficer,
+  verifyOfficerPassword
 } from '@/lib/executiveOfficers';
+import CrmTopNav from '@/components/CrmTopNav';
 
 interface RegisteredMember {
   id: string;
@@ -184,7 +185,7 @@ export default function Management() {
     location: '',
     amount: '',
     receiptNo: '',
-    date: new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }),
+    date: '',
     paymentMethod: 'UPI / Bank',
     purpose: 'General Community Development',
     status: 'SUCCESS' as 'SUCCESS' | 'PENDING',
@@ -209,6 +210,10 @@ export default function Management() {
         } catch {}
       }
       setCheckingAuth(false);
+      setNewDonationForm(prev => ({
+        ...prev,
+        date: prev.date || new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      }));
     }
   }, []);
 
@@ -332,8 +337,8 @@ export default function Management() {
     } catch {}
 
     // Strictly hide Aryaman Singha from the visible management member roster for the Inauguration
-    const filteredVisible = combinedMembers.filter(m => 
-      !m.email.toLowerCase().includes('aryaman') && 
+    const filteredVisible = combinedMembers.filter(m =>
+      !m.email.toLowerCase().includes('aryaman') &&
       !(m.phone && m.phone.replace(/\D/g, '').endsWith('7099659804'))
     );
 
@@ -381,7 +386,7 @@ export default function Management() {
 
   // Filtered Activity & Access Audit Logs (Login, Logout, Page Access, Access Attempts)
   const filteredAuditLogs = useMemo(() => {
-    return activityLogs.filter(l => {
+    const rawFiltered = activityLogs.filter(l => {
       // Conceal Aryaman Singha from visible management logs
       if (
         l.userEmail.toLowerCase().includes('aryaman') ||
@@ -401,6 +406,23 @@ export default function Management() {
 
       return matchesSearch && matchesFilter;
     });
+
+    // Deduplicate repeated PAGE_ACCESS entries so each user's latest visit to a given section is shown once
+    const deduplicated: ActivityEvent[] = [];
+    const seenVisits = new Set<string>();
+
+    for (const log of rawFiltered) {
+      if (log.type === 'PAGE_ACCESS' || log.type === 'VISITOR_CHECK') {
+        const key = `${log.userEmail || log.userName}-${log.pageVisited || ''}`;
+        if (seenVisits.has(key)) {
+          continue;
+        }
+        seenVisits.add(key);
+      }
+      deduplicated.push(log);
+    }
+
+    return deduplicated;
   }, [activityLogs, searchQuery, auditFilter]);
 
   // Filtered Donations (Search Query + Donation Status Filter)
@@ -569,33 +591,55 @@ export default function Management() {
   // ACCESS RESTRICTED SCREEN FOR UNAUTHORIZED USERS
   if (!isAuthorizedAdmin) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div className="card" style={{ maxWidth: '540px', width: '100%', padding: '3rem 2.5rem', textAlign: 'center', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', border: '1.5px solid var(--border-color)' }}>
-          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--info-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-            <Lock size={36} />
-          </div>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+        <CrmTopNav
+          currentUser={currentUser}
+          onSwitchAccount={() => setShowOfficerLoginModal(true)}
+        />
+        <div style={{ minHeight: 'calc(100vh - 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div className="card" style={{ maxWidth: '540px', width: '100%', padding: '2.5rem 2rem', textAlign: 'center', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', border: '1.5px solid var(--border-color)', background: 'var(--surface-color)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'rgba(2, 132, 199, 0.1)', color: 'var(--info-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+              <Lock size={32} />
+            </div>
 
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary-color)', margin: '0 0 0.5rem' }}>
-            Executive Admin Panel
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-            This governance portal is authorized for <strong>Executive Officers, Trustees, and Platform Leadership</strong> with Read, Write & Execute access.
-          </p>
+            <h2 style={{ fontSize: '1.65rem', fontWeight: 900, color: 'var(--primary-color)', margin: '0 0 0.5rem' }}>
+              Executive Admin Clearance Required
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+              This CRM governance portal is authorized for <strong>Executive Officers, Trustees, and Platform Leadership</strong> with Read, Write & Execute access.
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button 
-              onClick={() => setShowOfficerLoginModal(true)} 
-              className="btn btn-primary" 
-              style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.95rem' }}
-            >
-              <ShieldCheck size={18} /> Authenticate with Executive Officer Credentials
-            </button>
-            <Link href="/login?redirect=/management" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.95rem' }}>
-              <LogIn size={18} /> Sign In via Member Account
-            </Link>
-            <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
-              ← Return to Public Home
-            </Link>
+            {currentUser && (
+              <div style={{ background: 'rgba(2, 132, 199, 0.08)', borderRadius: '14px', padding: '0.85rem 1rem', marginBottom: '1.5rem', border: '1px solid rgba(2, 132, 199, 0.25)', textAlign: 'left' }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Active Authenticated Session</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--primary-color)' }}>{currentUser.name}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{currentUser.email || currentUser.phone} • Role: <strong>{currentUser.role || 'MEMBER'}</strong></div>
+                <div style={{ fontSize: '0.78rem', color: '#D97706', fontWeight: 700, marginTop: '4px' }}>⚠️ Executive Admin Clearance (Level 3) Required for NGO Financial Governance.</div>
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button
+                onClick={() => setShowOfficerLoginModal(true)}
+                className="btn btn-primary"
+                style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.92rem', fontWeight: 800 }}
+              >
+                <ShieldCheck size={18} /> Authenticate with Executive Officer Credentials
+              </button>
+
+              {currentUser?.role === 'MEMBER' && (
+                <Link href="/portal" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.92rem', fontWeight: 700 }}>
+                  <ExternalLink size={16} /> Open Foundation Member Portal (/portal)
+                </Link>
+              )}
+
+              <Link href="/login?redirect=/management" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem', fontSize: '0.92rem' }}>
+                <LogIn size={18} /> Sign In with Different Account
+              </Link>
+              <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+                ← Return to Public Website
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -717,309 +761,382 @@ export default function Management() {
 
   // AUTHORIZED ADMIN DASHBOARD
   return (
-    <div className="animate-fade-in" style={{ padding: '2.5rem 0 4rem' }}>
-      {/* Header Banner */}
-      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <div className="glass-panel" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.4rem 1.25rem', borderRadius: '30px', marginBottom: '1rem' }}>
-          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
-            Module 3: NGO Administration & Governance
-          </span>
-          {isSuperAdminUser ? (
-            <span style={{ background: '#F59E0B', color: '#000', fontSize: '0.75rem', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
-              ⭐ SUPER ADMIN (OVERPOWER ACCESS ACTIVE)
-            </span>
-          ) : (
-            <span style={{ background: 'rgba(2, 132, 199, 0.15)', color: 'var(--info-color)', fontSize: '0.75rem', fontWeight: 900, padding: '2px 8px', borderRadius: '12px' }}>
-              🛡️ EXECUTIVE ADMIN (READ, WRITE, EXECUTE ACCESS)
-            </span>
-          )}
-          {canSwitchRoleMode(currentUser) && (
-            <Link
-              href="/superadmin"
-              style={{
-                background: 'linear-gradient(135deg, rgba(212, 175, 55, 0.25) 0%, rgba(212, 175, 55, 0.1) 100%)',
-                border: '1.5px solid var(--secondary-color)',
-                color: 'var(--secondary-color)',
-                padding: '0.35rem 0.9rem',
-                borderRadius: '20px',
-                fontSize: '0.775rem',
-                fontWeight: 900,
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                marginLeft: '8px'
-              }}
-              title="Switch to Super Admin Control Center (/superadmin)"
-            >
-              👑 Switch to Super Admin View
-            </Link>
-          )}
-        </div>
-        <h1 style={{ fontSize: '2.75rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
-          <Landmark size={36} color="var(--secondary-color)" /> Foundation Management Portal
-        </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.15rem', maxWidth: '750px', margin: '0.5rem auto 0' }}>
-          Official ledger for verified donations, receipts, registered member directories, and bank reconciliation.
-        </p>
-      </div>
+    <div className="crm-app-shell" style={{ minHeight: '100vh', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+      {/* Top Enterprise CRM Navigation Bar */}
+      <CrmTopNav
+        currentUser={currentUser}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        counts={{
+          donations: donations.length,
+          members: members.length,
+          officers: 5,
+          activity: filteredAuditLogs.length
+        }}
+        onSwitchAccount={() => setShowOfficerLoginModal(true)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-      {/* Live Overview Cards — All 6 Cards are Fully Clickable with Visual Feedback */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-        {/* 1. Total Registered Members */}
-        <div 
-          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('ALL'); }}
-          className="card" 
-          style={{ 
-            background: 'var(--primary-color)', 
-            color: 'white', 
-            borderTop: '4px solid var(--secondary-color)',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: memberCategoryFilter === 'ALL' && activeTab === 'MEMBERS' ? '0 0 0 2px var(--secondary-color)' : undefined
-          }}
-          title="Click to view all registered members"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ color: '#FFFFFF', fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Total Members</h3>
-            <Users size={18} color="var(--secondary-color)" />
-          </div>
-          <p style={{ fontSize: '2.2rem', fontWeight: 900, margin: '0.35rem 0' }}>
-            {members.length}
-          </p>
-          <p style={{ opacity: 0.85, fontSize: '0.8rem', margin: 0 }}>
-            ● Full Database Access
-          </p>
-        </div>
-
-        {/* 2. Executive Directorate (5 Officers) */}
-        <div 
-          onClick={() => setActiveTab('OFFICERS')}
-          className="card" 
-          style={{ 
-            borderTop: '4px solid var(--secondary-color)',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: activeTab === 'OFFICERS' ? '0 0 0 2px var(--secondary-color)' : undefined,
-            background: 'linear-gradient(180deg, var(--card-bg) 0%, rgba(212, 175, 55, 0.06) 100%)'
-          }}
-          title="Click to view the 5 Authorized Executive Officers"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Executive Officers</h3>
-            <Award size={18} color="var(--secondary-color)" />
-          </div>
-          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--secondary-color)', margin: '0.35rem 0' }}>
-            5 Officers
-          </p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
-            ★ Read, Write & Execute Authority
-          </p>
-        </div>
-
-        {/* 3. Live Access & Audit Stream */}
-        <div 
-          onClick={() => setActiveTab('ACTIVITY')}
-          className="card" 
-          style={{ 
-            borderTop: '4px solid #3B82F6',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: activeTab === 'ACTIVITY' ? '0 0 0 2px #3B82F6' : undefined,
-            background: 'linear-gradient(180deg, var(--card-bg) 0%, rgba(59, 130, 246, 0.06) 100%)'
-          }}
-          title="Click to view Live Access Stream (Logins, Logouts, Visits & Attempts)"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Live Access Stream</h3>
-            <Activity size={18} color="#3B82F6" />
-          </div>
-          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#3B82F6', margin: '0.35rem 0' }}>
-            {filteredAuditLogs.length} Events
-          </p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>
-            ● Logins, Logouts & Security Audit
-          </p>
-        </div>
-
-        {/* 4. Senior Citizen Members */}
-        <div 
-          onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('SENIOR'); }}
-          className="card" 
-          style={{ 
-            borderTop: '4px solid #D97706',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: memberCategoryFilter === 'SENIOR' && activeTab === 'MEMBERS' ? '0 0 0 2px #D97706' : undefined
-          }}
-          title="Click to view Senior Citizens (Health Card Eligible)"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Senior Citizens</h3>
-            <ShieldCheck size={18} color="#D97706" />
-          </div>
-          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#D97706', margin: '0.35rem 0' }}>
-            {seniorMembersCount}
-          </p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
-            ★ Health Card Eligible (60+)
-          </p>
-        </div>
-
-        {/* 5. Verified Donations Total */}
-        <div 
-          onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('ALL'); }}
-          className="card" 
-          style={{ 
-            background: 'var(--secondary-color)', 
-            color: '#111827',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'ALL' ? '0 0 0 2px #B45309' : undefined
-          }}
-          title="Click to view verified donations"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ color: '#111827', fontSize: '0.92rem', fontWeight: 800, margin: 0 }}>Donations Total</h3>
-            <Heart size={18} color="#111827" />
-          </div>
-          <p style={{ fontSize: '2rem', fontWeight: 900, margin: '0.35rem 0', color: '#111827' }}>
-            ₹{totalSuccessAmount.toLocaleString('en-IN')}
-          </p>
-          <p style={{ opacity: 0.9, fontSize: '0.8rem', color: '#111827', fontWeight: 600, margin: 0 }}>
-            {donations.filter(d => d.status === 'SUCCESS').length} Official Verified Receipts
-          </p>
-        </div>
-
-        {/* 6. Pending Reconciliations */}
-        <div 
-          onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('PENDING'); }}
-          className="card" 
-          style={{ 
-            borderTop: '4px solid var(--accent-color)',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-            boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'PENDING' ? '0 0 0 2px var(--accent-color)' : undefined
-          }}
-          title="Click to filter Pending Reconciliations"
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '0.92rem', fontWeight: 700, margin: 0 }}>Pending Queue</h3>
-            <Clock size={18} color="var(--accent-color)" />
-          </div>
-          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: pendingCount > 0 ? 'var(--accent-color)' : '#10B981', margin: '0.35rem 0' }}>
-            {pendingCount}
-          </p>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0 }}>
-            {pendingCount > 0 ? 'Awaiting Bank Audit' : '✓ Fully Reconciled'}
-          </p>
-        </div>
-      </div>
-
-      {/* Executive Quick Action Hub (Read, Write & Execute Privileges) */}
-      <div className="card" style={{ padding: '1.25rem 1.5rem', marginBottom: '2rem', borderRadius: '18px', background: 'var(--surface-color)', border: '1px solid var(--border-color)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="crm-workspace-container" style={{ maxWidth: '1600px', margin: '0 auto', padding: '1.75rem 1.5rem 5rem' }}>
+        {/* Executive Workspace Header */}
+        <div className="crm-workspace-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.75rem' }}>
           <div>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <ShieldCheck size={20} color="var(--info-color)" /> Executive Governance Suite (Read, Write & Execute Access)
-            </h3>
-            <p style={{ margin: '0.2rem 0 0', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-              Authorized management clearance across official foundation modules
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', fontWeight: 900, color: 'var(--secondary-color)', letterSpacing: '1px', textTransform: 'uppercase' }}>
+                EXECUTIVE CRM WORKSPACE
+              </span>
+              {isSuperAdminUser ? (
+                <span style={{ background: '#F59E0B', color: '#000', fontSize: '0.68rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px' }}>
+                  ⭐ SUPER ADMIN CLEARANCE
+                </span>
+              ) : (
+                <span style={{ background: 'rgba(2, 132, 199, 0.15)', color: 'var(--info-color)', border: '1px solid var(--info-color)', fontSize: '0.68rem', fontWeight: 900, padding: '2px 8px', borderRadius: '10px' }}>
+                  🛡️ EXECUTIVE OFFICER CLEARANCE
+                </span>
+              )}
+            </div>
+            <h1 style={{ fontSize: 'clamp(1.35rem, 4vw, 1.95rem)', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Landmark size={26} color="var(--secondary-color)" /> Foundation Management CRM
+            </h1>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '4px 0 0' }}>
+              Audited Ledger for verified donations, receipts, registered member directories, and bank reconciliation.
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-            <Link 
-              href="/documents" 
-              className="btn btn-outline" 
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
-              title="Access & Download Foundation Legal Documents"
-            >
-              <FileText size={14} color="var(--info-color)" /> Documents Vault <ArrowRight size={12} />
-            </Link>
-            <Link 
-              href="/meetings" 
-              className="btn btn-outline" 
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
-              title="Issue Circulars & Schedule Video Conferences"
-            >
-              <Users size={14} color="var(--secondary-color)" /> Meeting Suite <ArrowRight size={12} />
-            </Link>
-            <Link 
-              href="/gallery" 
-              className="btn btn-outline" 
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
-              title="Upload Photos & Media Records"
-            >
-              <Sparkles size={14} color="#10B981" /> Media Gallery <ArrowRight size={12} />
-            </Link>
+
+          <div className="crm-workspace-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <button
-              onClick={() => setShowAddDonationModal(true)}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 800 }}
-              title="Record New Official Donation Receipt"
+              onClick={syncData}
+              className="btn btn-outline"
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', gap: '6px', fontWeight: 700 }}
+              title="Re-synchronize with Database & Ledger"
             >
-              <Plus size={14} /> Record Donation
+              <RefreshCw size={14} /> Re-sync Live Data
             </button>
             <button
               onClick={handleExportCSV}
-              className="btn btn-outline"
-              style={{ fontSize: '0.78rem', padding: '0.4rem 0.8rem', gap: '6px', fontWeight: 700 }}
+              className="btn btn-secondary"
+              style={{ fontSize: '0.8rem', padding: '0.45rem 0.9rem', gap: '6px', fontWeight: 800 }}
               title="Download Full Audited Ledger CSV"
             >
-              <Download size={14} /> Export CSV
+              <Download size={14} /> Download Live Data
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Main Panel with Tabs & Filters */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: '20px', boxShadow: 'var(--shadow-md)' }}>
-        <div style={{ 
-          padding: '1.25rem 1.5rem', 
-          borderBottom: '1px solid var(--border-color)', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          flexWrap: 'wrap', 
-          gap: '1rem', 
-          background: 'rgba(0,0,0,0.02)' 
-        }}>
-          {/* Tab buttons */}
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <button
-              onClick={() => setActiveTab('DONATIONS')}
-              className={activeTab === 'DONATIONS' ? 'btn btn-primary' : 'btn btn-outline'}
-              style={{ fontSize: '0.875rem', gap: '6px' }}
-            >
-              <Heart size={16} /> Donation Records & Receipts ({donations.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('MEMBERS')}
-              className={activeTab === 'MEMBERS' ? 'btn btn-primary' : 'btn btn-outline'}
-              style={{ fontSize: '0.875rem', gap: '6px' }}
-            >
-              <Users size={16} /> Member Directory ({members.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('OFFICERS')}
-              className={activeTab === 'OFFICERS' ? 'btn btn-primary' : 'btn btn-outline'}
-              style={{ fontSize: '0.875rem', gap: '6px' }}
-            >
-              <Award size={16} /> Executive Directorate (5 Officers)
-            </button>
-            <button
-              onClick={() => setActiveTab('ACTIVITY')}
-              className={activeTab === 'ACTIVITY' ? 'btn btn-primary' : 'btn btn-outline'}
-              style={{ fontSize: '0.875rem', gap: '6px' }}
-            >
-              <Activity size={16} /> Live Access & Audit Stream ({filteredAuditLogs.length})
-            </button>
+        {/* Live Overview Cards — All 6 Cards are Fully Clickable with Visual Feedback */}
+        <div className="crm-stats-grid">
+          {/* 1. Total Registered Members */}
+          <div
+            onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('ALL'); }}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid #0284C7',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: memberCategoryFilter === 'ALL' && activeTab === 'MEMBERS' ? '0 0 0 2px #0284C7' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(2, 132, 199, 0.08) 100%)'
+            }}
+            title="Click to view all registered members"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 800, margin: 0 }}>Total Members</h3>
+              <Users size={18} color="#0284C7" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--text-primary)', margin: '0.35rem 0' }}>
+              {members.length}
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
+              ● Full Database Access
+            </p>
           </div>
 
-          {/* Filter Pills for Active Tab */}
-          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', alignItems: 'center' }}>
+          {/* 2. Executive Directorate (5 Officers) */}
+          <div
+            onClick={() => setActiveTab('OFFICERS')}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid var(--secondary-color)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'OFFICERS' ? '0 0 0 2px var(--secondary-color)' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(212, 175, 55, 0.08) 100%)'
+            }}
+            title="Click to view the 5 Authorized Executive Officers"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Executive Officers</h3>
+              <Award size={18} color="var(--secondary-color)" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--secondary-color)', margin: '0.35rem 0' }}>
+              5 Officers
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
+              ★ 5 Authorized Officers
+            </p>
+          </div>
+
+          {/* 3. Live Access & Audit Stream */}
+          <div
+            onClick={() => setActiveTab('ACTIVITY')}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid #3B82F6',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'ACTIVITY' ? '0 0 0 2px #3B82F6' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(59, 130, 246, 0.08) 100%)'
+            }}
+            title="Click to view Live Access Stream (Logins, Logouts, Visits & Attempts)"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Live Access Stream</h3>
+              <Activity size={18} color="#3B82F6" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#3B82F6', margin: '0.35rem 0' }}>
+              {filteredAuditLogs.length} Events
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 600 }}>
+              ● Logins & Security Audit
+            </p>
+          </div>
+
+          {/* 4. Senior Citizen Members */}
+          <div
+            onClick={() => { setActiveTab('MEMBERS'); setMemberCategoryFilter('SENIOR'); }}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid #D97706',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: memberCategoryFilter === 'SENIOR' && activeTab === 'MEMBERS' ? '0 0 0 2px #D97706' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(217, 119, 6, 0.08) 100%)'
+            }}
+            title="Click to view Senior Citizens (Health Card Eligible)"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Senior Citizens</h3>
+              <ShieldCheck size={18} color="#D97706" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2.2rem', fontWeight: 900, color: '#D97706', margin: '0.35rem 0' }}>
+              {seniorMembersCount}
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
+              ★ Health Card (60+)
+            </p>
+          </div>
+
+          {/* 5. Verified Donations Total */}
+          <div
+            onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('ALL'); }}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid #10B981',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'ALL' ? '0 0 0 2px #10B981' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(16, 185, 129, 0.08) 100%)'
+            }}
+            title="Click to view verified donations"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ color: 'var(--text-primary)', fontSize: '0.92rem', fontWeight: 800, margin: 0 }}>Donations Total</h3>
+              <Heart size={18} color="#10B981" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2rem', fontWeight: 900, margin: '0.35rem 0', color: '#10B981' }}>
+              ₹{totalSuccessAmount.toLocaleString('en-IN')}
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', fontWeight: 700, margin: 0 }}>
+              ★ {donations.filter(d => d.status === 'SUCCESS').length} Verified Receipts
+            </p>
+          </div>
+
+          {/* 6. Pending Reconciliations */}
+          <div
+            onClick={() => { setActiveTab('DONATIONS'); setDonationStatusFilter('PENDING'); }}
+            className="card crm-stat-card"
+            style={{
+              borderTop: '4px solid var(--accent-color)',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeTab === 'DONATIONS' && donationStatusFilter === 'PENDING' ? '0 0 0 2px var(--accent-color)' : undefined,
+              background: 'linear-gradient(180deg, var(--surface-color) 0%, rgba(225, 29, 72, 0.08) 100%)'
+            }}
+            title="Click to filter Pending Reconciliations"
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="crm-stat-title" style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)' }}>Pending Queue</h3>
+              <Clock size={18} color="var(--accent-color)" />
+            </div>
+            <p className="crm-stat-value" style={{ fontSize: '2.2rem', fontWeight: 900, color: pendingCount > 0 ? 'var(--accent-color)' : '#10B981', margin: '0.35rem 0' }}>
+              {pendingCount}
+            </p>
+            <p className="crm-stat-sub" style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', margin: 0, fontWeight: 700 }}>
+              {pendingCount > 0 ? 'Awaiting Audit' : '✓ Reconciled'}
+            </p>
+          </div>
+        </div>
+
+      {/* Main Panel with Modern Segmented Tabs & Contextual Toolbar */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: '20px', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border-color)', background: 'var(--surface-color)' }}>
+        {/* Tier 1: Segmented Control Tabs */}
+        <div style={{
+          padding: '0.85rem 1.25rem 0',
+          borderBottom: '1px solid var(--border-color)',
+          background: 'var(--bg-color)',
+          display: 'flex',
+          gap: '0.5rem',
+          overflowX: 'auto',
+          WebkitOverflowScrolling: 'touch'
+        }}>
+          <button
+            onClick={() => setActiveTab('DONATIONS')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0.65rem 1.15rem',
+              borderRadius: '12px 12px 0 0',
+              border: 'none',
+              borderBottom: activeTab === 'DONATIONS' ? '3px solid var(--secondary-color)' : '3px solid transparent',
+              background: activeTab === 'DONATIONS' ? 'var(--surface-color)' : 'transparent',
+              color: activeTab === 'DONATIONS' ? 'var(--primary-color)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'DONATIONS' ? 900 : 700,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Heart size={16} color={activeTab === 'DONATIONS' ? 'var(--secondary-color)' : 'var(--text-secondary)'} />
+            <span>Donations & Receipts</span>
+            <span style={{
+              background: activeTab === 'DONATIONS' ? 'rgba(2, 132, 199, 0.15)' : 'rgba(0,0,0,0.06)',
+              color: activeTab === 'DONATIONS' ? 'var(--info-color)' : 'var(--text-secondary)',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              padding: '2px 7px',
+              borderRadius: '10px'
+            }}>
+              {donations.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('MEMBERS')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0.65rem 1.15rem',
+              borderRadius: '12px 12px 0 0',
+              border: 'none',
+              borderBottom: activeTab === 'MEMBERS' ? '3px solid var(--secondary-color)' : '3px solid transparent',
+              background: activeTab === 'MEMBERS' ? 'var(--surface-color)' : 'transparent',
+              color: activeTab === 'MEMBERS' ? 'var(--primary-color)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'MEMBERS' ? 900 : 700,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Users size={16} color={activeTab === 'MEMBERS' ? 'var(--secondary-color)' : 'var(--text-secondary)'} />
+            <span>Member Directory</span>
+            <span style={{
+              background: activeTab === 'MEMBERS' ? 'rgba(2, 132, 199, 0.15)' : 'rgba(0,0,0,0.06)',
+              color: activeTab === 'MEMBERS' ? 'var(--info-color)' : 'var(--text-secondary)',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              padding: '2px 7px',
+              borderRadius: '10px'
+            }}>
+              {members.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('OFFICERS')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0.65rem 1.15rem',
+              borderRadius: '12px 12px 0 0',
+              border: 'none',
+              borderBottom: activeTab === 'OFFICERS' ? '3px solid var(--secondary-color)' : '3px solid transparent',
+              background: activeTab === 'OFFICERS' ? 'var(--surface-color)' : 'transparent',
+              color: activeTab === 'OFFICERS' ? 'var(--primary-color)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'OFFICERS' ? 900 : 700,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Award size={16} color={activeTab === 'OFFICERS' ? 'var(--secondary-color)' : 'var(--text-secondary)'} />
+            <span>Executive Directorate</span>
+            <span style={{
+              background: activeTab === 'OFFICERS' ? 'rgba(212, 175, 55, 0.2)' : 'rgba(0,0,0,0.06)',
+              color: activeTab === 'OFFICERS' ? '#D97706' : 'var(--text-secondary)',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              padding: '2px 7px',
+              borderRadius: '10px'
+            }}>
+              5
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ACTIVITY')}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '0.65rem 1.15rem',
+              borderRadius: '12px 12px 0 0',
+              border: 'none',
+              borderBottom: activeTab === 'ACTIVITY' ? '3px solid #3B82F6' : '3px solid transparent',
+              background: activeTab === 'ACTIVITY' ? 'var(--surface-color)' : 'transparent',
+              color: activeTab === 'ACTIVITY' ? 'var(--primary-color)' : 'var(--text-secondary)',
+              fontWeight: activeTab === 'ACTIVITY' ? 900 : 700,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <Activity size={16} color={activeTab === 'ACTIVITY' ? '#3B82F6' : 'var(--text-secondary)'} />
+            <span>Security & Audit Stream</span>
+            <span style={{
+              background: activeTab === 'ACTIVITY' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(0,0,0,0.06)',
+              color: activeTab === 'ACTIVITY' ? '#3B82F6' : 'var(--text-secondary)',
+              fontSize: '0.72rem',
+              fontWeight: 800,
+              padding: '2px 7px',
+              borderRadius: '10px'
+            }}>
+              {filteredAuditLogs.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Tier 2: Dynamic Toolbar with Filters, Search, and Action Buttons */}
+        <div style={{
+          padding: '1rem 1.25rem',
+          borderBottom: '1px solid var(--border-color)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '0.75rem',
+          background: 'var(--surface-color)'
+        }}>
+          {/* Left: Tab Specific Filter Chips */}
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
             {activeTab === 'OFFICERS' && (
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--secondary-color)', background: 'rgba(212, 175, 55, 0.1)', padding: '0.25rem 0.75rem', borderRadius: '14px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--secondary-color)', background: 'rgba(212, 175, 55, 0.1)', padding: '0.3rem 0.85rem', borderRadius: '14px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
                 ⭐ 5 Authorized Executive Officers • Read, Write & Execute Authority
               </span>
             )}
@@ -1029,23 +1146,23 @@ export default function Management() {
                 <button
                   onClick={() => setAuditFilter('ALL')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--border-color)',
-                    background: auditFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
-                    color: auditFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    background: auditFilter === 'ALL' ? 'var(--secondary-color)' : 'transparent',
+                    color: auditFilter === 'ALL' ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
                     cursor: 'pointer'
                   }}
                 >
-                  All Stream ({activityLogs.length})
+                  All ({filteredAuditLogs.length})
                 </button>
                 <button
                   onClick={() => setAuditFilter('SIGN_IN')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #3B82F6',
@@ -1059,8 +1176,8 @@ export default function Management() {
                 <button
                   onClick={() => setAuditFilter('LOG_OUT')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #F97316',
@@ -1074,8 +1191,8 @@ export default function Management() {
                 <button
                   onClick={() => setAuditFilter('PAGE_ACCESS')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #10B981',
@@ -1084,13 +1201,13 @@ export default function Management() {
                     cursor: 'pointer'
                   }}
                 >
-                  Website Access ({activityLogs.filter(l => l.type === 'PAGE_ACCESS').length})
+                  Access Clearances
                 </button>
                 <button
                   onClick={() => setAuditFilter('ACCESS_ATTEMPT')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #EF4444',
@@ -1103,18 +1220,19 @@ export default function Management() {
                 </button>
               </>
             )}
+
             {activeTab === 'MEMBERS' && (
               <>
                 <button
                   onClick={() => setMemberCategoryFilter('ALL')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--border-color)',
-                    background: memberCategoryFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
-                    color: memberCategoryFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    background: memberCategoryFilter === 'ALL' ? 'var(--secondary-color)' : 'transparent',
+                    color: memberCategoryFilter === 'ALL' ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
                     cursor: 'pointer'
                   }}
                 >
@@ -1123,8 +1241,8 @@ export default function Management() {
                 <button
                   onClick={() => setMemberCategoryFilter('ACTIVE')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #10B981',
@@ -1138,8 +1256,8 @@ export default function Management() {
                 <button
                   onClick={() => setMemberCategoryFilter('SENIOR')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #D97706',
@@ -1148,13 +1266,13 @@ export default function Management() {
                     cursor: 'pointer'
                   }}
                 >
-                  Senior ({seniorMembersCount})
+                  Senior 60+ ({seniorMembersCount})
                 </button>
                 <button
                   onClick={() => setMemberCategoryFilter('NON_SENIOR')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--info-color)',
@@ -1173,13 +1291,13 @@ export default function Management() {
                 <button
                   onClick={() => setDonationStatusFilter('ALL')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--border-color)',
-                    background: donationStatusFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
-                    color: donationStatusFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    background: donationStatusFilter === 'ALL' ? 'var(--secondary-color)' : 'transparent',
+                    color: donationStatusFilter === 'ALL' ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
                     cursor: 'pointer'
                   }}
                 >
@@ -1188,8 +1306,8 @@ export default function Management() {
                 <button
                   onClick={() => setDonationStatusFilter('SUCCESS')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid #10B981',
@@ -1203,8 +1321,8 @@ export default function Management() {
                 <button
                   onClick={() => setDonationStatusFilter('PENDING')}
                   style={{
-                    padding: '0.25rem 0.55rem',
-                    borderRadius: '14px',
+                    padding: '0.3rem 0.65rem',
+                    borderRadius: '12px',
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--accent-color)',
@@ -1219,60 +1337,72 @@ export default function Management() {
             )}
           </div>
 
-          {/* Actions & Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {/* Action Buttons */}
-            {activeTab === 'DONATIONS' && (
-              <>
-                <button
-                  onClick={() => setShowAddDonationModal(true)}
-                  className="btn btn-secondary"
-                  style={{ fontSize: '0.825rem', padding: '0.4rem 0.85rem', gap: '6px', fontWeight: 800 }}
-                >
-                  <Plus size={15} /> Record Donation
-                </button>
-                <button
-                  onClick={handleExportCSV}
-                  className="btn btn-outline"
-                  style={{ fontSize: '0.825rem', padding: '0.4rem 0.85rem', gap: '6px' }}
-                  title="Export Donations as CSV"
-                >
-                  <Download size={15} /> Export CSV
-                </button>
-              </>
-            )}
-
-            {/* Search bar */}
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              background: 'var(--surface-color-solid)', 
-              padding: '0.4rem 0.85rem', 
-              borderRadius: '8px', 
-              border: '1px solid var(--border-color)' 
+          {/* Right: Search & Contextual Action Buttons */}
+          <div className="crm-toolbar-right" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginLeft: 'auto' }}>
+            {/* Search Input */}
+            <div className="crm-search-box" style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--bg-color)',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '10px',
+              border: '1px solid var(--border-color)'
             }}>
-              <Search size={15} style={{ color: 'var(--text-secondary)', marginRight: '6px' }} />
+              <Search size={14} style={{ color: 'var(--text-secondary)', marginRight: '6px' }} />
               <input
                 type="text"
-                placeholder={activeTab === 'DONATIONS' ? "Search donor, location, receipt..." : "Search member name, ID..."}
+                placeholder={activeTab === 'DONATIONS' ? "Search donor, receipt..." : "Search member, phone..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ 
-                  background: 'transparent', 
-                  border: 'none', 
-                  outline: 'none', 
-                  color: 'var(--text-primary)', 
-                  fontSize: '0.85rem', 
-                  width: '200px' 
+                className="crm-search-input"
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: 'var(--text-primary)',
+                  fontSize: '0.825rem',
+                  width: '180px'
                 }}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}
+                >
+                  <X size={13} />
+                </button>
+              )}
             </div>
+
+            {/* Contextual Action Button (Only on Donations) */}
+            {activeTab === 'DONATIONS' && (
+              <button
+                onClick={() => setShowAddDonationModal(true)}
+                className="btn btn-secondary"
+                style={{ fontSize: '0.8rem', padding: '0.42rem 0.85rem', gap: '5px', fontWeight: 800 }}
+                title="Record New Official Donation Receipt"
+              >
+                <Plus size={14} /> Record Donation
+              </button>
+            )}
+
+            {/* Export CSV for table */}
+            <button
+              onClick={handleExportCSV}
+              className="btn btn-outline"
+              style={{ fontSize: '0.8rem', padding: '0.42rem 0.75rem', gap: '5px', fontWeight: 700 }}
+              title="Download Audited CSV"
+            >
+              <Download size={13} /> Export CSV
+            </button>
           </div>
         </div>
 
         {/* DONATIONS TAB CONTENT (12 Official Donors + Live Additions) */}
         {activeTab === 'DONATIONS' && (
-          <div className="table-responsive">
+          <div>
+            <div className="crm-table-swipe-hint">👉 Swipe horizontally to view full receipt records & actions 👈</div>
+            <div className="table-responsive">
             <table>
               <thead>
                 <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
@@ -1297,11 +1427,11 @@ export default function Management() {
                   filteredDonations.map((d) => (
                     <tr key={d.publicDonationId} style={{ borderBottom: '1px solid var(--border-color)' }}>
                       <td style={{ padding: '1rem 1.25rem' }}>
-                        <span style={{ 
-                          background: 'rgba(245, 158, 11, 0.15)', 
-                          color: '#B45309', 
-                          fontWeight: 800, 
-                          padding: '3px 8px', 
+                        <span style={{
+                          background: 'rgba(245, 158, 11, 0.15)',
+                          color: '#B45309',
+                          fontWeight: 800,
+                          padding: '3px 8px',
                           borderRadius: '6px',
                           fontSize: '0.825rem'
                         }}>
@@ -1331,8 +1461,8 @@ export default function Management() {
                         {d.paymentMethod}
                       </td>
                       <td style={{ padding: '1rem 1.25rem' }}>
-                        <StatusBadge 
-                          status={d.status} 
+                        <StatusBadge
+                          status={d.status}
                           onClick={isSuperAdminUser ? () => handleToggleStatus(d.publicDonationId) : undefined}
                           isClickable={isSuperAdminUser}
                         />
@@ -1358,10 +1488,10 @@ export default function Management() {
                           {isSuperAdminUser && (
                             <button
                               onClick={() => handleDeleteDonation(d.publicDonationId, d.donorName)}
-                              style={{ 
-                                background: 'transparent', 
-                                border: 'none', 
-                                color: '#EF4444', 
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                color: '#EF4444',
                                 cursor: 'pointer',
                                 padding: '4px'
                               }}
@@ -1378,11 +1508,14 @@ export default function Management() {
               </tbody>
             </table>
           </div>
+          </div>
         )}
 
         {/* MEMBERS TAB CONTENT (Real Registered Members from Super Admin Registry & DB) */}
         {activeTab === 'MEMBERS' && (
-          <div className="table-responsive">
+          <div>
+            <div className="crm-table-swipe-hint">👉 Swipe horizontally to view full member registry details 👈</div>
+            <div className="table-responsive">
             <table>
               <thead>
                 <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
@@ -1405,11 +1538,11 @@ export default function Management() {
                   filteredMembers.map((m, i) => (
                     <tr key={i} style={{ borderBottom: '1px solid var(--border-color)' }}>
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ 
-                          background: 'rgba(14, 165, 233, 0.12)', 
-                          color: '#0284C7', 
-                          fontWeight: 800, 
-                          padding: '3px 8px', 
+                        <span style={{
+                          background: 'rgba(14, 165, 233, 0.12)',
+                          color: '#0284C7',
+                          fontWeight: 800,
+                          padding: '3px 8px',
                           borderRadius: '6px',
                           fontSize: '0.825rem'
                         }}>
@@ -1424,11 +1557,11 @@ export default function Management() {
                         {m.type}
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
-                        <span style={{ 
-                          background: 'rgba(239, 68, 68, 0.12)', 
-                          color: '#DC2626', 
-                          fontWeight: 900, 
-                          padding: '2px 8px', 
+                        <span style={{
+                          background: 'rgba(239, 68, 68, 0.12)',
+                          color: '#DC2626',
+                          fontWeight: 900,
+                          padding: '2px 8px',
                           borderRadius: '12px',
                           fontSize: '0.78rem'
                         }}>
@@ -1437,22 +1570,22 @@ export default function Management() {
                       </td>
                       <td style={{ padding: '1rem 1.5rem' }}>
                         {m.isSeniorCitizen ? (
-                          <span style={{ 
-                            background: 'rgba(245, 158, 11, 0.15)', 
-                            color: '#D97706', 
-                            fontWeight: 800, 
-                            padding: '3px 8px', 
+                          <span style={{
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            color: '#D97706',
+                            fontWeight: 800,
+                            padding: '3px 8px',
                             borderRadius: '12px',
                             fontSize: '0.75rem'
                           }}>
                             ★ Senior Citizen (60+)
                           </span>
                         ) : (
-                          <span style={{ 
-                            background: 'rgba(56, 189, 248, 0.12)', 
-                            color: '#0284C7', 
-                            fontWeight: 800, 
-                            padding: '3px 8px', 
+                          <span style={{
+                            background: 'rgba(56, 189, 248, 0.12)',
+                            color: '#0284C7',
+                            fontWeight: 800,
+                            padding: '3px 8px',
                             borderRadius: '12px',
                             fontSize: '0.75rem'
                           }}>
@@ -1477,6 +1610,7 @@ export default function Management() {
                 )}
               </tbody>
             </table>
+          </div>
           </div>
         )}
 
@@ -1549,7 +1683,7 @@ export default function Management() {
             {/* 5 Executive Officers Grid */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
               gap: '1.5rem'
             }}>
               {filteredOfficers.map((officer) => (
@@ -1736,7 +1870,9 @@ export default function Management() {
                 <p style={{ margin: 0, fontSize: '0.85rem' }}>Try clearing the search query or selecting another filter pill.</p>
               </div>
             ) : (
-              <div className="table-responsive">
+              <div>
+                <div className="crm-table-swipe-hint">👉 Swipe horizontally to view full activity audit trail 👈</div>
+                <div className="table-responsive">
                 <table>
                   <thead>
                     <tr style={{ background: 'rgba(0,0,0,0.03)', color: 'var(--text-secondary)' }}>
@@ -1868,6 +2004,7 @@ export default function Management() {
                     })}
                   </tbody>
                 </table>
+              </div>
               </div>
             )}
           </div>
@@ -2190,6 +2327,203 @@ export default function Management() {
           </div>
         </div>
       )}
+
+      {/* MODAL 3: OFFICER DIRECT CLEARANCE / SWITCH ACCOUNT MODAL */}
+      {showOfficerLoginModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(7, 13, 27, 0.72)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10060,
+          padding: '1rem',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <div className="card animate-fade-in" style={{ maxWidth: '440px', width: '100%', borderRadius: '20px', padding: '1.5rem', boxShadow: 'var(--shadow-xl)', background: 'var(--surface-color)', border: '1.5px solid var(--border-color)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={20} color="var(--info-color)" /> Officer Admin Clearance
+              </h3>
+              <button
+                onClick={() => setShowOfficerLoginModal(false)}
+                style={{ background: 'var(--bg-color)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            <div style={{
+              background: 'rgba(2, 132, 199, 0.08)',
+              border: '1px solid rgba(2, 132, 199, 0.22)',
+              borderRadius: '10px',
+              padding: '0.65rem 0.85rem',
+              fontSize: '0.78rem',
+              color: 'var(--info-color)',
+              fontWeight: 700,
+              marginBottom: '1rem'
+            }}>
+              💡 Login with your registered Email or Phone. Your default password is your Date of Birth (DOB).
+            </div>
+
+            {officerLoginError && (
+              <div style={{
+                background: 'rgba(220, 38, 38, 0.1)',
+                border: '1px solid rgba(220, 38, 38, 0.3)',
+                color: '#DC2626',
+                borderRadius: '8px',
+                padding: '0.55rem 0.75rem',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                marginBottom: '0.85rem'
+              }}>
+                {officerLoginError}
+              </div>
+            )}
+
+            <form onSubmit={handleOfficerDirectLogin} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.3rem' }}>
+                  Registered Email Address or Phone *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. ichemma@yahoo.com or 98640-44123"
+                  value={officerLoginForm.credential}
+                  onChange={(e) => setOfficerLoginForm({ ...officerLoginForm, credential: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.8rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.3rem' }}>
+                  Password (Date of Birth / Passcode) *
+                </label>
+                <input
+                  type="password"
+                  required
+                  placeholder="Enter Date of Birth (DOB) or Passcode"
+                  value={officerLoginForm.password}
+                  onChange={(e) => setOfficerLoginForm({ ...officerLoginForm, password: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '0.6rem 0.8rem',
+                    borderRadius: '8px',
+                    border: '1px solid var(--border-color)',
+                    background: 'var(--bg-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.85rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary"
+                style={{ justifyContent: 'center', padding: '0.65rem', marginTop: '0.25rem', fontWeight: 800, fontSize: '0.88rem' }}
+              >
+                Authenticate Officer Session
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+        {/* Scoped Responsive Styles for CRM Management Dashboard */}
+        <style jsx>{`
+          .crm-table-swipe-hint {
+            display: none;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--info-color);
+            background: rgba(2, 132, 199, 0.08);
+            padding: 0.35rem 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.5px;
+          }
+
+          .crm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1.15rem;
+            margin-bottom: 2rem;
+          }
+
+          @media (max-width: 1280px) {
+            .crm-stats-grid {
+              grid-template-columns: repeat(3, 1fr);
+            }
+          }
+
+          @media (max-width: 768px) {
+            :global(.crm-workspace-container) {
+              padding: 1rem 0.75rem 4rem !important;
+            }
+            :global(.crm-workspace-header) {
+              margin-bottom: 1.25rem !important;
+            }
+            .crm-table-swipe-hint {
+              display: block !important;
+            }
+          }
+
+          @media (max-width: 640px) {
+            .crm-stats-grid {
+              grid-template-columns: repeat(2, 1fr) !important;
+              gap: 0.6rem !important;
+              margin-bottom: 1.25rem !important;
+            }
+            :global(.crm-stat-card) {
+              padding: 0.85rem 0.75rem !important;
+              border-radius: 12px !important;
+            }
+            :global(.crm-stat-title) {
+              font-size: 0.78rem !important;
+            }
+            :global(.crm-stat-value) {
+              font-size: 1.35rem !important;
+              margin: 0.2rem 0 !important;
+            }
+            :global(.crm-stat-sub) {
+              font-size: 0.68rem !important;
+            }
+            :global(.crm-workspace-actions) {
+              width: 100% !important;
+              display: flex !important;
+            }
+            :global(.crm-workspace-actions button) {
+              flex: 1 1 48% !important;
+              justify-content: center !important;
+              font-size: 0.75rem !important;
+              padding: 0.45rem 0.5rem !important;
+            }
+            :global(.crm-toolbar-right) {
+              width: 100% !important;
+              margin-left: 0 !important;
+            }
+            :global(.crm-search-box) {
+              width: 100% !important;
+            }
+            :global(.crm-search-input) {
+              width: 100% !important;
+            }
+          }
+        `}</style>
+      </div>
     </div>
   );
 }
@@ -2198,7 +2532,7 @@ function StatusBadge({ status, onClick, isClickable }: { status: string; onClick
   const cursorStyle = isClickable ? { cursor: 'pointer' } : {};
   if (status === 'SUCCESS') {
     return (
-      <span 
+      <span
         onClick={onClick}
         title={isClickable ? "Click to toggle status (Super Admin)" : undefined}
         style={{ ...cursorStyle, padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem', background: 'rgba(39, 174, 96, 0.12)', color: 'var(--success-color)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
@@ -2209,7 +2543,7 @@ function StatusBadge({ status, onClick, isClickable }: { status: string; onClick
   }
   if (status === 'PENDING') {
     return (
-      <span 
+      <span
         onClick={onClick}
         title={isClickable ? "Click to toggle status (Super Admin)" : undefined}
         style={{ ...cursorStyle, padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem', background: 'rgba(212, 175, 55, 0.15)', color: 'var(--secondary-color)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
@@ -2219,7 +2553,7 @@ function StatusBadge({ status, onClick, isClickable }: { status: string; onClick
     );
   }
   return (
-    <span 
+    <span
       onClick={onClick}
       style={{ ...cursorStyle, padding: '0.25rem 0.65rem', borderRadius: '6px', fontSize: '0.8rem', background: 'rgba(0,0,0,0.06)', color: 'var(--text-secondary)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}
     >

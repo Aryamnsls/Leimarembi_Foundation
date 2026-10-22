@@ -1,13 +1,22 @@
 import { HeartPulse, Calendar, Phone, Activity, Clock } from 'lucide-react';
 
-export const metadata = {
-  title: 'Health & Welfare | Leimarembi Foundation',
-  description: 'Senior Citizen Medical Check-ups & Welfare Assistance.',
-};
+import { buildPageMetadata, getHealthCampJsonLd } from '@/lib/seo';
+
+export const metadata = buildPageMetadata({
+  title: 'Rural Healthcare & Senior Citizen Medical Camps',
+  description: 'Bi-monthly free health camps on the 15th and 30th of every month. Providing free doctor consultations, geriatric screenings, and medicines in Guwahati, Assam.',
+  path: '/health',
+});
 
 export default function Health() {
+  const healthJsonLd = JSON.stringify(getHealthCampJsonLd()).replace(/</g, '\\u003c');
+
   return (
     <div className="animate-fade-in" style={{ padding: '2.5rem 0 4rem' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: healthJsonLd }}
+      />
       <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
         <div className="glass-panel" style={{ padding: '0.4rem 1.25rem', borderRadius: '30px', marginBottom: '1rem' }}>
           <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--secondary-color)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
@@ -29,13 +38,14 @@ export default function Health() {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Upcoming Medical Camp</h3>
-            {/* @ts-ignore */}
-            <marquee scrollamount="4" style={{ display: 'block', margin: '0.2rem auto 0', color: 'var(--text-secondary)', fontSize: '0.95rem', width: '100%', maxWidth: '200px' }}>To be notified soon</marquee>
+            <div style={{ display: 'inline-block', margin: '0.4rem auto 0', color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 600 }}>
+              15th & 30th of Every Month
+            </div>
             <a
               href="https://www.google.com/maps/search/Manipuri+Rajbari,+Guwahati-781007,+Assam,+India"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: 'var(--secondary-color)', display: 'inline-block', marginTop: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}
+              style={{ color: 'var(--secondary-color)', display: 'block', marginTop: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}
             >
               Manipuri Rajbari, Guwahati-781007, Assam
             </a>
@@ -48,8 +58,9 @@ export default function Health() {
           </div>
           <div>
             <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800 }}>Check-ups Completed</h3>
-            {/* @ts-ignore */}
-            <marquee scrollamount="4" style={{ display: 'block', margin: '0.2rem auto 0', color: 'var(--text-secondary)', fontSize: '0.95rem', width: '100%', maxWidth: '200px' }}>To be notified soon</marquee>
+            <div style={{ display: 'inline-block', margin: '0.4rem auto 0', color: 'var(--success-color)', fontSize: '0.95rem', fontWeight: 700 }}>
+              Regular Community Screening Active
+            </div>
           </div>
         </div>
       </div>

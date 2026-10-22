@@ -2,10 +2,13 @@ import Link from 'next/link';
 import { Info, Target, Eye, ArrowRight, ShieldCheck } from 'lucide-react';
 import { MEMBERS_DATA } from '@/data/membersData';
 
-export const metadata = {
-  title: 'About Us | Leimarembi Foundation',
-  description: 'Learn about our vision, mission, and objectives.',
-};
+import { buildPageMetadata } from '@/lib/seo';
+
+export const metadata = buildPageMetadata({
+  title: 'About Us - Vision, Mission & Governance',
+  description: 'Learn about Leimarembi Foundation (Estd. 2001), our public charitable trust mission, leadership board, indigenous cultural preservation, and community welfare initiatives across Northeast India.',
+  path: '/about',
+});
 
 export default function About() {
   const leadershipMembers = MEMBERS_DATA.filter((m) => m.category === 'Leadership');

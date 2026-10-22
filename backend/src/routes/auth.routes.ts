@@ -109,7 +109,7 @@ function verifyBackendOfficerPassword(officer: OfficerDef, pwd: string): boolean
   return lower === 'admin@123456' || lower === 'member@123456' || lower === 'leimarembi2026';
 }
 
-function isSuperAdminEmailOrPhone(eMail?: string, pHone?: string): boolean {
+function isSuperAdminEmailOrPhone(eMail?: string | null, pHone?: string | null): boolean {
   const e = (eMail || '').toLowerCase().trim();
   const p = (pHone || '').replace(/[^0-9]/g, '');
   return (

@@ -1,23 +1,43 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Providers from "@/components/Providers";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 import "./globals.css";
 import { LanguageProvider } from "@/i18n/LanguageContext";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import GlobalBackground from "@/components/GlobalBackground";
 import WelcomeOverlay from "@/components/WelcomeOverlay";
-import Breadcrumb from "@/components/Breadcrumb";
-import FloatingAiChat from "@/components/FloatingAiChat";
-import ScrollToTop from "@/components/ScrollToTop";
-import ClientRouteGuard from "@/components/ClientRouteGuard";
+import AppShell from "@/components/AppShell";
+import { CANONICAL_ORIGIN, getOrganizationJsonLd, getWebSiteJsonLd } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Leimarembi Foundation | Digital Governance & Community Development",
-  description: "Official Digital Governance & Community Development Platform for Leimarembi Foundation in Northeast India.",
+  metadataBase: new URL(CANONICAL_ORIGIN),
+  applicationName: "Leimarembi Foundation",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Leimarembi" },
+  formatDetection: { telephone: false },
+  title: {
+    default: "Leimarembi Foundation | Indigenous Culture & Rural Welfare",
+    template: "%s | Leimarembi Foundation",
+  },
+  description: "Official public charitable trust dedicated to indigenous cultural preservation, rural healthcare welfare camps, Section 80G tax-exempt donations, and community development across Northeast India.",
+  alternates: {
+    canonical: CANONICAL_ORIGIN,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   openGraph: {
-    title: "Leimarembi Foundation | Official Digital Governance & QR Portal",
-    description: "Scan the Executive QR Gateway Code or click to access Official Governance, Executive Board Meetings, and Health Welfare.",
+    title: "Leimarembi Foundation | Indigenous Culture & Rural Welfare",
+    description: "Official public charitable trust dedicated to indigenous cultural preservation, rural healthcare welfare camps, Section 80G tax-exempt donations, and community development across Northeast India.",
     siteName: "Leimarembi Foundation",
+    url: CANONICAL_ORIGIN,
     images: [
       {
         url: "/leimarembi_qr_preview.jpg",
@@ -26,40 +46,71 @@ export const metadata: Metadata = {
         alt: "Leimarembi Foundation Executive QR Code Gateway",
       },
     ],
-    locale: "en_US",
+    locale: "en_IN",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Leimarembi Foundation | Official Digital Governance & QR Portal",
-    description: "Official Digital Governance Platform for Leimarembi Foundation.",
+    title: "Leimarembi Foundation | Indigenous Culture & Rural Welfare",
+    description: "Official public charitable trust dedicated to indigenous cultural preservation, rural healthcare welfare camps, and Section 80G tax-exempt donations.",
     images: ["/leimarembi_qr_preview.jpg"],
   },
   icons: {
-    icon: '/leimarembi_official_logo.png',
-    shortcut: '/leimarembi_official_logo.png',
-    apple: '/leimarembi_official_logo.png',
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/icons/icon-192.png",
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#1B2A57",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const orgJsonLd = JSON.stringify(getOrganizationJsonLd()).replace(/</g, '\\u003c');
+  const webSiteJsonLd = JSON.stringify(getWebSiteJsonLd()).replace(/</g, '\\u003c');
+
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: orgJsonLd }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: webSiteJsonLd }}
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('theme');
+                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var theme = saved ? saved : (prefersDark ? 'dark' : 'light');
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body suppressHydrationWarning>
         <Providers>
           <LanguageProvider>
             <GlobalBackground />
             <WelcomeOverlay />
-            <Navbar />
-            <main className="container" style={{ minHeight: 'calc(100dvh - 160px)', paddingTop: '0.5rem' }}>
-              <Breadcrumb />
-              <ClientRouteGuard>
-                {children}
-              </ClientRouteGuard>
-            </main>
-            <ScrollToTop />
-            <FloatingAiChat />
-            <Footer />
+            <AppShell>
+              {children}
+            </AppShell>
+            <PWAInstallPrompt />
           </LanguageProvider>
         </Providers>
       </body>

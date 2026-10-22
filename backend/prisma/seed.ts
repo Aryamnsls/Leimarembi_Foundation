@@ -46,6 +46,12 @@ async function main() {
 
   console.log('✅ Users seeded');
 
+  // Clean existing seed data to ensure idempotency
+  await prisma.document.deleteMany();
+  await prisma.grant.deleteMany();
+  await prisma.project.deleteMany();
+  await prisma.donation.deleteMany();
+
   // 2. Seed Donations
   await prisma.donation.createMany({
     data: [

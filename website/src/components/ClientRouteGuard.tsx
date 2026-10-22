@@ -6,25 +6,11 @@ import Image from 'next/image';
 import { ShieldAlert, ShieldCheck, Lock, UserPlus, ArrowRight } from 'lucide-react';
 import { isSuperAdmin } from '@/lib/superAdminAuth';
 
-// ─────────────────────────────────────────────────────────────
-// Public routes: Only the Homepage (welcome page) and Login/Register
-// All other routes require registered member authentication.
-// ─────────────────────────────────────────────────────────────
-const PUBLIC_PATHS = ['/', '/login'];
+import { isPublicPath, isPrivateRoute } from '@/lib/routePolicy';
 
-function isPublicRoute(pathname: string): boolean {
-  if (PUBLIC_PATHS.includes(pathname)) return true;
-  if (pathname.startsWith('/login')) return true;
-  // Allow static assets
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/static') ||
-    pathname.startsWith('/api') ||
-    pathname.match(/\.(ico|png|jpg|jpeg|svg|gif|webp|woff|woff2|ttf|otf|css|js|map|pdf)$/)
-  ) {
-    return true;
-  }
-  return false;
+function isPublicRoute(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return isPublicPath(pathname);
 }
 
 export default function ClientRouteGuard({ children }: { children: React.ReactNode }) {
@@ -32,26 +18,19 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const [authorized, setAuthorized] = useState<boolean>(() => {
-    // Initial guess on client render
-    if (typeof window === 'undefined') return true;
-    if (isPublicRoute(pathname)) return true;
-    return Boolean(localStorage.getItem('lf_token'));
-  });
-
-  const [checking, setChecking] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return !isPublicRoute(pathname);
-  });
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [authorized, setAuthorized] = useState<boolean>(true);
+  const [checking, setChecking] = useState<boolean>(false);
 
   // ───────────────────────────────────────────────────────────
   // 1. ROUTE GUARD: Check authorization on every pathname change
   // ───────────────────────────────────────────────────────────
   useEffect(() => {
+    setMounted(true);
     if (typeof window === 'undefined') return;
 
-    // Homepage / Welcome page and /login are always accessible
-    if (isPublicRoute(pathname)) {
+    // Public pages & utility routes are always accessible
+    if (isPublicPath(pathname)) {
       setAuthorized(true);
       setChecking(false);
       return;
@@ -61,7 +40,7 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
     const userStr = localStorage.getItem('lf_user');
 
     if (!token || !userStr) {
-      // Unauthenticated visitor attempting to access protected route
+      // Unauthenticated visitor attempting to access private route
       setAuthorized(false);
       setChecking(false);
 
@@ -90,21 +69,20 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
       }
     }
 
-    // Authenticated member accessing regular foundation pages
+    // Authenticated member accessing private foundation pages
     setAuthorized(true);
     setChecking(false);
   }, [pathname, router]);
 
   // ───────────────────────────────────────────────────────────
-  // 2. GLOBAL LINK CLICK INTERCEPTOR FOR UNAUTHENTICATED USERS
-  // Intercepts clicks on ANY internal link on the welcome page
-  // and routes visitor directly to the login page.
+  // 2. LINK CLICK INTERCEPTOR FOR UNAUTHENTICATED USERS
+  // Intercepts clicks on private routes and routes visitor to login
   // ───────────────────────────────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleDocumentClick = (e: MouseEvent) => {
-      // If user is already logged in, let normal navigation occur!
+      // If user is already logged in, let normal navigation occur
       const token = localStorage.getItem('lf_token');
       if (token) return;
 
@@ -127,25 +105,22 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
         return;
       }
 
-      // If clicking home or qr query, allow it
-      if (rawHref === '/' || rawHref.startsWith('/?qr=') || rawHref.startsWith('/?direct=')) {
+      // If clicking an internal link that is public, allow it freely
+      if (isPublicPath(rawHref)) {
         return;
       }
 
-      // If already going to login or register, allow it
-      if (rawHref === '/login' || rawHref.startsWith('/login')) {
-        return;
+      // If clicking a private route (e.g. /portal, /meetings, /documents, /management, /superadmin)
+      // Intercept and route to Sign In with redirect param
+      if (isPrivateRoute(rawHref)) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const redirectTarget = encodeURIComponent(rawHref);
+        startTransition(() => {
+          router.push(`/login?tab=login&redirect=${redirectTarget}`);
+        });
       }
-
-      // ANY OTHER internal link (e.g. /portal, /about, /members, /news, /meetings, /documents, /activities, /donate, etc.)
-      // Intercept immediately and route to Sign In!
-      e.preventDefault();
-      e.stopPropagation();
-
-      const redirectTarget = encodeURIComponent(rawHref);
-      startTransition(() => {
-        router.push(`/login?tab=login&redirect=${redirectTarget}`);
-      });
     };
 
     document.addEventListener('click', handleDocumentClick, { capture: true });
@@ -154,7 +129,12 @@ export default function ClientRouteGuard({ children }: { children: React.ReactNo
     };
   }, [router]);
 
-  // If on a public route (Welcome Page / Login), render directly
+  // SSR and initial hydration pass: always render children to guarantee exact SSR match
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
+  // If on a public route (Welcome Page / Login / CRM), render directly
   if (isPublicRoute(pathname)) {
     return <>{children}</>;
   }
