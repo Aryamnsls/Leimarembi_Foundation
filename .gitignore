@@ -6,12 +6,23 @@ node_modules
 # testing
 /coverage
 
-# next.js
+# next.js build outputs
 website/.next/
-# website/out/
+website/.open-next/
+.open-next/
+website/out/
+/out/
 backend/dist/
 backend/node_modules/
 website/node_modules/
+*.bak
+
+# sensitive documents & vault storage
+backend/storage/vault/
+website/public/Members_List.jpeg
+website/public/Donation_List_of_Members.docx
+website/public/New_Blood_Group_List.docx
+*.docx
 
 # production
 /build

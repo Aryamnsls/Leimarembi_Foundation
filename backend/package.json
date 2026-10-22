@@ -10,7 +10,7 @@
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   },
   "keywords": [],
   "author": "",
@@ -41,6 +41,6 @@
     "typescript": "^5.7.3"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   }
 }

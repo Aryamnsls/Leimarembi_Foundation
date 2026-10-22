@@ -19,6 +19,7 @@ import {
   recordActivity
 } from '@/lib/superAdminAuth';
 import { canSwitchRoleMode } from '@/lib/executiveOfficers';
+import CrmTopNav from '@/components/CrmTopNav';
 
 interface MemberRecord {
   id: string;
@@ -81,33 +82,7 @@ export default function SuperAdminPage() {
   const [roleFilter, setRoleFilter] = useState('ALL');
 
   // Member records state - Strictly keep Aryaman Singha and M. Bina Babu Singha
-  const [members, setMembers] = useState<MemberRecord[]>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('lf_superadmin_members');
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            const filtered = parsed
-              .filter((m: MemberRecord) =>
-                m.email === 'aryamansingha60@gmail.com' ||
-                m.email === 'binababu.singha@yahoo.com' ||
-                m.phone.replace(/[^0-9]/g, '').endsWith('7099659804') ||
-                m.phone.replace(/[^0-9]/g, '').endsWith('7637087931')
-              )
-              .map((m: MemberRecord) => {
-                if (m.email === 'aryamansingha60@gmail.com' || m.phone.replace(/[^0-9]/g, '').endsWith('7099659804')) {
-                  return { ...m, bloodGroup: 'A+' };
-                }
-                return m;
-              });
-            if (filtered.length >= 2) return filtered;
-          }
-        } catch {}
-      }
-    }
-    return SEED_MEMBERS;
-  });
+  const [members, setMembers] = useState<MemberRecord[]>(SEED_MEMBERS);
 
   // Activity logs state
   const [activityLogs, setActivityLogs] = useState<ActivityEvent[]>([]);
@@ -416,31 +391,34 @@ export default function SuperAdminPage() {
   // ACCESS DENIED LOCK SCREEN FOR UNAUTHORIZED VISITORS
   if (!authorized) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-        <div className="card" style={{ maxWidth: '520px', width: '100%', padding: '3rem 2.5rem', textAlign: 'center', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', border: '1.5px solid rgba(220, 38, 38, 0.3)' }}>
-          <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(220, 38, 38, 0.1)', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-            <Lock size={36} />
-          </div>
+      <div style={{ minHeight: '100vh', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+        <CrmTopNav currentUser={currentUser} />
+        <div style={{ minHeight: 'calc(100vh - 120px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
+          <div className="card" style={{ maxWidth: '520px', width: '100%', padding: '3rem 2.5rem', textAlign: 'center', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', border: '1.5px solid rgba(220, 38, 38, 0.3)' }}>
+            <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'rgba(220, 38, 38, 0.1)', color: '#DC2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+              <Lock size={36} />
+            </div>
 
-          <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary-color)', margin: '0 0 0.5rem' }}>
-            Restricted Super Admin Vault
-          </h2>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-            This portal is strictly reserved for the <strong>2 Designated Super Administrators</strong>:
-            <br />• <strong>Aryaman Singha</strong> (aryamansingha60@gmail.com / 7099659804)
-            <br />• <strong>M. Bina Babu Singha</strong> (binababu.singha@yahoo.com / 76370-87931)
-          </p>
+            <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: 'var(--primary-color)', margin: '0 0 0.5rem' }}>
+              Restricted Super Admin Vault
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              This portal is strictly reserved for the <strong>2 Designated Super Administrators</strong>:
+              <br />• <strong>Aryaman Singha</strong> (aryamansingha60@gmail.com / 7099659804)
+              <br />• <strong>M. Bina Babu Singha</strong> (binababu.singha@yahoo.com / 76370-87931)
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <Link href="/management" className="btn btn-primary" style={{ justifyContent: 'center', padding: '0.75rem' }}>
-              <ShieldCheck size={18} /> Open Executive Admin Panel (/management)
-            </Link>
-            <Link href="/login" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem' }}>
-              <LogIn size={18} /> Sign In with Authorized Super Admin Account
-            </Link>
-            <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
-              ← Return to Public Home
-            </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <Link href="/management" className="btn btn-primary" style={{ justifyContent: 'center', padding: '0.75rem' }}>
+                <ShieldCheck size={18} /> Open Executive Admin Panel (/management)
+              </Link>
+              <Link href="/login" className="btn btn-outline" style={{ justifyContent: 'center', padding: '0.75rem' }}>
+                <LogIn size={18} /> Sign In with Authorized Super Admin Account
+              </Link>
+              <Link href="/" style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textDecoration: 'none' }}>
+                ← Return to Public Home
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -449,9 +427,13 @@ export default function SuperAdminPage() {
 
   // AUTHORIZED SUPER ADMIN DASHBOARD
   return (
-    <div className="animate-fade-in" style={{ padding: '2rem 0 5rem' }}>
-      {/* Top Banner: Super Admin Verified Seal */}
-      <div style={{
+    <div className="crm-app-shell" style={{ minHeight: '100vh', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+      {/* Top Enterprise CRM Navigation Bar */}
+      <CrmTopNav currentUser={currentUser || activeAdmin} />
+
+      <div className="superadmin-workspace" style={{ maxWidth: '1600px', margin: '0 auto', padding: '1.5rem 1.5rem 5rem' }}>
+        {/* Top Banner: Super Admin Verified Seal */}
+        <div className="superadmin-banner" style={{
         background: 'linear-gradient(135deg, #0A192F 0%, #172A46 100%)',
         borderRadius: '24px',
         padding: '2rem 2.5rem',
@@ -538,7 +520,7 @@ export default function SuperAdminPage() {
       </div>
 
       {/* KPI Cards - Clickable Interactive Links */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+      <div className="superadmin-stats-grid">
         {/* 1. Total Registered Members */}
         <div
           onClick={() => {
@@ -765,8 +747,8 @@ export default function SuperAdminPage() {
                     fontSize: '0.75rem',
                     fontWeight: 700,
                     border: '1px solid var(--border-color)',
-                    background: activityFilter === 'ALL' ? 'var(--primary-color)' : 'transparent',
-                    color: activityFilter === 'ALL' ? '#FFFFFF' : 'var(--text-secondary)',
+                    background: activityFilter === 'ALL' ? 'var(--secondary-color)' : 'transparent',
+                    color: activityFilter === 'ALL' ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
                     cursor: 'pointer'
                   }}
                 >
@@ -1051,8 +1033,8 @@ export default function SuperAdminPage() {
                       fontSize: '0.75rem',
                       fontWeight: 700,
                       border: '1px solid var(--border-color)',
-                      background: roleFilter === r ? 'var(--primary-color)' : 'transparent',
-                      color: roleFilter === r ? '#FFFFFF' : 'var(--text-secondary)',
+                      background: roleFilter === r ? 'var(--secondary-color)' : 'transparent',
+                      color: roleFilter === r ? 'var(--btn-primary-text)' : 'var(--text-secondary)',
                       cursor: 'pointer'
                     }}
                   >
@@ -1795,6 +1777,41 @@ export default function SuperAdminPage() {
           </div>
         </div>
       )}
+      {/* Scoped Responsive Styles for Super Admin Workspace */}
+      <style jsx>{`
+        .superadmin-stats-grid {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 1.15rem;
+          margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1280px) {
+          .superadmin-stats-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+
+        @media (max-width: 768px) {
+          :global(.superadmin-workspace) {
+            padding: 1rem 0.75rem 4rem !important;
+          }
+          :global(.superadmin-banner) {
+            padding: 1.25rem 1rem !important;
+            margin-bottom: 1.5rem !important;
+            border-radius: 18px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .superadmin-stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 0.6rem !important;
+            margin-bottom: 1.25rem !important;
+          }
+        }
+      `}</style>
+      </div>
     </div>
   );
 }

@@ -6,7 +6,13 @@
   "scripts": {
     "dev": "concurrently --names \"BACKEND,FRONTEND\" --prefix-colors \"cyan,magenta\" \"npm run dev --prefix backend\" \"npm run dev --prefix website\"",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix website"
+    "dev:frontend": "npm run dev --prefix website",
+    "build": "npm run build --prefix backend && npm run build --prefix website",
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix website",
+    "db:push": "npm run prisma:push --prefix backend",
+    "db:seed": "npm run seed --prefix backend",
+    "db:studio": "npx prisma studio --schema backend/prisma/schema.prisma"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import { ChevronRight, QrCode, Share2, Copy, Check, ShieldCheck, Sparkles, X, Smartphone, Monitor, Lock, CheckCircle2, ShieldAlert } from 'lucide-react';
 import Image from 'next/image';
 import QRCode from 'react-qr-code';
@@ -8,6 +9,9 @@ import QRCode from 'react-qr-code';
 import { EMBLEM_LOGO_BASE64 } from '@/data/emblemLogoBase64';
 
 export default function WelcomeOverlay() {
+  const pathname = usePathname();
+  const isCrmRoute = pathname ? (pathname.startsWith('/management') || pathname.startsWith('/superadmin')) : false;
+
   const [isVisible, setIsVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [step, setStep] = useState<'qr' | 'welcome'>('qr');
@@ -17,6 +21,7 @@ export default function WelcomeOverlay() {
   const [selectedDevice, setSelectedDevice] = useState<'desktop' | 'mobile' | null>(null);
 
   useEffect(() => {
+    if (isCrmRoute) return;
     if (typeof window !== 'undefined') {
       const origin = window.location.origin;
       const directScanUrl = `${origin}/?direct=1`;
@@ -204,7 +209,7 @@ export default function WelcomeOverlay() {
     }
   }, [isVisible, handleEnterPlatform]);
 
-  if (!isVisible) return null;
+  if (isCrmRoute || !isVisible) return null;
 
   return (
     <div 

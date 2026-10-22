@@ -15,7 +15,15 @@
 
 # next.js
 /.next/
+/.open-next/
 /out/
+*.bak
+
+# sensitive files
+public/Members_List.jpeg
+public/Donation_List_of_Members.docx
+public/New_Blood_Group_List.docx
+*.docx
 
 # production
 /build

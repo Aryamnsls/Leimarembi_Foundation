@@ -1,3 +1,17 @@
+# PWA response headers: keep the worker/manifest fresh so deployments propagate safely.
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+<IfModule mod_headers.c>
+    <FilesMatch "^(sw\.js|manifest\.webmanifest|offline\.html)$">
+        Header always set Cache-Control "no-cache, must-revalidate"
+    </FilesMatch>
+    <FilesMatch "^(icon-192|icon-512|icon-maskable-512|apple-touch-icon)\.png$">
+        Header set Cache-Control "public, max-age=604800"
+    </FilesMatch>
+</IfModule>
+
 # Hostinger Web Server Configuration for Leimarembi Foundation Website
 DirectoryIndex index.html index.php
 

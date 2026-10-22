@@ -40,7 +40,6 @@ export interface AuthorizedMember {
   phone: string;
   bloodGroup: string;
   ageCategory: string;
-  passcode: string;
 }
 
 export const AUTHORIZED_MEMBERS: AuthorizedMember[] = EXECUTIVE_OFFICERS.map(o => ({
@@ -51,8 +50,7 @@ export const AUTHORIZED_MEMBERS: AuthorizedMember[] = EXECUTIVE_OFFICERS.map(o =
   email: o.email,
   phone: o.phone,
   bloodGroup: o.bloodGroup,
-  ageCategory: o.ageCategory,
-  passcode: o.passcode
+  ageCategory: o.ageCategory
 }));
 
 // ----- Document Library -----
@@ -84,33 +82,33 @@ const BUILTIN_DOCS: DocEntry[] = [
   },
   {
     id: "mem-001",
-    title: "Members List – Leimarembi Foundation",
-    description: "Complete verified list of all registered members of the Leimarembi Foundation including blood group, age category, email and contact details.",
-    fileName: "Members_List.jpeg",
-    filePath: "/Members_List.jpeg",
-    fileType: "IMAGE",
+    title: "Official Member Roster Registry",
+    description: "Verified executive directory of designated trustees and officers of the Leimarembi Foundation. Contact details accessible to verified officers.",
+    fileName: "Executive_Roster_Summary.pdf",
+    filePath: "/Pad_Leimarembi_Imp_Document.pdf",
+    fileType: "PDF",
     tag: "Member Registry",
     tagColor: "rgba(16,185,129,0.12)",
     updatedLabel: "Updated 2026",
   },
   {
     id: "don-001",
-    title: "Donation List of Members",
-    description: "Official donation ledger capturing contribution records of all foundation members including amounts, dates and payment references.",
-    fileName: "Donation_List_of_Members.docx",
-    filePath: "/Donation_List_of_Members.docx",
-    fileType: "DOCX",
+    title: "Donation Ledger & 80G Contribution Record",
+    description: "Official donation records capturing verified contribution accounts and Section 80G tax exemptions under Foundation audit guidelines.",
+    fileName: "Donation_Ledger_Summary.pdf",
+    filePath: "/Pad_Leimarembi_Imp_Document.pdf",
+    fileType: "PDF",
     tag: "Financial Records",
     tagColor: "rgba(245,158,11,0.12)",
     updatedLabel: "Updated 2026",
   },
   {
     id: "blood-001",
-    title: "Blood Group Register – All Members",
-    description: "Comprehensive blood group register for all Leimarembi Foundation members, maintained for medical emergency reference and welfare coordination.",
-    fileName: "New_Blood_Group_List.docx",
-    filePath: "/New_Blood_Group_List.docx",
-    fileType: "DOCX",
+    title: "Community Health & Emergency Welfare Register",
+    description: "Emergency welfare and healthcare coordination records maintained for medical camps and welfare relief under Foundation Bye-Laws.",
+    fileName: "Health_Welfare_Register.pdf",
+    filePath: "/Pad_Leimarembi_Imp_Document.pdf",
+    fileType: "PDF",
     tag: "Health & Welfare",
     tagColor: "rgba(220,38,38,0.1)",
     updatedLabel: "Updated 2026",
@@ -181,7 +179,6 @@ export default function DocumentsPage() {
                 phone: officer.phone,
                 bloodGroup: officer.bloodGroup,
                 ageCategory: officer.ageCategory,
-                passcode: officer.passcode,
               });
               setIsUnlocked(true);
             }
@@ -221,7 +218,6 @@ export default function DocumentsPage() {
         phone: officer.phone,
         bloodGroup: officer.bloodGroup,
         ageCategory: officer.ageCategory,
-        passcode: officer.passcode,
       };
       setActiveUser(activeObj);
       setIsUnlocked(true);

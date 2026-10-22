@@ -488,7 +488,28 @@ export function recordActivity(event: Omit<ActivityEvent, "id" | "timestamp">): 
 
   try {
     const existingStr = localStorage.getItem("lf_activity_log");
-    const logs: ActivityEvent[] = existingStr ? JSON.parse(existingStr) : [...INITIAL_ACTIVITY_LOGS];
+    let logs: ActivityEvent[] = existingStr ? JSON.parse(existingStr) : [...INITIAL_ACTIVITY_LOGS];
+
+    // Deduplication: If the most recent log is the same type, user, and pageVisited, just update its timestamp instead of creating duplicate spam rows
+    if (
+      logs.length > 0 &&
+      (event.type === "PAGE_ACCESS" || event.type === "VISITOR_CHECK") &&
+      logs[0].type === event.type &&
+      logs[0].userEmail === event.userEmail &&
+      logs[0].pageVisited === event.pageVisited
+    ) {
+      logs[0].timestamp = new Date().toLocaleString("en-IN", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      localStorage.setItem("lf_activity_log", JSON.stringify(logs.slice(0, 150)));
+      window.dispatchEvent(new CustomEvent("lf_activity_updated", { detail: logs[0] }));
+      return;
+    }
 
     const userAgent = typeof navigator !== "undefined" ? navigator.userAgent : "";
     let detectedDevice = "Desktop (Chrome / Windows 11)";
@@ -529,6 +550,11 @@ export function recordActivity(event: Omit<ActivityEvent, "id" | "timestamp">): 
 export function recordVisitorCheck(pageName: string): void {
   if (typeof window === "undefined") return;
 
+  // Do not record internal CRM / Admin page navigation spam
+  if (pageName.startsWith("/management") || pageName.startsWith("/superadmin")) {
+    return;
+  }
+
   // Check if current user is logged in
   let user: any = null;
   try {
@@ -536,11 +562,11 @@ export function recordVisitorCheck(pageName: string): void {
     if (userStr) user = JSON.parse(userStr);
   } catch {}
 
-  // Rate-limit consecutive telemetry pings to the same page within 45 seconds
+  // Rate-limit consecutive telemetry pings to the same page within 2 minutes
   const lastKey = `lf_last_visit_${pageName}`;
   const lastTime = sessionStorage.getItem(lastKey);
   const now = Date.now();
-  if (lastTime && now - Number(lastTime) < 45000) {
+  if (lastTime && now - Number(lastTime) < 120000) {
     return;
   }
   sessionStorage.setItem(lastKey, String(now));
@@ -595,6 +621,37 @@ export function recordVisitorCheck(pageName: string): void {
   }
 }
 
+// Clean and deduplicate an array of activity events
+function sanitizeAndDeduplicateLogs(rawLogs: ActivityEvent[]): ActivityEvent[] {
+  const cleaned: ActivityEvent[] = [];
+  const seenPageAccess = new Set<string>();
+
+  for (const item of rawLogs) {
+    if (!item || !item.type) continue;
+
+    // Deduplicate repeated PAGE_ACCESS or VISITOR_CHECK for the same user and page
+    if (item.type === "PAGE_ACCESS" || item.type === "VISITOR_CHECK") {
+      const key = `${item.userEmail || item.userName}-${item.pageVisited || ""}`;
+      if (seenPageAccess.has(key)) {
+        // Skip duplicate repeated rows
+        continue;
+      }
+      seenPageAccess.add(key);
+    }
+
+    cleaned.push(item);
+  }
+
+  // Ensure all baseline official activities exist
+  for (const seed of INITIAL_ACTIVITY_LOGS) {
+    if (!cleaned.some(c => c.userName === seed.userName && c.type === seed.type)) {
+      cleaned.push(seed);
+    }
+  }
+
+  return cleaned.slice(0, 100);
+}
+
 export function getActivityLogs(): ActivityEvent[] {
   if (typeof window === "undefined") return INITIAL_ACTIVITY_LOGS;
   try {
@@ -602,15 +659,10 @@ export function getActivityLogs(): ActivityEvent[] {
     if (existingStr) {
       const parsed = JSON.parse(existingStr);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        // If existing stored logs don't include all official members, seed them
-        const hasMembers = parsed.some((l: ActivityEvent) => l.userName === "Dr. Puritsabam Birmani");
-        if (hasMembers) {
-          return parsed;
-        } else {
-          const merged = [...parsed, ...INITIAL_ACTIVITY_LOGS];
-          localStorage.setItem("lf_activity_log", JSON.stringify(merged.slice(0, 150)));
-          return merged;
-        }
+        const cleaned = sanitizeAndDeduplicateLogs(parsed);
+        // Persist the deduplicated clean array
+        localStorage.setItem("lf_activity_log", JSON.stringify(cleaned));
+        return cleaned;
       }
     }
     // Default seed

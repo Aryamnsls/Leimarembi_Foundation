@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 export default function ScrollToTop() {
+  const pathname = usePathname();
   const [isScrolledDown, setIsScrolledDown] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -35,13 +37,13 @@ export default function ScrollToTop() {
     }
   };
 
-  if (!mounted) return null;
+  if (!mounted || pathname?.startsWith('/management') || pathname?.startsWith('/superadmin')) return null;
 
   return (
     <div
       style={{
         position: 'fixed',
-        bottom: '24px',
+        bottom: 'max(24px, calc(16px + env(safe-area-inset-bottom)))',
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 9990,
